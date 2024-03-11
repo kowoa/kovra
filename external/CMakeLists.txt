@@ -6,6 +6,7 @@ add_subdirectory(SDL)
 add_subdirectory(glm)
 add_subdirectory(VulkanMemoryAllocator)
 
+# imgui
 add_library(imgui STATIC)
 target_include_directories(imgui PUBLIC imgui)
 target_sources(
@@ -19,9 +20,19 @@ target_sources(
           imgui/backends/imgui_impl_sdl2.cpp)
 target_link_libraries(imgui PUBLIC Vulkan::Vulkan SDL2::SDL2)
 
+# tinyobjloader
 add_library(tinyobjloader INTERFACE)
 target_include_directories(tinyobjloader INTERFACE tinyobjloader)
 
+# spdlog
+add_subdirectory(spdlog)
+
 target_link_libraries(
-  external INTERFACE Vulkan::Vulkan SDL2::SDL2 glm VulkanMemoryAllocator imgui
-                     tinyobjloader)
+  external
+  INTERFACE Vulkan::Vulkan
+            SDL2::SDL2
+            glm
+            VulkanMemoryAllocator
+            imgui
+            tinyobjloader
+            spdlog::spdlog)

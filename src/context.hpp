@@ -1,8 +1,8 @@
 #pragma once
 
-#define VMA_IMPLEMENTATION
+// #define VMA_IMPLEMENTATION
 #include "instance.hpp"
-#include "vk_mem_alloc.h"
+// #include "vk_mem_alloc.h"
 
 namespace kovra {
 class Context {

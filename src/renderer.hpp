@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "context.hpp"
-#include "swapchain.hpp"
+// #include "swapchain.hpp"
 
 namespace kovra {
 class Renderer {
@@ -14,6 +14,6 @@ class Renderer {
 
   private:
     Context context;
-    Swapchain swapchain;
+    // Swapchain swapchain;
 };
 } // namespace kovra

@@ -1,15 +1,50 @@
 #include "instance.hpp"
 #include "SDL_vulkan.h"
+#include <iostream>
+#include <sstream>
+#include <vulkan/vulkan_handles.hpp>
 
 namespace kovra {
 std::vector<const char *> get_required_instance_extensions(SDL_Window *window);
+VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessageCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData);
 
 Instance::Instance(SDL_Window *window) {
-    vk::ApplicationInfo app_info{
+    std::vector<const char *> req_instance_exts =
+        get_required_instance_extensions(window);
+    std::vector<const char *> req_validation_layers = {
+        "VK_LAYER_KHRONOS_validation"};
+
+    vk::ApplicationInfo app_info(
         "Kovra", VK_MAKE_VERSION(1, 0, 0), "Kovra Engine",
-        VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_3};
-    req_instance_exts = get_required_instance_extensions(window);
-};
+        VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_3);
+
+    instance = vk::createInstanceUnique(
+        vk::InstanceCreateInfo(
+            vk::InstanceCreateFlags(), &app_info,
+            static_cast<uint32_t>(req_validation_layers.size()),
+            req_validation_layers.data(),
+            static_cast<uint32_t>(req_instance_exts.size()),
+            req_instance_exts.data()),
+        nullptr);
+
+    /*
+      vk::DebugUtilsMessengerCreateInfoEXT debug_utils_ci(
+          vk::DebugUtilsMessengerCreateFlagsEXT(),
+          vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+              vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+              vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+              vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo,
+          vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+              vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+              vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
+          debugUtilsMessageCallback);
+      debug_utils =
+          instance->createDebugUtilsMessengerEXTUnique(debug_utils_ci, nullptr);
+    */
+}
 
 std::vector<const char *> get_required_instance_extensions(SDL_Window *window) {
     uint32_t ext_count;
@@ -34,29 +69,16 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessageCallback(
     void *pUserData) {
     // Select prefix depending on flags passed to the callback
     std::string prefix;
-
     if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-#if defined(_WIN32)
-        prefix = "\033[32m" + prefix + "\033[0m";
-#endif
         prefix = "VERBOSE: ";
     } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
         prefix = "INFO: ";
-#if defined(_WIN32)
-        prefix = "\033[36m" + prefix + "\033[0m";
-#endif
     } else if (
         messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
         prefix = "WARNING: ";
-#if defined(_WIN32)
-        prefix = "\033[33m" + prefix + "\033[0m";
-#endif
     } else if (
         messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
         prefix = "ERROR: ";
-#if defined(_WIN32)
-        prefix = "\033[31m" + prefix + "\033[0m";
-#endif
     }
 
     // Display message to default output (console/logcat)
@@ -65,20 +87,12 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessageCallback(
                  << pCallbackData->pMessageIdName
                  << "] : " << pCallbackData->pMessage;
 
-#if defined(__ANDROID__)
-    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        LOGE("%s", debugMessage.str().c_str());
-    } else {
-        LOGD("%s", debugMessage.str().c_str());
-    }
-#else
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
         std::cerr << debugMessage.str() << "\n\n";
     } else {
         std::cout << debugMessage.str() << "\n\n";
     }
     fflush(stdout);
-#endif
 
     // The return value of this callback controls whether the Vulkan call that
     // caused the validation message will be aborted or not We return VK_FALSE

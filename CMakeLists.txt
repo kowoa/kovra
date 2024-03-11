@@ -18,11 +18,13 @@ find_program(
   NAMES glslangValidator
   HINTS /usr/bin /usr/local/bin)
 file(GLOB_RECURSE GLSL_SOURCE_FILES "${PROJECT_SOURCE_DIR}/shaders/*.frag"
-     "${PROJECT_SOURCE_DIR}/shaders/*.vert")
+     "${PROJECT_SOURCE_DIR}/shaders/*.vert"
+     "${PROJECT_SOURCE_DIR}/shaders/*.comp")
 # Compile each GLSL shader to SPIR-V
 foreach(GLSL ${GLSL_SOURCE_FILES})
   message(STATUS "Compiling shader: ${GLSL}")
   get_filename_component(FILE_NAME ${GLSL} NAME)
+  file(MAKE_DIRECTORY "${PROJECT_SOURCE_DIR}/shaderbuild")
   set(SPIRV "${PROJECT_SOURCE_DIR}/shaderbuild/${FILE_NAME}.spv")
   add_custom_command(
     OUTPUT ${SPIRV}
@@ -30,7 +32,7 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
     COMMAND ${GLSL_VALIDATOR} -V --target-env spirv1.4 ${GLSL} -o ${SPIRV}
     DEPENDS ${GLSL})
   list(APPEND SPIRV_BINARY_FILES ${SPIRV})
-endforeach(GLSL)
+endforeach()
 # Before building the project, make sure the shaders are compiled
 add_custom_target(SHADERS DEPENDS ${SPIRV_BINARY_FILES})
 add_dependencies(${PROJECT_NAME} SHADERS)

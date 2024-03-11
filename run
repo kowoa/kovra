@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Create build directory
+mkdir -p build
+cd build
+
+# Run CMake to generate the build files
+cmake ..
+
+# Build the project
+cmake --build .
+
+# Run the executable
+./src/kovra
+
+# Return to original directory
+cd ..

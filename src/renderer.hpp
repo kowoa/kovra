@@ -1,8 +1,5 @@
 #pragma once
 
-#include <SDL2/SDL.h>
-#include <vulkan/vulkan.hpp>
-
 #include "context.hpp"
 // #include "swapchain.hpp"
 

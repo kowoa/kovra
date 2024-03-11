@@ -1,10 +1,12 @@
 #include "instance.hpp"
-#include "SDL_vulkan.h"
 #include <iostream>
 #include <sstream>
-#include <vulkan/vulkan_handles.hpp>
+
+#include "SDL_vulkan.h"
+#include <vulkan/vulkan.hpp>
 
 namespace kovra {
+
 std::vector<const char *> get_required_instance_extensions(SDL_Window *window);
 VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessageCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -12,6 +14,10 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessageCallback(
     const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData);
 
 Instance::Instance(SDL_Window *window) {
+    std::cout << "Instance::Instance()" << std::endl;
+
+    VULKAN_HPP_DEFAULT_DISPATCHER.init();
+
     std::vector<const char *> req_instance_exts =
         get_required_instance_extensions(window);
     std::vector<const char *> req_validation_layers = {
@@ -22,28 +28,34 @@ Instance::Instance(SDL_Window *window) {
         VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_3);
 
     instance = vk::createInstanceUnique(
-        vk::InstanceCreateInfo(
-            vk::InstanceCreateFlags(), &app_info,
+        vk::InstanceCreateInfo{
+            {},
+            &app_info,
             static_cast<uint32_t>(req_validation_layers.size()),
             req_validation_layers.data(),
             static_cast<uint32_t>(req_instance_exts.size()),
-            req_instance_exts.data()),
+            req_instance_exts.data()},
         nullptr);
 
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(instance.get());
+
     /*
-      vk::DebugUtilsMessengerCreateInfoEXT debug_utils_ci(
-          vk::DebugUtilsMessengerCreateFlagsEXT(),
-          vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
-              vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-              vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
-              vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo,
-          vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-              vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
-              vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
-          debugUtilsMessageCallback);
-      debug_utils =
-          instance->createDebugUtilsMessengerEXTUnique(debug_utils_ci, nullptr);
+      auto dldy =
+          vk::DispatchLoaderDynamic(instance.get(), vkGetInstanceProcAddr);
     */
+
+    debug_utils = instance->createDebugUtilsMessengerEXTUnique(
+        vk::DebugUtilsMessengerCreateInfoEXT{
+            {},
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+                vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+                vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+                vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo,
+            vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+                vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+                vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
+            debugUtilsMessageCallback},
+        nullptr);
 }
 
 std::vector<const char *> get_required_instance_extensions(SDL_Window *window) {
@@ -58,6 +70,9 @@ std::vector<const char *> get_required_instance_extensions(SDL_Window *window) {
         throw std::runtime_error(std::format(
             "SDL_Vulkan_GetInstanceExtensions failed: {}", SDL_GetError()));
     }
+
+    // For validation layers
+    exts.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
     return exts;
 }

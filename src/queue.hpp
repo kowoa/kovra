@@ -2,6 +2,7 @@
 
 #include "device.hpp"
 #include <cstdint>
+#include <memory>
 #include <vulkan/vulkan.hpp>
 
 namespace kovra {
@@ -39,6 +40,10 @@ class QueueFamily {
             properties.queueFlags & vk::QueueFlagBits::eSparseBinding);
     }
 
+    bool operator==(const QueueFamily &other) const {
+        return index == other.index;
+    }
+
   private:
     vk::QueueFamilyProperties properties;
     uint32_t index;
@@ -46,6 +51,10 @@ class QueueFamily {
 };
 class Queue {
   public:
-    Queue(vk::Queue queue, const Device &device);
+    Queue(vk::Queue queue, std::weak_ptr<Device> device);
+
+  private:
+    vk::Queue queue;
+    std::weak_ptr<Device> device;
 };
 } // namespace kovra

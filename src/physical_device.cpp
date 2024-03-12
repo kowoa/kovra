@@ -1,7 +1,6 @@
 #include "physical_device.hpp"
 #include "spdlog/spdlog.h"
 #include "surface.hpp"
-#include <vulkan/vulkan_structs.hpp>
 
 namespace kovra {
 vk::PhysicalDevice pick_physical_device(

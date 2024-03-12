@@ -1,6 +1,5 @@
 #pragma once
 
-#include "device.hpp"
 #include "queue.hpp"
 #include <vulkan/vulkan.hpp>
 
@@ -11,6 +10,10 @@ class PhysicalDevice {
     PhysicalDevice(vk::PhysicalDevice physical_device, const Surface &surface);
     [[nodiscard]] const vk::PhysicalDevice &get() const noexcept {
         return physical_device;
+    }
+    [[nodiscard]] const std::vector<QueueFamily> &
+    get_queue_families() const noexcept {
+        return queue_families;
     }
     [[nodiscard]] const DeviceFeatures &
     get_supported_features() const noexcept {

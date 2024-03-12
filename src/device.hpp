@@ -1,9 +1,26 @@
 #pragma once
 
+#include <memory>
 #include <vulkan/vulkan.hpp>
 
 namespace kovra {
-class Device {};
+// Forward declarations
+class Instance;
+class PhysicalDevice;
+class DeviceFeatures;
+class QueueFamily;
+class Queue;
+
+class Device {
+  public:
+    Device(std::weak_ptr<PhysicalDevice> physical_device);
+    [[nodiscard]] const vk::Device &get() const noexcept {
+        return device.get();
+    }
+
+  private:
+    vk::UniqueDevice device;
+};
 class DeviceFeatures {
   public:
     DeviceFeatures(const vk::PhysicalDevice &physical_device);

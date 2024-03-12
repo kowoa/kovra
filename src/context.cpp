@@ -11,7 +11,8 @@ Context::Context(SDL_Window *window)
     : instance{std::make_unique<Instance>(window)},
       surface{std::make_unique<Surface>(*instance, window)},
       physical_device{pick_physical_device(
-          instance->enumerate_physical_devices(*surface), *surface)} {
+          instance->enumerate_physical_devices(*surface), *surface)},
+      device{std::make_shared<Device>(*physical_device.lock())} {
     spdlog::debug("Context::Context()");
 }
 

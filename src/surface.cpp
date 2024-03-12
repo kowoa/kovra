@@ -1,6 +1,5 @@
 #include "surface.hpp"
 #include "SDL_vulkan.h"
-#include "instance.hpp"
 #include "spdlog/spdlog.h"
 
 namespace kovra {

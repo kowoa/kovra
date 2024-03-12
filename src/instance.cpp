@@ -113,32 +113,39 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessageCallback(
     VkDebugUtilsMessageTypeFlagsEXT messageType,
     const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
     void *pUserData) {
-    // Select prefix depending on flags passed to the callback
-    std::string prefix;
+    std::string type_prefix;
+    if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT) {
+        type_prefix = "GENERAL";
+    } else if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) {
+        type_prefix = "VALIDATION";
+    } else if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT) {
+        type_prefix = "PERFORMANCE";
+    }
+
+    std::string severity_prefix;
     if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-        prefix = "VERBOSE: ";
+        severity_prefix = "VERBOSE: ";
     } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-        prefix = "INFO: ";
+        severity_prefix = "INFO: ";
     } else if (
         messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-        prefix = "WARNING: ";
+        severity_prefix = "WARNING: ";
     } else if (
         messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        prefix = "ERROR: ";
+        severity_prefix = "ERROR: ";
     }
 
-    // Display message to default output
-    std::stringstream debugMessage;
-    debugMessage << prefix << "[" << pCallbackData->messageIdNumber << "]["
-                 << pCallbackData->pMessageIdName
-                 << "] : " << pCallbackData->pMessage;
+    std::stringstream debug_message;
+    debug_message << type_prefix << " - " << severity_prefix << " ["
+                  << pCallbackData->messageIdNumber << "]["
+                  << pCallbackData->pMessageIdName
+                  << "] : " << pCallbackData->pMessage;
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        std::cerr << debugMessage.str() << "\n\n";
+        spdlog::error(debug_message.str());
     } else {
-        std::cout << debugMessage.str() << "\n\n";
+        spdlog::info(debug_message.str());
     }
-    fflush(stdout);
 
     // The return value of this callback controls whether the Vulkan call that
     // caused the validation message will be aborted or not We return VK_FALSE

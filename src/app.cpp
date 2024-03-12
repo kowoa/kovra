@@ -7,7 +7,7 @@ App::App() {
         throw std::runtime_error(
             std::format("SDL_Init failed: {}", SDL_GetError()));
     }
-    SDL_Window *window = SDL_CreateWindow(
+    window = SDL_CreateWindow(
         "Kovra", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1600, 900,
         SDL_WINDOW_VULKAN);
     if (!window) {
@@ -23,8 +23,14 @@ void App::run() {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
+            } else if (event.type == SDL_KEYDOWN) {
+                if (event.key.keysym.sym == SDLK_ESCAPE) {
+                    running = false;
+                }
             }
         }
     }
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
 } // namespace kovra

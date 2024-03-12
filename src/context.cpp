@@ -1,8 +1,8 @@
 #include "context.hpp"
-#include <iostream>
+#include "spdlog/spdlog.h"
 
 namespace kovra {
 Context::Context(SDL_Window *window) : instance{window} {
-    std::cout << "Context::Context()" << std::endl;
+    spdlog::info("Context::Context()");
 }
 } // namespace kovra

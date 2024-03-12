@@ -4,6 +4,7 @@
 
 #include "instance.hpp"
 #include "physical_device.hpp"
+#include "spdlog/spdlog.h"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -16,7 +17,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessageCallback(
     const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData);
 
 Instance::Instance(SDL_Window *window) : physical_devices{} {
-    std::cout << "Instance::Instance()" << std::endl;
+    spdlog::info("Instance::Instance()");
 
     VULKAN_HPP_DEFAULT_DISPATCHER.init();
 

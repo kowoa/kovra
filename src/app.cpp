@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include "SDL.h"
 #include "renderer.hpp"
 
 namespace kovra {

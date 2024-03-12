@@ -3,6 +3,7 @@
 // #define VMA_IMPLEMENTATION
 // #include "vk_mem_alloc.h"
 #include "instance.hpp"
+#include "surface.hpp"
 
 namespace kovra {
 class Context {
@@ -10,8 +11,8 @@ class Context {
     Context(SDL_Window *window);
 
     Instance instance;
-    // Surface surface;
-    // PhysicalDevice physical_device;
+    Surface surface;
+    PhysicalDevice physical_device;
     // Device device;
     //  Queue graphics_queue;
     //  Queue present_queue;

@@ -42,7 +42,7 @@ Instance::Instance(SDL_Window *window) : physical_devices{} {
 
     VULKAN_HPP_DEFAULT_DISPATCHER.init(instance.get());
 
-    debug_utils = instance->createDebugUtilsMessengerEXTUnique(
+    debug_messenger = instance->createDebugUtilsMessengerEXTUnique(
         vk::DebugUtilsMessengerCreateInfoEXT{
             {},
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |

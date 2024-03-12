@@ -20,7 +20,7 @@ class Instance {
 
   private:
     vk::UniqueInstance instance;
-    vk::UniqueDebugUtilsMessengerEXT debug_utils;
+    vk::UniqueDebugUtilsMessengerEXT debug_messenger;
     std::vector<PhysicalDevice> physical_devices;
 };
 } // namespace kovra

@@ -3,7 +3,7 @@
 
 namespace kovra {
 Renderer::Renderer(SDL_Window *window) : context{window} {
-    spdlog::info("Renderer::Renderer()");
+    spdlog::debug("Renderer::Renderer()");
 }
 void Renderer::draw_frame() {}
 } // namespace kovra

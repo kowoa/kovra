@@ -1,5 +1,6 @@
 #pragma once
 
+#include "device.hpp"
 #include <cstdint>
 #include <vulkan/vulkan.hpp>
 
@@ -42,5 +43,9 @@ class QueueFamily {
     vk::QueueFamilyProperties properties;
     uint32_t index;
     bool present_support;
+};
+class Queue {
+  public:
+    Queue(vk::Queue queue, const Device &device);
 };
 } // namespace kovra

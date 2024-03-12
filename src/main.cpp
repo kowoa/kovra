@@ -1,9 +1,12 @@
 #include "app.hpp"
+#include "spdlog/spdlog.h"
 
 #include <iostream>
 #include <vulkan/vulkan.hpp>
 
 int main() {
+    spdlog::set_level(spdlog::level::debug);
+
     try {
         auto app = kovra::App{};
         app.run();

@@ -17,7 +17,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessageCallback(
     const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData);
 
 Instance::Instance(SDL_Window *window) : physical_devices{} {
-    spdlog::info("Instance::Instance()");
+    spdlog::debug("Instance::Instance()");
 
     VULKAN_HPP_DEFAULT_DISPATCHER.init();
 
@@ -56,23 +56,25 @@ Instance::Instance(SDL_Window *window) : physical_devices{} {
         nullptr);
 }
 
-const std::vector<PhysicalDevice> &
+const std::vector<std::shared_ptr<PhysicalDevice>> &
 Instance::enumerate_physical_devices(const Surface &surface) {
     if (physical_devices.empty()) {
         // Enumerate and populate physical_devices
         std::vector<vk::PhysicalDevice> vk_physical_devices =
             instance->enumeratePhysicalDevices();
         for (vk::PhysicalDevice physical_device : vk_physical_devices) {
-            physical_devices.emplace_back(physical_device, *this, surface);
+            physical_devices.emplace_back(
+                std::make_shared<PhysicalDevice>(physical_device, surface));
         }
         // Sort so that discrete GPUs come first in the vector
         std::sort(
             physical_devices.begin(), physical_devices.end(),
-            [](const PhysicalDevice &a, const PhysicalDevice &b) {
+            [](const std::shared_ptr<PhysicalDevice> &a,
+               const std::shared_ptr<PhysicalDevice> &b) {
                 vk::PhysicalDeviceType a_type =
-                    a.get().getProperties().deviceType;
+                    (*a).get().getProperties().deviceType;
                 vk::PhysicalDeviceType b_type =
-                    b.get().getProperties().deviceType;
+                    (*b).get().getProperties().deviceType;
                 int a_score =
                     (a_type == vk::PhysicalDeviceType::eDiscreteGpu)     ? 0
                     : (a_type == vk::PhysicalDeviceType::eIntegratedGpu) ? 1

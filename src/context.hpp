@@ -4,16 +4,18 @@
 // #include "vk_mem_alloc.h"
 #include "instance.hpp"
 #include "surface.hpp"
+#include <memory>
 
 namespace kovra {
 class Context {
   public:
     Context(SDL_Window *window);
 
-    Instance instance;
-    Surface surface;
-    PhysicalDevice physical_device;
-    // Device device;
+    std::unique_ptr<Instance> instance;
+    std::unique_ptr<Surface> surface;
+    std::weak_ptr<PhysicalDevice>
+        physical_device; // Instance has ownership of all physical devices
+    std::unique_ptr<Device> device;
     //  Queue graphics_queue;
     //  Queue present_queue;
     //  QueueFamily graphics_queue_family;

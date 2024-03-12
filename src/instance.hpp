@@ -4,6 +4,7 @@
 
 #include "physical_device.hpp"
 #include "surface.hpp"
+#include <memory>
 #include <vulkan/vulkan.hpp>
 
 namespace kovra {
@@ -15,12 +16,12 @@ class Instance {
         return instance.get();
     }
 
-    const std::vector<PhysicalDevice> &
+    const std::vector<std::shared_ptr<PhysicalDevice>> &
     enumerate_physical_devices(const Surface &surface);
 
   private:
     vk::UniqueInstance instance;
     vk::UniqueDebugUtilsMessengerEXT debug_messenger;
-    std::vector<PhysicalDevice> physical_devices;
+    std::vector<std::shared_ptr<PhysicalDevice>> physical_devices;
 };
 } // namespace kovra

@@ -5,7 +5,7 @@
 
 namespace kovra {
 Surface::Surface(const Instance &instance, SDL_Window *window) {
-    spdlog::info("Surface::Surface()");
+    spdlog::debug("Surface::Surface()");
     VkSurfaceKHR vk_surface;
     if (!SDL_Vulkan_CreateSurface(window, instance.get(), &vk_surface)) {
         throw std::runtime_error("Failed to create Vulkan surface");

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "context.hpp"
-// #include "swapchain.hpp"
 
 namespace kovra {
 class Renderer {

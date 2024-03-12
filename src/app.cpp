@@ -1,5 +1,3 @@
-#include <SDL2/SDL.h>
-
 #include "app.hpp"
 #include "renderer.hpp"
 

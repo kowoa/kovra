@@ -1,6 +1,5 @@
-#include <iostream>
-
 #include "context.hpp"
+#include <iostream>
 
 namespace kovra {
 Context::Context(SDL_Window *window) : instance{window} {

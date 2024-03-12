@@ -1,7 +1,7 @@
+#include "app.hpp"
+
 #include <iostream>
 #include <vulkan/vulkan.hpp>
-
-#include "app.hpp"
 
 int main() {
     try {

@@ -1,9 +1,11 @@
-#include "instance.hpp"
+#include "SDL_vulkan.h"
 #include <iostream>
 #include <sstream>
 
-#include "SDL_vulkan.h"
-#include <vulkan/vulkan.hpp>
+#include "instance.hpp"
+#include "physical_device.hpp"
+
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace kovra {
 
@@ -13,7 +15,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessageCallback(
     VkDebugUtilsMessageTypeFlagsEXT messageType,
     const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData);
 
-Instance::Instance(SDL_Window *window) {
+Instance::Instance(SDL_Window *window) : physical_devices{} {
     std::cout << "Instance::Instance()" << std::endl;
 
     VULKAN_HPP_DEFAULT_DISPATCHER.init();
@@ -39,11 +41,6 @@ Instance::Instance(SDL_Window *window) {
 
     VULKAN_HPP_DEFAULT_DISPATCHER.init(instance.get());
 
-    /*
-      auto dldy =
-          vk::DispatchLoaderDynamic(instance.get(), vkGetInstanceProcAddr);
-    */
-
     debug_utils = instance->createDebugUtilsMessengerEXTUnique(
         vk::DebugUtilsMessengerCreateInfoEXT{
             {},
@@ -56,6 +53,37 @@ Instance::Instance(SDL_Window *window) {
                 vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
             debugUtilsMessageCallback},
         nullptr);
+}
+
+const std::vector<PhysicalDevice> &
+Instance::enumerate_physical_devices(const Surface &surface) {
+    if (physical_devices.empty()) {
+        // Enumerate and populate physical_devices
+        std::vector<vk::PhysicalDevice> vk_physical_devices =
+            instance->enumeratePhysicalDevices();
+        for (vk::PhysicalDevice physical_device : vk_physical_devices) {
+            physical_devices.emplace_back(physical_device, *this, surface);
+        }
+        // Sort so that discrete GPUs come first in the vector
+        std::sort(
+            physical_devices.begin(), physical_devices.end(),
+            [](const PhysicalDevice &a, const PhysicalDevice &b) {
+                vk::PhysicalDeviceType a_type =
+                    a.get().getProperties().deviceType;
+                vk::PhysicalDeviceType b_type =
+                    b.get().getProperties().deviceType;
+                int a_score =
+                    (a_type == vk::PhysicalDeviceType::eDiscreteGpu)     ? 0
+                    : (a_type == vk::PhysicalDeviceType::eIntegratedGpu) ? 1
+                                                                         : 2;
+                int b_score =
+                    (b_type == vk::PhysicalDeviceType::eDiscreteGpu)     ? 0
+                    : (b_type == vk::PhysicalDeviceType::eIntegratedGpu) ? 1
+                                                                         : 2;
+                return a_score < b_score;
+            });
+    }
+    return physical_devices;
 }
 
 std::vector<const char *> get_required_instance_extensions(SDL_Window *window) {
@@ -77,6 +105,8 @@ std::vector<const char *> get_required_instance_extensions(SDL_Window *window) {
     return exts;
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessageCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -96,7 +126,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessageCallback(
         prefix = "ERROR: ";
     }
 
-    // Display message to default output (console/logcat)
+    // Display message to default output
     std::stringstream debugMessage;
     debugMessage << prefix << "[" << pCallbackData->messageIdNumber << "]["
                  << pCallbackData->pMessageIdName
@@ -116,4 +146,5 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessageCallback(
     // will return VK_ERROR_VALIDATION_FAILED_EXT
     return VK_FALSE;
 }
+#pragma clang diagnostic pop
 } // namespace kovra

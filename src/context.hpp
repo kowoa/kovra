@@ -20,6 +20,7 @@ class Context {
     Queue present_queue;
     QueueFamily graphics_queue_family;
     QueueFamily present_queue_family;
-    VmaAllocator allocator;
+
+    std::unique_ptr<VmaAllocator> allocator;
 };
 } // namespace kovra

@@ -2,16 +2,21 @@
 
 # Create build directory
 mkdir -p build
-cd build
+cd build || exit 1
 
 # Run CMake to generate the build files
-cmake ..
+cmake .. || exit 1
 
 # Build the project
-cmake --build .
+cmake --build . || exit 1
 
 # Run the executable
-./src/kovra
+if [ -f ./src/kovra ]; then
+	./src/kovra
+else
+	echo "Error: ./src/kovra not found. Build may have failed."
+	exit 1
+fi
 
 # Return to original directory
 cd ..

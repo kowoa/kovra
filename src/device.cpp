@@ -6,10 +6,11 @@
 namespace kovra {
 std::vector<const char *> get_required_device_extensions();
 
-Device::Device(const PhysicalDevice &physical_device) {
+Device::Device(std::shared_ptr<PhysicalDevice> physical_device)
+    : physical_device{physical_device} {
     spdlog::debug("Device::Device()");
 
-    auto queue_families = physical_device.get_queue_families();
+    auto queue_families = physical_device->get_queue_families();
     queue_families.erase(
         std::unique(
             queue_families.begin(), queue_families.end(),
@@ -17,12 +18,12 @@ Device::Device(const PhysicalDevice &physical_device) {
         queue_families.end());
 
     std::set<uint32_t> unique_queue_family_indices{
-        physical_device.get_graphics_queue_family().get_index(),
-        physical_device.get_present_queue_family().get_index()};
+        physical_device->get_graphics_queue_family().get_index(),
+        physical_device->get_present_queue_family().get_index()};
 
     auto queue_priorities = std::array{1.0f};
     auto queue_cis = std::vector<vk::DeviceQueueCreateInfo>();
-    queue_cis.reserve(physical_device.get_queue_families().size());
+    queue_cis.reserve(physical_device->get_queue_families().size());
     for (const auto &index : unique_queue_family_indices) {
         queue_cis.emplace_back(vk::DeviceQueueCreateInfo{
             vk::DeviceQueueCreateFlags(), index, queue_priorities.size(),
@@ -32,7 +33,7 @@ Device::Device(const PhysicalDevice &physical_device) {
     std::vector<const char *> req_device_exts =
         get_required_device_extensions();
 
-    auto device_features = physical_device.get_supported_features();
+    auto device_features = physical_device->get_supported_features();
     auto ray_tracing_features =
         vk::PhysicalDeviceRayTracingPipelineFeaturesKHR{}.setRayTracingPipeline(
             device_features.ray_tracing_pipeline);
@@ -52,7 +53,7 @@ Device::Device(const PhysicalDevice &physical_device) {
             .setPNext(&vulkan_12_features);
     auto features = vk::PhysicalDeviceFeatures2{}.setPNext(&vulkan_13_features);
 
-    device = physical_device.get().createDeviceUnique(
+    device = physical_device->get().createDeviceUnique(
         vk::DeviceCreateInfo{}
             .setQueueCreateInfos(queue_cis)
             .setPEnabledExtensionNames(req_device_exts)

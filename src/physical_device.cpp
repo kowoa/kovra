@@ -36,6 +36,24 @@ PhysicalDevice::PhysicalDevice(
     }
 }
 
+[[nodiscard]] QueueFamily PhysicalDevice::get_graphics_queue_family() const {
+    for (const auto &queue_family : queue_families) {
+        if (queue_family.has_graphics_support()) {
+            return queue_family;
+        }
+    }
+    throw std::runtime_error("No suitable graphics queue family found");
+}
+
+[[nodiscard]] QueueFamily PhysicalDevice::get_present_queue_family() const {
+    for (const auto &queue_family : queue_families) {
+        if (queue_family.has_present_support()) {
+            return queue_family;
+        }
+    }
+    throw std::runtime_error("No suitable present queue family found");
+}
+
 [[nodiscard]] bool PhysicalDevice::supports_extensions(
     const std::vector<std::string> &extensions) const noexcept {
     // Check if each extension in the argument exists in supported_extensions

@@ -14,6 +14,7 @@ Context::Context(SDL_Window *window)
           instance->enumerate_physical_devices(*surface), *surface)},
       device{std::make_shared<Device>(*physical_device)} {
     spdlog::debug("Context::Context()");
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(device->get());
 }
 
 std::shared_ptr<PhysicalDevice> pick_physical_device(
@@ -22,22 +23,16 @@ std::shared_ptr<PhysicalDevice> pick_physical_device(
     // Loop through each physical device
     for (const auto &physical_device : physical_devices) {
         // Check if the physical device supports the surface
-        // FIXME: This is probably why physical device is not valid
-        bool surface_supported =
-            physical_device->get().getSurfaceSupportKHR(0, surface.get());
+        bool surface_supported = physical_device->get().getSurfaceSupportKHR(
+            physical_device->get_present_queue_family().get_index(),
+            surface.get());
 
         // Check if the physical device supports the required features
         auto features = physical_device->get_supported_features();
-        /*
         if (surface_supported && features.dynamic_rendering &&
             features.synchronization2 && features.buffer_device_address &&
             features.runtime_descriptor_array &&
             features.ray_tracing_pipeline && features.acceleration_structure) {
-            return physical_device;
-        }
-        */
-        if (surface_supported && features.dynamic_rendering &&
-            features.synchronization2) {
             return physical_device;
         }
     }

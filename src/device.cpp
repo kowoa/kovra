@@ -56,25 +56,26 @@ Device::Device(const PhysicalDevice &physical_device) {
 }
 
 DeviceFeatures::DeviceFeatures(const vk::PhysicalDevice &physical_device) {
-    vk::PhysicalDeviceRayTracingPipelineFeaturesKHR ray_tracing_features;
-    vk::PhysicalDeviceAccelerationStructureFeaturesKHR
-        acceleration_struct_features;
-    vk::PhysicalDeviceVulkan12Features features12;
-    vk::PhysicalDeviceVulkan13Features features13;
+    auto features = physical_device.getFeatures2<
+        vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan12Features,
+        vk::PhysicalDeviceVulkan13Features,
+        vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,
+        vk::PhysicalDeviceAccelerationStructureFeaturesKHR>();
 
-    vk::PhysicalDeviceFeatures2 features;
-    features.setPNext(&ray_tracing_features)
-        .setPNext(&acceleration_struct_features)
-        .setPNext(&features12)
-        .setPNext(&features13);
-    physical_device.getFeatures2(&features);
+    const auto &features12 = features.get<vk::PhysicalDeviceVulkan12Features>();
+    const auto &features13 = features.get<vk::PhysicalDeviceVulkan13Features>();
+    const auto &ray_tracing_features =
+        features.get<vk::PhysicalDeviceRayTracingPipelineFeaturesKHR>();
+    const auto &acceleration_structure_features =
+        features.get<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>();
 
     dynamic_rendering = features13.dynamicRendering;
     synchronization2 = features13.synchronization2;
     runtime_descriptor_array = features12.runtimeDescriptorArray;
     buffer_device_address = features12.bufferDeviceAddress;
     ray_tracing_pipeline = ray_tracing_features.rayTracingPipeline;
-    acceleration_structure = acceleration_struct_features.accelerationStructure;
+    acceleration_structure =
+        acceleration_structure_features.accelerationStructure;
 }
 
 bool DeviceFeatures::is_compatible_with(const DeviceFeatures &other) const {
@@ -95,8 +96,8 @@ std::vector<const char *> get_required_device_extensions() {
         VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
         VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
 
-        // VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-        // VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
 
         // VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
         // VK_KHR_SPIRV_1_4_EXTENSION_NAME,

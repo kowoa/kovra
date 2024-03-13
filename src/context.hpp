@@ -9,6 +9,7 @@ namespace kovra {
 class Context {
   public:
     Context(SDL_Window *window);
+    ~Context();
 
     std::unique_ptr<Instance> instance;
     std::unique_ptr<Surface> surface;

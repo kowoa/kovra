@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <vulkan/vulkan.hpp>
 
 namespace kovra {
@@ -13,7 +12,7 @@ class Queue;
 
 class Device {
   public:
-    Device(std::weak_ptr<PhysicalDevice> physical_device);
+    Device(const PhysicalDevice &physical_device);
     [[nodiscard]] const vk::Device &get() const noexcept {
         return device.get();
     }

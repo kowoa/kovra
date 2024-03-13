@@ -4,8 +4,14 @@
 
 namespace kovra {
 std::vector<const char *> get_required_device_extensions();
+vk::DeviceCreateInfo get_device_create_info(
+    const std::vector<vk::DeviceQueueCreateInfo> &queue_create_infos,
+    const std::vector<const char *> &required_device_extensions,
+    const DeviceFeatures &device_features);
 
 Device::Device(const PhysicalDevice &physical_device) {
+    spdlog::debug("Device::Device()");
+
     auto queue_families = physical_device.get_queue_families();
     queue_families.erase(
         std::unique(
@@ -24,56 +30,32 @@ Device::Device(const PhysicalDevice &physical_device) {
 
     std::vector<const char *> req_device_exts =
         get_required_device_extensions();
-    auto features =
-        physical_device.get()
-            .getFeatures2<
-                vk::PhysicalDeviceFeatures2,        // Vulkan 1.0
-                vk::PhysicalDeviceVulkan12Features, // Vulkan 1.2
-                vk::PhysicalDeviceVulkan13Features, // Vulkan 1.3
-                vk::PhysicalDeviceRayTracingPipelineFeaturesKHR, // VK_KHR_ray_tracing_pipeline
-                vk::PhysicalDeviceAccelerationStructureFeaturesKHR>(); // VK_KHR_acceleration_structure
-    device = physical_device.get().createDeviceUnique(
-        vk::DeviceCreateInfo{}
-            .setPEnabledExtensionNames(req_device_exts)
-            .setQueueCreateInfos(queue_cis)
-            .setPNext(&features));
+
+    device = physical_device.get().createDeviceUnique(get_device_create_info(
+        queue_cis, req_device_exts, physical_device.get_supported_features()));
 }
 
 DeviceFeatures::DeviceFeatures(const vk::PhysicalDevice &physical_device) {
-    // Check if the physical device supports the specified features
-    auto features = physical_device.getFeatures2<
-        vk::PhysicalDeviceFeatures2,                   // Vulkan 1.0
-        vk::PhysicalDeviceVulkan12Features,            // Vulkan 1.2
-        vk::PhysicalDeviceVulkan13Features,            // Vulkan 1.3
-        vk::PhysicalDeviceBufferDeviceAddressFeatures, // VK_KHR_buffer_device_address
-        vk::PhysicalDeviceDynamicRenderingFeatures, // VK_KHR_dynamic_rendering
-        vk::PhysicalDeviceSynchronization2Features, // VK_KHR_synchronization2
-        vk::PhysicalDeviceDescriptorIndexingFeatures, // VK_EXT_descriptor_indexing
-        vk::PhysicalDeviceRayTracingPipelineFeaturesKHR, // VK_KHR_ray_tracing_pipeline
-        vk::PhysicalDeviceAccelerationStructureFeaturesKHR>(); // VK_KHR_acceleration_structure
+    vk::PhysicalDeviceRayTracingPipelineFeaturesKHR ray_tracing_features;
+    vk::PhysicalDeviceAccelerationStructureFeaturesKHR
+        acceleration_struct_features;
+    vk::PhysicalDeviceVulkan12Features features12;
+    vk::PhysicalDeviceVulkan13Features features13;
 
-    // Features from Vulkan 1.2
-    const vk::PhysicalDeviceVulkan12Features &features12 =
-        features.get<vk::PhysicalDeviceVulkan12Features>();
-    // Features from Vulkan 1.3
-    const vk::PhysicalDeviceVulkan13Features &features13 =
-        features.get<vk::PhysicalDeviceVulkan13Features>();
-    // Features from VK_KHR_ray_tracing_pipeline
-    const vk::PhysicalDeviceRayTracingPipelineFeaturesKHR
-        &ray_tracing_features =
-            features.get<vk::PhysicalDeviceRayTracingPipelineFeaturesKHR>();
-    // Features from VK_KHR_acceleration_structure
-    const vk::PhysicalDeviceAccelerationStructureFeaturesKHR
-        &acceleration_structure_features =
-            features.get<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>();
+    vk::PhysicalDeviceFeatures2 features;
+    features.setPNext(&ray_tracing_features)
+        .setPNext(&acceleration_struct_features)
+        .setPNext(&features12)
+        .setPNext(&features13);
 
+    physical_device.getFeatures2(&features);
+
+    ray_tracing_pipeline = ray_tracing_features.rayTracingPipeline;
+    acceleration_structure = acceleration_struct_features.accelerationStructure;
+    runtime_descriptor_array = features12.runtimeDescriptorArray;
+    buffer_device_address = features12.bufferDeviceAddress;
     dynamic_rendering = features13.dynamicRendering;
     synchronization2 = features13.synchronization2;
-    runtime_descriptor_array = features12.descriptorIndexing;
-    buffer_device_address = features12.bufferDeviceAddress;
-    ray_tracing_pipeline = ray_tracing_features.rayTracingPipeline;
-    acceleration_structure =
-        acceleration_structure_features.accelerationStructure;
 }
 bool DeviceFeatures::is_compatible_with(const DeviceFeatures &other) const {
     return (!other.dynamic_rendering || dynamic_rendering) &&
@@ -86,9 +68,11 @@ bool DeviceFeatures::is_compatible_with(const DeviceFeatures &other) const {
 
 std::vector<const char *> get_required_device_extensions() {
     return {
-        VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+
+        VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
         VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+
         VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
         VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
         VK_KHR_SPIRV_1_4_EXTENSION_NAME,
@@ -96,5 +80,43 @@ std::vector<const char *> get_required_device_extensions() {
         VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
         VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
     };
+}
+
+vk::DeviceCreateInfo get_device_create_info(
+    const std::vector<vk::DeviceQueueCreateInfo> &queue_create_infos,
+    const std::vector<const char *> &required_device_extensions,
+    const DeviceFeatures &device_features) {
+
+    vk::PhysicalDeviceRayTracingPipelineFeaturesKHR ray_tracing_feature =
+        vk::PhysicalDeviceRayTracingPipelineFeaturesKHR().setRayTracingPipeline(
+            device_features.ray_tracing_pipeline);
+
+    vk::PhysicalDeviceAccelerationStructureFeaturesKHR
+        acceleration_struct_feature =
+            vk::PhysicalDeviceAccelerationStructureFeaturesKHR()
+                .setAccelerationStructure(
+                    device_features.acceleration_structure);
+
+    vk::PhysicalDeviceVulkan12Features vulkan_12_features =
+        vk::PhysicalDeviceVulkan12Features()
+            .setRuntimeDescriptorArray(device_features.runtime_descriptor_array)
+            .setBufferDeviceAddress(device_features.buffer_device_address);
+
+    vk::PhysicalDeviceVulkan13Features vulkan_13_features =
+        vk::PhysicalDeviceVulkan13Features()
+            .setDynamicRendering(device_features.dynamic_rendering)
+            .setSynchronization2(device_features.synchronization2);
+
+    vk::PhysicalDeviceFeatures2 features =
+        vk::PhysicalDeviceFeatures2(vk::PhysicalDeviceFeatures())
+            .setPNext(&ray_tracing_feature)
+            .setPNext(&acceleration_struct_feature)
+            .setPNext(&vulkan_12_features)
+            .setPNext(&vulkan_13_features);
+
+    return vk::DeviceCreateInfo{}
+        .setQueueCreateInfos(queue_create_infos)
+        .setPEnabledExtensionNames(required_device_extensions)
+        .setPNext(&features);
 }
 } // namespace kovra

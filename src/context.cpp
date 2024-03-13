@@ -16,6 +16,13 @@ Context::Context(SDL_Window *window)
     spdlog::debug("Context::Context()");
 }
 
+Context::~Context() {
+    device.reset();
+    physical_device.reset();
+    surface.reset();
+    instance.reset();
+}
+
 std::weak_ptr<PhysicalDevice> pick_physical_device(
     const std::vector<std::shared_ptr<PhysicalDevice>> &physical_devices,
     const Surface &surface) {

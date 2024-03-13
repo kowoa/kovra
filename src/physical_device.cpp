@@ -8,7 +8,11 @@ vk::PhysicalDevice pick_physical_device(
 
 PhysicalDevice::PhysicalDevice(
     vk::PhysicalDevice physical_device, const Surface &surface)
-    : supported_features{physical_device} {
+    : supported_surface_formats{physical_device.getSurfaceFormatsKHR(
+          surface.get())},
+      supported_present_modes{
+          physical_device.getSurfacePresentModesKHR(surface.get())},
+      supported_features{physical_device} {
     spdlog::debug("PhysicalDevice::PhysicalDevice()");
 
     this->physical_device = physical_device;
@@ -30,13 +34,8 @@ PhysicalDevice::PhysicalDevice(
     for (const auto &extension : extension_props) {
         supported_extensions.emplace_back(extension.extensionName);
     }
-
-    supported_surface_formats =
-        physical_device.getSurfaceFormatsKHR(surface.get());
-
-    supported_present_modes =
-        physical_device.getSurfacePresentModesKHR(surface.get());
 }
+
 [[nodiscard]] bool PhysicalDevice::supports_extensions(
     const std::vector<std::string> &extensions) const noexcept {
     // Check if each extension in the argument exists in supported_extensions

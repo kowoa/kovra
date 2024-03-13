@@ -8,6 +8,7 @@ namespace kovra {
 class Surface {
   public:
     Surface(const Instance &instance, SDL_Window *window);
+    ~Surface();
 
     [[nodiscard]] const vk::SurfaceKHR &get() const noexcept {
         return surface.get();

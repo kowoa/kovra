@@ -11,6 +11,7 @@ namespace kovra {
 class Instance {
   public:
     Instance(SDL_Window *window);
+    ~Instance();
 
     [[nodiscard]] const vk::Instance &get() const noexcept {
         return instance.get();

@@ -36,6 +36,10 @@ PhysicalDevice::PhysicalDevice(
     }
 }
 
+PhysicalDevice::~PhysicalDevice() {
+    spdlog::debug("PhysicalDevice::~PhysicalDevice()");
+}
+
 [[nodiscard]] QueueFamily PhysicalDevice::get_graphics_queue_family() const {
     for (const auto &queue_family : queue_families) {
         if (queue_family.has_graphics_support()) {

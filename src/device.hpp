@@ -13,6 +13,8 @@ class Queue;
 class Device {
   public:
     Device(const PhysicalDevice &physical_device);
+    ~Device();
+
     [[nodiscard]] const vk::Device &get() const noexcept {
         return device.get();
     }

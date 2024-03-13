@@ -12,10 +12,10 @@ App::App() : window{create_window()}, renderer{create_renderer(window)} {
 App::~App() {
     spdlog::debug("App::~App()");
     // Destroy the renderer before the window
-    renderer.reset();
+    // renderer.reset();
     // Destroy the window
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    // SDL_DestroyWindow(window);
+    // SDL_Quit();
 }
 
 void App::run() {

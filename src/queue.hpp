@@ -51,7 +51,7 @@ class QueueFamily {
 };
 class Queue {
   public:
-    Queue(vk::Queue queue, std::weak_ptr<Device> device);
+    Queue(vk::Queue queue, const std::shared_ptr<Device> &device);
 
   private:
     vk::Queue queue;

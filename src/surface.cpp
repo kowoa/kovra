@@ -11,4 +11,5 @@ Surface::Surface(const Instance &instance, SDL_Window *window) {
     }
     surface = vk::UniqueSurfaceKHR{vk_surface, instance.get()};
 }
+Surface::~Surface() { spdlog::debug("Surface::~Surface()"); }
 } // namespace kovra

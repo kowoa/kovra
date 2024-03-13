@@ -8,6 +8,8 @@ class Surface;
 class PhysicalDevice {
   public:
     PhysicalDevice(vk::PhysicalDevice physical_device, const Surface &surface);
+    ~PhysicalDevice();
+
     [[nodiscard]] const vk::PhysicalDevice &get() const noexcept {
         return physical_device;
     }

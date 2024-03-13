@@ -1,6 +1,7 @@
 #include "device.hpp"
 #include "physical_device.hpp"
 #include "spdlog/spdlog.h"
+#include <set>
 
 namespace kovra {
 std::vector<const char *> get_required_device_extensions();
@@ -15,13 +16,17 @@ Device::Device(const PhysicalDevice &physical_device) {
             [](const QueueFamily &a, const QueueFamily &b) { return a == b; }),
         queue_families.end());
 
+    std::set<uint32_t> unique_queue_family_indices{
+        physical_device.get_graphics_queue_family().get_index(),
+        physical_device.get_present_queue_family().get_index()};
+
     auto queue_priorities = std::array{1.0f};
     auto queue_cis = std::vector<vk::DeviceQueueCreateInfo>();
     queue_cis.reserve(physical_device.get_queue_families().size());
-    for (const auto &queue_family : queue_families) {
-        queue_cis.push_back(vk::DeviceQueueCreateInfo{
-            vk::DeviceQueueCreateFlags(), queue_family.get_index(),
-            queue_priorities.size(), queue_priorities.data()});
+    for (const auto &index : unique_queue_family_indices) {
+        queue_cis.emplace_back(vk::DeviceQueueCreateInfo{
+            vk::DeviceQueueCreateFlags(), index, queue_priorities.size(),
+            queue_priorities.data()});
     }
 
     std::vector<const char *> req_device_exts =
@@ -29,24 +34,23 @@ Device::Device(const PhysicalDevice &physical_device) {
 
     auto device_features = physical_device.get_supported_features();
     auto ray_tracing_features =
-        vk::PhysicalDeviceRayTracingPipelineFeaturesKHR().setRayTracingPipeline(
+        vk::PhysicalDeviceRayTracingPipelineFeaturesKHR{}.setRayTracingPipeline(
             device_features.ray_tracing_pipeline);
     auto acceleration_struct_features =
-        vk::PhysicalDeviceAccelerationStructureFeaturesKHR()
-            .setAccelerationStructure(device_features.acceleration_structure);
+        vk::PhysicalDeviceAccelerationStructureFeaturesKHR{}
+            .setAccelerationStructure(device_features.acceleration_structure)
+            .setPNext(&ray_tracing_features);
     auto vulkan_12_features =
-        vk::PhysicalDeviceVulkan12Features()
+        vk::PhysicalDeviceVulkan12Features{}
             .setRuntimeDescriptorArray(device_features.runtime_descriptor_array)
-            .setBufferDeviceAddress(device_features.buffer_device_address);
+            .setBufferDeviceAddress(device_features.buffer_device_address)
+            .setPNext(&acceleration_struct_features);
     auto vulkan_13_features =
-        vk::PhysicalDeviceVulkan13Features()
+        vk::PhysicalDeviceVulkan13Features{}
             .setDynamicRendering(device_features.dynamic_rendering)
-            .setSynchronization2(device_features.synchronization2);
-    auto features = vk::PhysicalDeviceFeatures2(vk::PhysicalDeviceFeatures())
-                        .setPNext(&ray_tracing_features)
-                        .setPNext(&acceleration_struct_features)
-                        .setPNext(&vulkan_12_features)
-                        .setPNext(&vulkan_13_features);
+            .setSynchronization2(device_features.synchronization2)
+            .setPNext(&vulkan_12_features);
+    auto features = vk::PhysicalDeviceFeatures2{}.setPNext(&vulkan_13_features);
 
     device = physical_device.get().createDeviceUnique(
         vk::DeviceCreateInfo{}
@@ -54,6 +58,8 @@ Device::Device(const PhysicalDevice &physical_device) {
             .setPEnabledExtensionNames(req_device_exts)
             .setPNext(&features));
 }
+
+Device::~Device() { spdlog::debug("Device::~Device()"); }
 
 DeviceFeatures::DeviceFeatures(const vk::PhysicalDevice &physical_device) {
     auto features = physical_device.getFeatures2<
@@ -93,15 +99,15 @@ std::vector<const char *> get_required_device_extensions() {
 
         VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
         VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
-        VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+        VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,
         VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
 
         VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
         VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
 
-        // VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
-        // VK_KHR_SPIRV_1_4_EXTENSION_NAME,
-        // VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME,
+        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+        VK_KHR_SPIRV_1_4_EXTENSION_NAME,
+        VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME,
     };
 }
 } // namespace kovra

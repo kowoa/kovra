@@ -1,3 +1,5 @@
+#define VMA_IMPLEMENTATION
+
 #include "context.hpp"
 #include "spdlog/spdlog.h"
 #include <memory>
@@ -6,15 +8,36 @@ namespace kovra {
 std::shared_ptr<PhysicalDevice> pick_physical_device(
     const std::vector<std::shared_ptr<PhysicalDevice>> &physical_devices,
     const Surface &surface);
+VmaAllocator create_allocator(const Context &context);
 
 Context::Context(SDL_Window *window)
     : instance{std::make_unique<Instance>(window)},
       surface{std::make_unique<Surface>(*instance, window)},
       physical_device{pick_physical_device(
           instance->enumerate_physical_devices(*surface), *surface)},
-      device{std::make_shared<Device>(*physical_device)} {
+      device{std::make_shared<Device>(*physical_device)},
+      graphics_queue{
+          device->get().getQueue(
+              physical_device->get_graphics_queue_family().get_index(), 0),
+          device},
+      present_queue{
+          device->get().getQueue(
+              physical_device->get_graphics_queue_family().get_index(), 0),
+          device},
+      graphics_queue_family{physical_device->get_graphics_queue_family()},
+      present_queue_family{physical_device->get_present_queue_family()},
+      allocator{create_allocator(*this)} {
     spdlog::debug("Context::Context()");
     VULKAN_HPP_DEFAULT_DISPATCHER.init(device->get());
+}
+
+Context::~Context() {
+    spdlog::debug("Context::~Context()");
+    vmaDestroyAllocator(allocator);
+    device.reset();
+    physical_device.reset();
+    surface.reset();
+    instance.reset();
 }
 
 std::shared_ptr<PhysicalDevice> pick_physical_device(
@@ -38,4 +61,18 @@ std::shared_ptr<PhysicalDevice> pick_physical_device(
     }
     throw std::runtime_error("No suitable physical device found");
 }
+
+VmaAllocator create_allocator(const Context &context) {
+    VmaAllocatorCreateInfo allocator_ci{};
+    allocator_ci.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+    allocator_ci.vulkanApiVersion = VK_API_VERSION_1_3;
+    allocator_ci.physicalDevice = context.physical_device->get();
+    allocator_ci.device = context.device->get();
+    allocator_ci.instance = context.instance->get();
+
+    VmaAllocator allocator;
+    vmaCreateAllocator(&allocator_ci, &allocator);
+    return allocator;
+}
+
 } // namespace kovra

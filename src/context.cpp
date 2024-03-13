@@ -3,7 +3,7 @@
 #include <memory>
 
 namespace kovra {
-std::weak_ptr<PhysicalDevice> pick_physical_device(
+std::shared_ptr<PhysicalDevice> pick_physical_device(
     const std::vector<std::shared_ptr<PhysicalDevice>> &physical_devices,
     const Surface &surface);
 
@@ -12,33 +12,33 @@ Context::Context(SDL_Window *window)
       surface{std::make_unique<Surface>(*instance, window)},
       physical_device{pick_physical_device(
           instance->enumerate_physical_devices(*surface), *surface)},
-      device{std::make_shared<Device>(*physical_device.lock())} {
+      device{std::make_shared<Device>(*physical_device)} {
     spdlog::debug("Context::Context()");
 }
 
-Context::~Context() {
-    device.reset();
-    physical_device.reset();
-    surface.reset();
-    instance.reset();
-}
-
-std::weak_ptr<PhysicalDevice> pick_physical_device(
+std::shared_ptr<PhysicalDevice> pick_physical_device(
     const std::vector<std::shared_ptr<PhysicalDevice>> &physical_devices,
     const Surface &surface) {
     // Loop through each physical device
     for (const auto &physical_device : physical_devices) {
         // Check if the physical device supports the surface
+        // FIXME: This is probably why physical device is not valid
         bool surface_supported =
             physical_device->get().getSurfaceSupportKHR(0, surface.get());
 
         // Check if the physical device supports the required features
         auto features = physical_device->get_supported_features();
+        /*
         if (surface_supported && features.dynamic_rendering &&
             features.synchronization2 && features.buffer_device_address &&
             features.runtime_descriptor_array &&
             features.ray_tracing_pipeline && features.acceleration_structure) {
-            return std::weak_ptr<PhysicalDevice>(physical_device);
+            return physical_device;
+        }
+        */
+        if (surface_supported && features.dynamic_rendering &&
+            features.synchronization2) {
+            return physical_device;
         }
     }
     throw std::runtime_error("No suitable physical device found");

@@ -50,6 +50,8 @@ class Queue {
   public:
     Queue(vk::Queue queue, const std::shared_ptr<Device> &device);
 
+    [[nodiscard]] const vk::Queue &get() const noexcept { return queue; }
+
   private:
     vk::Queue queue;
     std::weak_ptr<Device> device;

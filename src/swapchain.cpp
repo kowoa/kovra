@@ -2,10 +2,9 @@
 #include "spdlog/spdlog.h"
 
 namespace kovra {
-Swapchain::Swapchain(const Context &context, SDL_Window *window) {
+Swapchain::Swapchain(const Context &context, SDL_Window *window)
+    : device{context.get_device()} {
     spdlog::debug("Swapchain::Swapchain()");
-
-    device = context.device;
 
     // Swapchain extent
     int width, height;
@@ -99,5 +98,7 @@ Swapchain::Swapchain(const Context &context, SDL_Window *window) {
                         .setBaseArrayLayer(0)
                         .setLayerCount(1))));
     }
-};
+}
+
+Swapchain::~Swapchain() { spdlog::debug("Swapchain::~Swapchain()"); }
 } // namespace kovra

@@ -29,7 +29,11 @@ Context::Context(SDL_Window *window)
       graphics_queue_family{physical_device->get_graphics_queue_family()},
       present_queue_family{physical_device->get_present_queue_family()},
       allocator{std::make_unique<VmaAllocator>(
-          create_allocator(*instance, *physical_device, *device))} {
+          create_allocator(*instance, *physical_device, *device))},
+      command_pool{
+          device->get().createCommandPoolUnique(vk::CommandPoolCreateInfo{
+              vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+              graphics_queue_family.get_index()})} {
     spdlog::debug("Context::Context()");
 }
 

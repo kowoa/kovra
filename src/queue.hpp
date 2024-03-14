@@ -48,12 +48,16 @@ class QueueFamily {
 };
 class Queue {
   public:
-    Queue(vk::Queue queue, const std::shared_ptr<Device> &device);
+    Queue(QueueFamily family, const std::shared_ptr<Device> &device);
 
     [[nodiscard]] const vk::Queue &get() const noexcept { return queue; }
+    [[nodiscard]] uint32_t get_family_index() const noexcept {
+        return family.get_index();
+    }
 
   private:
-    vk::Queue queue;
     std::weak_ptr<Device> device;
+    QueueFamily family;
+    vk::Queue queue;
 };
 } // namespace kovra

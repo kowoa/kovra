@@ -18,28 +18,23 @@ Context::Context(SDL_Window *window)
       physical_device{pick_physical_device(
           instance->enumerate_physical_devices(*surface), *surface)},
       device{std::make_shared<Device>(physical_device)},
-      graphics_queue{
-          device->get().getQueue(
-              physical_device->get_graphics_queue_family().get_index(), 0),
-          device},
-      present_queue{
-          device->get().getQueue(
-              physical_device->get_graphics_queue_family().get_index(), 0),
-          device},
-      graphics_queue_family{physical_device->get_graphics_queue_family()},
-      present_queue_family{physical_device->get_present_queue_family()},
+      graphics_queue{physical_device->get_graphics_queue_family(), device},
+      present_queue{physical_device->get_present_queue_family(), device},
       allocator{std::make_unique<VmaAllocator>(
           create_allocator(*instance, *physical_device, *device))},
       command_pool{
           device->get().createCommandPoolUnique(vk::CommandPoolCreateInfo{
               vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-              graphics_queue_family.get_index()})} {
+              graphics_queue.get_family_index()})},
+      upload_context{std::make_unique<UploadContext>(device, graphics_queue)} {
     spdlog::debug("Context::Context()");
 }
 
 Context::~Context() {
     spdlog::debug("Context::~Context()");
     vmaDestroyAllocator(*allocator);
+    upload_context.reset();
+    command_pool.reset();
     allocator.reset();
     device.reset();
     physical_device.reset();

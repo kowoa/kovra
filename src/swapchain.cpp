@@ -3,7 +3,7 @@
 
 namespace kovra {
 Swapchain::Swapchain(const Context &context, SDL_Window *window)
-    : device{context.get_device()} {
+    : device{context.get_device_owned()} {
     spdlog::debug("Swapchain::Swapchain()");
 
     // Swapchain extent
@@ -13,8 +13,8 @@ Swapchain::Swapchain(const Context &context, SDL_Window *window)
         static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
 
     // Swapchain format and color space
-    auto formats = context.physical_device.get()->get().getSurfaceFormatsKHR(
-        context.surface.get()->get());
+    auto formats = context.get_physical_device().getSurfaceFormatsKHR(
+        context.get_surface());
     if (formats.size() == 1 && formats[0].format == vk::Format::eUndefined) {
         format = vk::Format::eB8G8R8A8Unorm;
         color_space = formats[0].colorSpace;
@@ -37,8 +37,8 @@ Swapchain::Swapchain(const Context &context, SDL_Window *window)
 
     // Swapchain present mode
     auto present_modes =
-        context.physical_device.get()->get().getSurfacePresentModesKHR(
-            context.surface.get()->get());
+        context.get_physical_device().getSurfacePresentModesKHR(
+            context.get_surface());
     if (std::find(
             present_modes.begin(), present_modes.end(),
             vk::PresentModeKHR::eMailbox) != present_modes.end()) {
@@ -48,20 +48,19 @@ Swapchain::Swapchain(const Context &context, SDL_Window *window)
     }
 
     // Swapchain
-    auto capabilities =
-        context.physical_device.get()->get().getSurfaceCapabilitiesKHR(
-            context.surface.get()->get());
+    auto capabilities = context.get_physical_device().getSurfaceCapabilitiesKHR(
+        context.get_surface());
     auto image_count = capabilities.minImageCount + 1;
-    auto sharing_mode = context.graphics_queue_family.get_index() !=
-                                context.present_queue_family.get_index()
+    auto sharing_mode = context.get_graphics_family_index() !=
+                                context.get_present_family_index()
                             ? vk::SharingMode::eConcurrent
                             : vk::SharingMode::eExclusive;
     auto queue_family_indices = std::array{
-        context.graphics_queue_family.get_index(),
-        context.present_queue_family.get_index()};
-    swapchain = context.device.get()->get().createSwapchainKHRUnique(
+        context.get_graphics_family_index(),
+        context.get_present_family_index()};
+    swapchain = context.get_device().createSwapchainKHRUnique(
         vk::SwapchainCreateInfoKHR{}
-            .setSurface(context.surface.get()->get())
+            .setSurface(context.get_surface())
             .setMinImageCount(image_count)
             .setImageFormat(format)
             .setImageColorSpace(color_space)
@@ -81,10 +80,10 @@ Swapchain::Swapchain(const Context &context, SDL_Window *window)
             .setOldSwapchain(nullptr));
 
     // Swapchain images and image views
-    images = context.device.get()->get().getSwapchainImagesKHR(swapchain.get());
+    images = context.get_device().getSwapchainImagesKHR(swapchain.get());
     views = std::vector<vk::UniqueImageView>(images.size());
     for (const auto &image : images) {
-        views.emplace_back(context.device.get()->get().createImageViewUnique(
+        views.emplace_back(context.get_device().createImageViewUnique(
             vk::ImageViewCreateInfo{}
                 .setImage(image)
                 .setViewType(vk::ImageViewType::e2D)

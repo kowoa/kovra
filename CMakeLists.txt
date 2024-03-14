@@ -9,6 +9,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Set the build type to Debug
+set(CMAKE_BUILD_TYPE Debug)
+
 add_subdirectory(src)
 add_subdirectory(external)
 

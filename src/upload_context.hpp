@@ -11,9 +11,7 @@ class Queue;
 
 class UploadContext {
   public:
-    UploadContext(
-        const std::shared_ptr<Device> &device,
-        const std::shared_ptr<Queue> &queue);
+    UploadContext(std::shared_ptr<Device> device, Queue queue);
     ~UploadContext();
 
     // Instantly execute some commands on the GPU without dealing with the
@@ -27,6 +25,6 @@ class UploadContext {
     vk::UniqueFence upload_fence;
     vk::UniqueCommandPool upload_command_pool;
     vk::UniqueCommandBuffer upload_command_buffer;
-    Queue upload_queue;
+    std::unique_ptr<Queue> upload_queue;
 };
 } // namespace kovra

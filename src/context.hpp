@@ -24,12 +24,23 @@ class Context {
     [[nodiscard]] const vk::Device &get_device() const noexcept {
         return device.get()->get();
     }
+    [[nodiscard]] const std::shared_ptr<Device> &
+    get_device_owned() const noexcept {
+        return device;
+    }
     [[nodiscard]] const vk::Queue &get_graphics_queue() const noexcept {
         return graphics_queue.get();
     }
     [[nodiscard]] const vk::Queue &get_present_queue() const noexcept {
         return present_queue.get();
     }
+    [[nodiscard]] uint32_t get_graphics_family_index() const noexcept {
+        return graphics_queue.get_family_index();
+    }
+    [[nodiscard]] uint32_t get_present_family_index() const noexcept {
+        return present_queue.get_family_index();
+    }
+
     [[nodiscard]] const VmaAllocator &get_allocator() const noexcept {
         return *allocator.get();
     }
@@ -45,10 +56,8 @@ class Context {
     std::shared_ptr<Device> device;
     Queue graphics_queue;
     Queue present_queue;
-    QueueFamily graphics_queue_family;
-    QueueFamily present_queue_family;
     std::unique_ptr<VmaAllocator> allocator;
     vk::UniqueCommandPool command_pool;
-    UploadContext upload_context;
+    std::unique_ptr<UploadContext> upload_context;
 };
 } // namespace kovra

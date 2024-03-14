@@ -1,8 +1,12 @@
 #pragma once
 
-#include "device.hpp"
+#include <cstdint>
+#include <vulkan/vulkan.hpp>
 
 namespace kovra {
+// Forward declarations
+class Device;
+
 class QueueFamily {
   public:
     QueueFamily(
@@ -48,7 +52,7 @@ class QueueFamily {
 };
 class Queue {
   public:
-    Queue(QueueFamily family, const std::shared_ptr<Device> &device);
+    Queue(QueueFamily family, const vk::Device &device);
 
     [[nodiscard]] const vk::Queue &get() const noexcept { return queue; }
     [[nodiscard]] uint32_t get_family_index() const noexcept {
@@ -56,7 +60,6 @@ class Queue {
     }
 
   private:
-    std::weak_ptr<Device> device;
     QueueFamily family;
     vk::Queue queue;
 };

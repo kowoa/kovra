@@ -1,8 +1,8 @@
 #pragma once
 
-#include "queue.hpp"
-
 #include <functional>
+#include <memory>
+#include <vulkan/vulkan.hpp>
 
 namespace kovra {
 // Forward declarations
@@ -11,7 +11,7 @@ class Queue;
 
 class UploadContext {
   public:
-    UploadContext(std::shared_ptr<Device> device, Queue queue);
+    UploadContext(Queue queue);
     ~UploadContext();
 
     // Instantly execute some commands on the GPU without dealing with the

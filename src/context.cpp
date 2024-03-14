@@ -1,4 +1,3 @@
-#define VMA_IMPLEMENTATION
 
 #include "context.hpp"
 #include "spdlog/spdlog.h"
@@ -8,34 +7,18 @@ namespace kovra {
 std::shared_ptr<PhysicalDevice> pick_physical_device(
     const std::vector<std::shared_ptr<PhysicalDevice>> &physical_devices,
     const Surface &surface);
-VmaAllocator create_allocator(
-    const Instance &instance, const PhysicalDevice &physical_device,
-    const Device &device);
 
 Context::Context(SDL_Window *window)
     : instance{std::make_unique<Instance>(window)},
       surface{std::make_unique<Surface>(*instance, window)},
       physical_device{pick_physical_device(
           instance->enumerate_physical_devices(*surface), *surface)},
-      device{std::make_shared<Device>(physical_device)},
-      graphics_queue{physical_device->get_graphics_queue_family(), device},
-      present_queue{physical_device->get_present_queue_family(), device},
-      allocator{std::make_unique<VmaAllocator>(
-          create_allocator(*instance, *physical_device, *device))},
-      command_pool{
-          device->get().createCommandPoolUnique(vk::CommandPoolCreateInfo{
-              vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-              graphics_queue.get_family_index()})},
-      upload_context{std::make_unique<UploadContext>(device, graphics_queue)} {
+      device{std::make_shared<Device>(physical_device)} {
     spdlog::debug("Context::Context()");
 }
 
 Context::~Context() {
     spdlog::debug("Context::~Context()");
-    vmaDestroyAllocator(*allocator);
-    upload_context.reset();
-    command_pool.reset();
-    allocator.reset();
     device.reset();
     physical_device.reset();
     surface.reset();
@@ -62,21 +45,6 @@ std::shared_ptr<PhysicalDevice> pick_physical_device(
         }
     }
     throw std::runtime_error("No suitable physical device found");
-}
-
-VmaAllocator create_allocator(
-    const Instance &instance, const PhysicalDevice &physical_device,
-    const Device &device) {
-    VmaAllocatorCreateInfo allocator_ci{};
-    allocator_ci.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
-    allocator_ci.vulkanApiVersion = VK_API_VERSION_1_3;
-    allocator_ci.physicalDevice = physical_device.get();
-    allocator_ci.device = device.get();
-    allocator_ci.instance = instance.get();
-
-    VmaAllocator allocator;
-    vmaCreateAllocator(&allocator_ci, &allocator);
-    return allocator;
 }
 
 } // namespace kovra

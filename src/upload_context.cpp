@@ -1,11 +1,9 @@
 #include "upload_context.hpp"
-#include "device.hpp"
 #include "spdlog/spdlog.h"
 
 namespace kovra {
-UploadContext::UploadContext(std::shared_ptr<Device> device, Queue queue)
-    : device{device},
-      upload_fence{device->get().createFenceUnique(vk::FenceCreateInfo{})},
+UploadContext::UploadContext(Queue queue)
+    : upload_fence{device->get().createFenceUnique(vk::FenceCreateInfo{})},
       upload_command_pool{device->get().createCommandPoolUnique(
           vk::CommandPoolCreateInfo{}
               .setFlags(

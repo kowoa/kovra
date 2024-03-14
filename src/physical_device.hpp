@@ -1,10 +1,22 @@
 #pragma once
 
-#include "queue.hpp"
-#include <vulkan/vulkan.hpp>
+#include "surface.hpp"
 
 namespace kovra {
-class Surface;
+// Forward declarations
+class QueueFamily;
+
+class DeviceFeatures {
+  public:
+    DeviceFeatures(const vk::PhysicalDevice &physical_device);
+    bool is_compatible_with(const DeviceFeatures &other) const;
+    bool dynamic_rendering;
+    bool synchronization2;
+    bool runtime_descriptor_array;
+    bool buffer_device_address;
+    bool ray_tracing_pipeline;
+    bool acceleration_structure;
+};
 class PhysicalDevice {
   public:
     PhysicalDevice(vk::PhysicalDevice physical_device, const Surface &surface);

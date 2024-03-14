@@ -2,7 +2,6 @@
 
 #include "SDL_video.h"
 #include "instance.hpp"
-#include <vulkan/vulkan.hpp>
 
 namespace kovra {
 class Surface {

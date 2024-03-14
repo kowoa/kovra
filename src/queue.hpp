@@ -1,9 +1,6 @@
 #pragma once
 
 #include "device.hpp"
-#include <cstdint>
-#include <memory>
-#include <vulkan/vulkan.hpp>
 
 namespace kovra {
 class QueueFamily {

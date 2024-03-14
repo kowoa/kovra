@@ -2,12 +2,15 @@
 
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 
-#include "physical_device.hpp"
-#include "surface.hpp"
+#include "SDL_video.h"
 #include <memory>
 #include <vulkan/vulkan.hpp>
 
 namespace kovra {
+// Forward declarations
+class Surface;
+class PhysicalDevice;
+
 class Instance {
   public:
     Instance(SDL_Window *window);

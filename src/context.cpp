@@ -31,7 +31,6 @@ Context::Context(SDL_Window *window)
       allocator{std::make_unique<VmaAllocator>(
           create_allocator(*instance, *physical_device, *device))} {
     spdlog::debug("Context::Context()");
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(device->get());
 }
 
 Context::~Context() {

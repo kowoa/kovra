@@ -1,6 +1,6 @@
 #include "physical_device.hpp"
+#include "queue.hpp"
 #include "spdlog/spdlog.h"
-#include "surface.hpp"
 
 namespace kovra {
 vk::PhysicalDevice pick_physical_device(

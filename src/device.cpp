@@ -1,5 +1,5 @@
 #include "device.hpp"
-#include "physical_device.hpp"
+#include "queue.hpp"
 #include "spdlog/spdlog.h"
 #include <set>
 
@@ -58,6 +58,7 @@ Device::Device(std::shared_ptr<PhysicalDevice> physical_device)
             .setQueueCreateInfos(queue_cis)
             .setPEnabledExtensionNames(req_device_exts)
             .setPNext(&features));
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(device.get());
 }
 
 Device::~Device() { spdlog::debug("Device::~Device()"); }

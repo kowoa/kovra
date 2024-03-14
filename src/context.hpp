@@ -2,7 +2,7 @@
 
 #include "vk_mem_alloc.h"
 
-#include "surface.hpp"
+#include "queue.hpp"
 #include <memory>
 
 namespace kovra {

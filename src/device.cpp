@@ -71,14 +71,19 @@ Device::Device(
         physical_device->get_graphics_queue_family(), device.get());
     present_queue = std::make_unique<Queue>(
         physical_device->get_present_queue_family(), device.get());
+    transfer_queue = std::make_unique<Queue>(
+        physical_device->get_transfer_queue_family(), device.get());
+    compute_queue = std::make_unique<Queue>(
+        physical_device->get_compute_queue_family(), device.get());
+
     allocator = std::make_unique<VmaAllocator>(
         create_allocator(instance, *physical_device, *device));
     command_pool =
         device.get().createCommandPoolUnique(vk::CommandPoolCreateInfo{
             vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
             graphics_queue->get_family_index()});
-    upload_context =
-        std::make_unique<UploadContext>(*graphics_queue, device.get());
+    transfer_context =
+        std::make_unique<TransferContext>(*transfer_queue, device.get());
 }
 
 Device::~Device() { spdlog::debug("Device::~Device()"); }

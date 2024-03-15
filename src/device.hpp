@@ -6,7 +6,7 @@
 
 #include "command.hpp"
 #include "queue.hpp"
-#include "upload_context.hpp"
+#include "transfer_context.hpp"
 
 namespace kovra {
 class Device {
@@ -49,10 +49,14 @@ class Device {
   private:
     vk::UniqueDevice device;
     std::shared_ptr<PhysicalDevice> physical_device;
+
     std::unique_ptr<Queue> graphics_queue;
     std::unique_ptr<Queue> present_queue;
+    std::unique_ptr<Queue> transfer_queue;
+    std::unique_ptr<Queue> compute_queue;
+
     std::unique_ptr<VmaAllocator> allocator;
     vk::UniqueCommandPool command_pool;
-    std::unique_ptr<UploadContext> upload_context;
+    std::unique_ptr<TransferContext> transfer_context;
 };
 } // namespace kovra

@@ -28,13 +28,13 @@ class QueueFamily {
         return static_cast<bool>(
             properties.queueFlags & vk::QueueFlagBits::eGraphics);
     }
-    [[nodiscard]] bool has_compute_support() const noexcept {
-        return static_cast<bool>(
-            properties.queueFlags & vk::QueueFlagBits::eCompute);
-    }
     [[nodiscard]] bool has_transfer_support() const noexcept {
         return static_cast<bool>(
             properties.queueFlags & vk::QueueFlagBits::eTransfer);
+    }
+    [[nodiscard]] bool has_compute_support() const noexcept {
+        return static_cast<bool>(
+            properties.queueFlags & vk::QueueFlagBits::eCompute);
     }
     [[nodiscard]] bool has_sparse_binding_support() const noexcept {
         return static_cast<bool>(

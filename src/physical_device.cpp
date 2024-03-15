@@ -58,6 +58,24 @@ PhysicalDevice::~PhysicalDevice() {
     throw std::runtime_error("No suitable present queue family found");
 }
 
+[[nodiscard]] QueueFamily PhysicalDevice::get_transfer_queue_family() const {
+    for (const auto &queue_family : queue_families) {
+        if (queue_family.has_transfer_support()) {
+            return queue_family;
+        }
+    }
+    throw std::runtime_error("No suitable transfer queue family found");
+}
+
+[[nodiscard]] QueueFamily PhysicalDevice::get_compute_queue_family() const {
+    for (const auto &queue_family : queue_families) {
+        if (queue_family.has_compute_support()) {
+            return queue_family;
+        }
+    }
+    throw std::runtime_error("No suitable compute queue family found");
+}
+
 [[nodiscard]] bool PhysicalDevice::supports_extensions(
     const std::vector<std::string> &extensions) const noexcept {
     // Check if each extension in the argument exists in supported_extensions

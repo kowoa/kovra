@@ -33,8 +33,12 @@ class PhysicalDevice {
     get_supported_features() const noexcept {
         return supported_features;
     }
+
     [[nodiscard]] QueueFamily get_graphics_queue_family() const;
     [[nodiscard]] QueueFamily get_present_queue_family() const;
+    [[nodiscard]] QueueFamily get_transfer_queue_family() const;
+    [[nodiscard]] QueueFamily get_compute_queue_family() const;
+
     [[nodiscard]] bool supports_extensions(
         const std::vector<std::string> &extensions) const noexcept;
 

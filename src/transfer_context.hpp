@@ -9,10 +9,10 @@ namespace kovra {
 class Device;
 class Queue;
 
-class UploadContext {
+class TransferContext {
   public:
-    UploadContext(Queue queue, const vk::Device &device);
-    ~UploadContext();
+    TransferContext(Queue queue, const vk::Device &device);
+    ~TransferContext();
 
     // Instantly execute some commands on the GPU without dealing with the
     // render loop and other synchronization.
@@ -23,9 +23,9 @@ class UploadContext {
         const vk::Device &device);
 
   private:
-    vk::UniqueFence upload_fence;
-    vk::UniqueCommandPool upload_command_pool;
-    vk::UniqueCommandBuffer upload_command_buffer;
-    std::unique_ptr<Queue> upload_queue;
+    vk::UniqueFence transfer_fence;
+    vk::UniqueCommandPool transfer_command_pool;
+    vk::UniqueCommandBuffer transfer_command_buffer;
+    std::unique_ptr<Queue> transfer_queue;
 };
 } // namespace kovra

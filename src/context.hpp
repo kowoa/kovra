@@ -6,21 +6,21 @@
 namespace kovra {
 class Context {
   public:
-    Context(SDL_Window *window);
+    explicit Context(SDL_Window *window);
     ~Context();
 
     [[nodiscard]] const vk::Instance &get_instance() const noexcept {
-        return instance.get()->get();
+        return instance->get();
     }
     [[nodiscard]] const vk::SurfaceKHR &get_surface() const noexcept {
-        return surface.get()->get();
+        return surface->get();
     }
     [[nodiscard]] const vk::PhysicalDevice &
     get_physical_device() const noexcept {
-        return physical_device.get()->get();
+        return physical_device->get();
     }
     [[nodiscard]] const vk::Device &get_device() const noexcept {
-        return device.get()->get();
+        return device->get();
     }
     [[nodiscard]] const std::shared_ptr<Device> &
     get_device_owned() const noexcept {

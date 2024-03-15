@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
+#include "descriptor.hpp"
 
 namespace kovra {
 // Forward declarations
@@ -8,7 +8,7 @@ class Device;
 
 class Frame {
   public:
-    Frame(const Device &device);
+    explicit Frame(const Device &device);
 
   private:
     // Signals when the swapchain is ready to present
@@ -18,5 +18,8 @@ class Frame {
     vk::UniqueSemaphore render_semaphore;
     // Signals when render commands all finish execution
     vk::UniqueFence render_fence;
+    vk::UniqueCommandBuffer cmd;
+    DescriptorAllocator desc_allocator;
+    // GpuBuffer scene_buffer;
 };
 } // namespace kovra

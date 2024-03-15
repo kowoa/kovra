@@ -13,7 +13,7 @@ class PhysicalDevice;
 
 class Instance {
   public:
-    Instance(SDL_Window *window);
+    explicit Instance(SDL_Window *window);
     ~Instance();
 
     [[nodiscard]] const vk::Instance &get() const noexcept {

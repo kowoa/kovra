@@ -1,3 +1,5 @@
 build/
 shaderbuild/
 .cache/
+cmake-build-debug/
+.idea/

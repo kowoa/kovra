@@ -83,7 +83,9 @@ Device::Device(
 
 Device::~Device() { spdlog::debug("Device::~Device()"); }
 
-[[nodiscard]] vk::UniqueCommandBuffer Device::create_command_buffer() const {}
+[[nodiscard]] CommandEncoder Device::create_command_encoder() const {
+    return CommandEncoder{*this};
+}
 
 DeviceFeatures::DeviceFeatures(const vk::PhysicalDevice &physical_device) {
     auto features = physical_device.getFeatures2<

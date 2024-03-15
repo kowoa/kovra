@@ -18,7 +18,9 @@ class UploadContext {
     // render loop and other synchronization.
     // This is great for compute calculates and can be used from a background
     // thread separated from the render loop.
-    void immediate_submit(std::function<void(vk::CommandBuffer)> &&function);
+    void immediate_submit(
+        std::function<void(vk::CommandBuffer)> &&function,
+        const vk::Device &device);
 
   private:
     vk::UniqueFence upload_fence;

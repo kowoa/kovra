@@ -20,6 +20,9 @@ class Device {
     [[nodiscard]] const vk::Device &get() const noexcept {
         return device.get();
     }
+    [[nodiscard]] const PhysicalDevice &get_physical_device() const noexcept {
+        return *physical_device;
+    }
     [[nodiscard]] const vk::Queue &get_graphics_queue() const noexcept {
         return graphics_queue->get();
     }
@@ -42,7 +45,6 @@ class Device {
     //--------------------------------------------------------------------------
 
     [[nodiscard]] CommandEncoder create_command_encoder() const;
-    [[nodiscard]] vk::UniqueCommandBuffer create_command_buffer() const;
 
   private:
     vk::UniqueDevice device;

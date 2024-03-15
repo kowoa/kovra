@@ -2,6 +2,12 @@
 #include "device.hpp"
 
 namespace kovra {
-CommandEncoder::CommandEncoder(std::shared_ptr<Device> device)
-    : device{device}, cmd{device->create_command_buffer()} {}
+CommandEncoder::CommandEncoder(const Device &device)
+    : cmd{std::move(device.get().allocateCommandBuffersUnique(
+          vk::CommandBufferAllocateInfo{}
+              .setCommandPool(device.get_command_pool())
+              .setLevel(vk::CommandBufferLevel::ePrimary)
+              .setCommandBufferCount(1))[0])} {}
+
+vk::UniqueCommandBuffer CommandEncoder::finish() { return std::move(cmd); }
 } // namespace kovra

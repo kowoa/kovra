@@ -11,7 +11,7 @@ class Queue;
 
 class UploadContext {
   public:
-    UploadContext(Queue queue);
+    UploadContext(Queue queue, const vk::Device &device);
     ~UploadContext();
 
     // Instantly execute some commands on the GPU without dealing with the
@@ -21,7 +21,6 @@ class UploadContext {
     void immediate_submit(std::function<void(vk::CommandBuffer)> &&function);
 
   private:
-    std::shared_ptr<Device> device;
     vk::UniqueFence upload_fence;
     vk::UniqueCommandPool upload_command_pool;
     vk::UniqueCommandBuffer upload_command_buffer;

@@ -51,13 +51,13 @@ Swapchain::Swapchain(const Context &context, SDL_Window *window)
     auto capabilities = context.get_physical_device().getSurfaceCapabilitiesKHR(
         context.get_surface());
     auto image_count = capabilities.minImageCount + 1;
-    auto sharing_mode = context.get_graphics_family_index() !=
-                                context.get_present_family_index()
+    auto sharing_mode = device->get_graphics_family_index() !=
+                                device->get_present_family_index()
                             ? vk::SharingMode::eConcurrent
                             : vk::SharingMode::eExclusive;
     auto queue_family_indices = std::array{
-        context.get_graphics_family_index(),
-        context.get_present_family_index()};
+        device->get_graphics_family_index(),
+        device->get_present_family_index()};
     swapchain = context.get_device().createSwapchainKHRUnique(
         vk::SwapchainCreateInfoKHR{}
             .setSurface(context.get_surface())

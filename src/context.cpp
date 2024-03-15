@@ -13,7 +13,7 @@ Context::Context(SDL_Window *window)
       surface{std::make_unique<Surface>(*instance, window)},
       physical_device{pick_physical_device(
           instance->enumerate_physical_devices(*surface), *surface)},
-      device{std::make_shared<Device>(physical_device)} {
+      device{std::make_shared<Device>(*instance, physical_device)} {
     spdlog::debug("Context::Context()");
 }
 

@@ -77,7 +77,8 @@ Device::Device(
         device.get().createCommandPoolUnique(vk::CommandPoolCreateInfo{
             vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
             graphics_queue->get_family_index()});
-    upload_context = std::make_unique<UploadContext>(*graphics_queue);
+    upload_context =
+        std::make_unique<UploadContext>(*graphics_queue, device.get());
 }
 
 Device::~Device() { spdlog::debug("Device::~Device()"); }

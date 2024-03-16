@@ -10,6 +10,10 @@ class Frame {
   public:
     explicit Frame(const Device &device);
 
+    [[nodiscard]] vk::Fence get_render_fence() const noexcept {
+        return render_fence.get();
+    }
+
   private:
     // Signals when the swapchain is ready to present
     vk::UniqueSemaphore present_semaphore;

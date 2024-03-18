@@ -161,7 +161,9 @@ VmaAllocator create_allocator(
     allocator_ci.instance = instance.get();
 
     VmaAllocator allocator;
-    vmaCreateAllocator(&allocator_ci, &allocator);
+    if (vmaCreateAllocator(&allocator_ci, &allocator) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create VMA allocator");
+    }
     return allocator;
 }
 

@@ -1,8 +1,7 @@
 #pragma once
 
 #include "camera.hpp"
-#include <memory>
-#include <vulkan/vulkan.hpp>
+#include "instance.hpp"
 
 namespace kovra {
 // Forward declarations

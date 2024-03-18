@@ -1,4 +1,5 @@
 #include "buffer.hpp"
+#include "spdlog/spdlog.h"
 
 namespace kovra {
 
@@ -6,6 +7,7 @@ GpuBuffer::GpuBuffer(
     std::shared_ptr<VmaAllocator> allocator, vk::DeviceSize size,
     vk::BufferUsageFlags buffer_usage, VmaMemoryUsage alloc_usage,
     VmaAllocationCreateFlags alloc_flags) {
+    spdlog::debug("GpuBuffer::GpuBuffer()");
 
     VkBufferCreateInfo buffer_info{};
     buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -23,9 +25,12 @@ GpuBuffer::GpuBuffer(
     if (result != VK_SUCCESS) {
         throw std::runtime_error("Failed to create buffer");
     }
+
+    this->allocator = allocator;
 }
 
 GpuBuffer::~GpuBuffer() {
+    spdlog::debug("GpuBuffer::~GpuBuffer()");
     vmaDestroyBuffer(*allocator, buffer, allocation);
     vmaFreeMemory(*allocator, allocation);
     allocator.reset();

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "command.hpp"
-#include "descriptor.hpp"
 #include "draw_context.hpp"
 #include <memory>
 
@@ -9,10 +7,16 @@ namespace kovra {
 // Forward declarations
 class Device;
 class GpuBuffer;
+class CommandEncoder;
+class DescriptorAllocator;
 
 class Frame {
   public:
+    Frame() = delete;
+    Frame(const Frame &) = delete;
+
     explicit Frame(const Device &device);
+    ~Frame();
 
     [[nodiscard]] vk::Fence get_render_fence() const noexcept {
         return render_fence.get();

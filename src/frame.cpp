@@ -1,5 +1,6 @@
 #include "frame.hpp"
 #include "buffer.hpp"
+#include "descriptor.hpp"
 #include "device.hpp"
 #include "gpu_data.hpp"
 #include "spdlog/spdlog.h"
@@ -12,10 +13,16 @@ Frame::Frame(const Device &device)
       render_fence{
           device.get().createFenceUnique({vk::FenceCreateFlagBits::eSignaled})},
       cmd_encoder{std::make_unique<CommandEncoder>(device)},
-      desc_allocator{std::make_unique<DescriptorAllocator>(device.get(), 1000)},
-      scene_buffer{std::make_unique<GpuBuffer>(device.create_buffer(
-          sizeof(GpuSceneData), vk::BufferUsageFlagBits::eUniformBuffer,
-          VMA_MEMORY_USAGE_CPU_TO_GPU, VMA_ALLOCATION_CREATE_MAPPED_BIT))} {}
+      desc_allocator{
+          std::make_unique<DescriptorAllocator>(device.get(), 1000)} {
+    auto buffer = device.create_buffer(
+        sizeof(GpuSceneData), vk::BufferUsageFlagBits::eUniformBuffer,
+        VMA_MEMORY_USAGE_CPU_TO_GPU, VMA_ALLOCATION_CREATE_MAPPED_BIT);
+    scene_buffer = std::make_unique<GpuBuffer>(std::move(buffer));
+    spdlog::debug("Frame::Frame()");
+}
+
+Frame::~Frame() { spdlog::debug("Frame::~Frame()"); }
 
 void Frame::draw(const DrawContext &ctx) {
     auto device = ctx.device.get()->get();

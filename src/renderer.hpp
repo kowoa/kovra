@@ -1,11 +1,17 @@
 #pragma once
 
 #include "context.hpp"
-#include "frame.hpp"
 
 namespace kovra {
+// Forward declarations
+class Camera;
+class Frame;
+
 class Renderer {
   public:
+    Renderer() = delete;
+    Renderer(const Renderer &) = delete;
+
     explicit Renderer(SDL_Window *window);
     ~Renderer();
 
@@ -14,7 +20,7 @@ class Renderer {
   private:
     static constexpr const uint32_t FRAME_OVERLAP = 2;
 
-    Context context;
+    std::unique_ptr<Context> context;
 
     uint32_t frame_number;
     std::vector<std::unique_ptr<Frame>> frames;

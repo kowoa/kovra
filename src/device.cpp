@@ -76,7 +76,7 @@ Device::Device(
     compute_queue = std::make_unique<Queue>(
         physical_device->get_compute_queue_family(), device.get());
 
-    allocator = std::make_unique<VmaAllocator>(
+    allocator = std::make_shared<VmaAllocator>(
         create_allocator(instance, *physical_device, *device));
     command_pool =
         device.get().createCommandPoolUnique(vk::CommandPoolCreateInfo{
@@ -86,10 +86,18 @@ Device::Device(
         std::make_unique<TransferContext>(*transfer_queue, device.get());
 }
 
-Device::~Device() { spdlog::debug("Device::~Device()"); }
+Device::~Device() {
+    spdlog::debug("Device::~Device()");
+    device.get().waitIdle();
+}
 
 [[nodiscard]] CommandEncoder Device::create_command_encoder() const {
     return CommandEncoder{*this};
+}
+[[nodiscard]] GpuBuffer Device::create_buffer(
+    vk::DeviceSize size, vk::BufferUsageFlags buffer_usage,
+    VmaMemoryUsage alloc_usage, VmaAllocationCreateFlags alloc_flags) const {
+    return GpuBuffer{allocator, size, buffer_usage, alloc_usage, alloc_flags};
 }
 
 DeviceFeatures::DeviceFeatures(const vk::PhysicalDevice &physical_device) {

@@ -1,10 +1,14 @@
 #pragma once
 
+#include "command.hpp"
 #include "descriptor.hpp"
+#include "draw_context.hpp"
+#include <memory>
 
 namespace kovra {
 // Forward declarations
 class Device;
+class GpuBuffer;
 
 class Frame {
   public:
@@ -14,6 +18,8 @@ class Frame {
         return render_fence.get();
     }
 
+    void draw(const DrawContext &ctx);
+
   private:
     // Signals when the swapchain is ready to present
     vk::UniqueSemaphore present_semaphore;
@@ -22,8 +28,9 @@ class Frame {
     vk::UniqueSemaphore render_semaphore;
     // Signals when render commands all finish execution
     vk::UniqueFence render_fence;
-    vk::UniqueCommandBuffer cmd;
-    DescriptorAllocator desc_allocator;
-    // GpuBuffer scene_buffer;
+
+    std::unique_ptr<CommandEncoder> cmd_encoder;
+    std::unique_ptr<DescriptorAllocator> desc_allocator;
+    std::unique_ptr<GpuBuffer> scene_buffer;
 };
 } // namespace kovra

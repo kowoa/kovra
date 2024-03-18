@@ -30,8 +30,7 @@ class Context {
   private:
     std::unique_ptr<Instance> instance;
     std::unique_ptr<Surface> surface;
-    std::shared_ptr<PhysicalDevice>
-        physical_device; // Instance also has ownership of all physical devices
+    std::shared_ptr<PhysicalDevice> physical_device;
     std::shared_ptr<Device> device;
 };
 } // namespace kovra

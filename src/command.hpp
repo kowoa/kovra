@@ -11,9 +11,12 @@ class CommandEncoder {
     CommandEncoder(const Device &device);
 
     RenderPass begin_render_pass(const RenderPassDescriptor &desc);
-    vk::UniqueCommandBuffer finish();
+    vk::CommandBuffer finish();
 
   private:
-    vk::UniqueCommandBuffer cmd;
+    static constexpr const uint32_t CMD_POOL_SIZE = 1;
+
+    std::vector<vk::UniqueCommandBuffer> cmd_pool;
+    uint32_t cmd_index;
 };
 } // namespace kovra

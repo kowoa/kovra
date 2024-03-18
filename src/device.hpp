@@ -4,6 +4,7 @@
 
 #include "physical_device.hpp"
 
+#include "buffer.hpp"
 #include "command.hpp"
 #include "queue.hpp"
 #include "transfer_context.hpp"
@@ -29,11 +30,23 @@ class Device {
     [[nodiscard]] const vk::Queue &get_present_queue() const noexcept {
         return present_queue->get();
     }
+    [[nodiscard]] const vk::Queue &get_transfer_queue() const noexcept {
+        return transfer_queue->get();
+    }
+    [[nodiscard]] const vk::Queue &get_compute_queue() const noexcept {
+        return compute_queue->get();
+    }
     [[nodiscard]] uint32_t get_graphics_family_index() const noexcept {
         return graphics_queue->get_family_index();
     }
     [[nodiscard]] uint32_t get_present_family_index() const noexcept {
         return present_queue->get_family_index();
+    }
+    [[nodiscard]] uint32_t get_transfer_family_index() const noexcept {
+        return transfer_queue->get_family_index();
+    }
+    [[nodiscard]] uint32_t get_compute_family_index() const noexcept {
+        return compute_queue->get_family_index();
     }
 
     [[nodiscard]] const VmaAllocator &get_allocator() const noexcept {
@@ -45,6 +58,14 @@ class Device {
     //--------------------------------------------------------------------------
 
     [[nodiscard]] CommandEncoder create_command_encoder() const;
+    [[nodiscard]] GpuBuffer create_buffer(
+        vk::DeviceSize size, vk::BufferUsageFlags buffer_usage,
+        VmaMemoryUsage alloc_usage, VmaAllocationCreateFlags alloc_flags) const;
+    /*
+      [[nodiscard]] GpuImage create_image(
+          const vk::ImageCreateInfo &image_info,
+          VmaMemoryUsage memory_usage) const;
+    */
 
   private:
     vk::UniqueDevice device;
@@ -55,7 +76,7 @@ class Device {
     std::unique_ptr<Queue> transfer_queue;
     std::unique_ptr<Queue> compute_queue;
 
-    std::unique_ptr<VmaAllocator> allocator;
+    std::shared_ptr<VmaAllocator> allocator;
     vk::UniqueCommandPool command_pool;
     std::unique_ptr<TransferContext> transfer_context;
 };

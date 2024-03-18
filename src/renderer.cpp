@@ -3,7 +3,8 @@
 
 namespace kovra {
 Renderer::Renderer(SDL_Window *window)
-    : context{window}, swapchain{context, window}, frame_number{0} {
+    : context{window}, swapchain{context, window}, frame_number{0},
+      frames{FRAME_OVERLAP} {
     spdlog::debug("Renderer::Renderer()");
 }
 Renderer::~Renderer() {
@@ -14,13 +15,14 @@ Renderer::~Renderer() {
         if (const auto result = context.get_device().waitForFences(
                 1, &render_fence, VK_TRUE, UINT64_MAX);
             result != vk::Result::eSuccess) {
-            throw std::runtime_error("Failed to wait for render fence");
+            spdlog::error(
+                "Failed to wait for render fence: {}", vk::to_string(result));
         }
     }
 }
 
 void Renderer::draw_frame() {
-    // get_current_frame().draw();
+    get_current_frame().draw();
     frame_number++;
 }
 } // namespace kovra

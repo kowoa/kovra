@@ -6,7 +6,6 @@
 #include "material.hpp"
 
 namespace kovra {
-
 class Renderer {
   public:
     explicit Renderer(SDL_Window *window);

@@ -44,6 +44,8 @@ class DescriptorAllocator {
 
 class DescriptorWriter {
   public:
+    DescriptorWriter() = default;
+
     void write_buffer(
         uint32_t binding, vk::Buffer buffer, vk::DeviceSize size,
         vk::DeviceSize offset, vk::DescriptorType desc_type);

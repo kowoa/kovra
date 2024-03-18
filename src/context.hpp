@@ -1,6 +1,6 @@
 #pragma once
 
-#include "device.hpp"
+#include "swapchain.hpp"
 #include <memory>
 
 namespace kovra {
@@ -26,11 +26,19 @@ class Context {
     get_device_owned() const noexcept {
         return device;
     }
+    [[nodiscard]] const Swapchain &get_swapchain() const noexcept {
+        return *swapchain;
+    }
+    [[nodiscard]] const std::shared_ptr<Swapchain> &
+    get_swapchain_owned() const noexcept {
+        return swapchain;
+    }
 
   private:
     std::unique_ptr<Instance> instance;
     std::unique_ptr<Surface> surface;
     std::shared_ptr<PhysicalDevice> physical_device;
     std::shared_ptr<Device> device;
+    std::shared_ptr<Swapchain> swapchain;
 };
 } // namespace kovra

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "compute_pass.hpp"
 #include "render_pass.hpp"
 
 namespace kovra {
@@ -11,12 +12,17 @@ class CommandEncoder {
     CommandEncoder(const Device &device);
 
     RenderPass begin_render_pass(const RenderPassDescriptor &desc);
+    ComputePass begin_compute_pass();
     vk::CommandBuffer finish();
 
   private:
     static constexpr const uint32_t CMD_POOL_SIZE = 1;
 
-    std::vector<vk::UniqueCommandBuffer> cmd_pool;
+    std::vector<vk::UniqueCommandBuffer> cmd_buffers;
     uint32_t cmd_index;
+    bool is_recording;
+
+    std::optional<vk::CommandBuffer> begin_recording();
+    std::optional<vk::CommandBuffer> end_recording();
 };
 } // namespace kovra

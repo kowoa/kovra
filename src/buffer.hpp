@@ -15,6 +15,11 @@ class GpuBuffer {
 
     void write(const void *data, vk::DeviceSize size);
 
+    [[nodiscard]] vk::Buffer get() const { return buffer; }
+    [[nodiscard]] vk::DeviceSize get_size() const {
+        return allocation_info.size;
+    }
+
   private:
     std::shared_ptr<VmaAllocator> allocator;
     VkBuffer buffer;

@@ -1,12 +1,14 @@
 #pragma once
 
-#include "context.hpp"
+#include "device.hpp"
 #include <vulkan/vulkan_handles.hpp>
 
 namespace kovra {
 class Swapchain {
   public:
-    Swapchain(const Context &context, SDL_Window *window);
+    Swapchain(
+        SDL_Window *window, const Surface &surface,
+        const PhysicalDevice &physical_device, const Device &device);
     ~Swapchain();
 
     [[nodiscard]] vk::SwapchainKHR get() const { return swapchain.get(); }
@@ -26,7 +28,6 @@ class Swapchain {
     }
 
   private:
-    std::shared_ptr<Device> device;
     vk::UniqueSwapchainKHR swapchain;
     std::vector<vk::Image> images;
     std::vector<vk::UniqueImageView> views;

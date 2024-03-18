@@ -21,6 +21,8 @@ class Camera {
     [[nodiscard]] glm::mat4x4 get_proj_mat(
         glm::f32 viewport_width, glm::f32 viewport_height) const noexcept;
     [[nodiscard]] GpuCameraData as_gpu_data() const noexcept;
+    [[nodiscard]] glm::f32 get_near() const noexcept { return near; }
+    [[nodiscard]] glm::f32 get_far() const noexcept { return far; }
 
   private:
     glm::vec3 position;

@@ -94,10 +94,11 @@ Device::~Device() {
 [[nodiscard]] CommandEncoder Device::create_command_encoder() const {
     return CommandEncoder{*this};
 }
-[[nodiscard]] GpuBuffer Device::create_buffer(
+[[nodiscard]] std::unique_ptr<GpuBuffer> Device::create_buffer(
     vk::DeviceSize size, vk::BufferUsageFlags buffer_usage,
     VmaMemoryUsage alloc_usage, VmaAllocationCreateFlags alloc_flags) const {
-    return GpuBuffer{allocator, size, buffer_usage, alloc_usage, alloc_flags};
+    return std::make_unique<GpuBuffer>(
+        allocator, size, buffer_usage, alloc_usage, alloc_flags);
 }
 
 DeviceFeatures::DeviceFeatures(const vk::PhysicalDevice &physical_device) {

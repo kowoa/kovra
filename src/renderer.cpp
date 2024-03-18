@@ -35,6 +35,10 @@ Renderer::~Renderer() {
                 "Failed to wait for render fence: {}", vk::to_string(result));
         }
     }
+
+    desc_set_layouts.clear();
+    frames.clear();
+    context.reset();
 }
 
 void Renderer::draw_frame(const Camera &camera) {

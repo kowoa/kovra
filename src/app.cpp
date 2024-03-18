@@ -31,9 +31,7 @@ void App::run() {
                 }
             }
 
-            spdlog::debug("before run");
             renderer->draw_frame(camera);
-            spdlog::debug("after run");
         }
     }
 }

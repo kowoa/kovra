@@ -19,6 +19,7 @@ Context::Context(SDL_Window *window)
 
 Context::~Context() {
     spdlog::debug("Context::~Context()");
+    swapchain.reset();
     device.reset();
     physical_device.reset();
     surface.reset();

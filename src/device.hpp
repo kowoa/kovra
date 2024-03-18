@@ -58,7 +58,7 @@ class Device {
     //--------------------------------------------------------------------------
 
     [[nodiscard]] CommandEncoder create_command_encoder() const;
-    [[nodiscard]] GpuBuffer create_buffer(
+    [[nodiscard]] std::unique_ptr<GpuBuffer> create_buffer(
         vk::DeviceSize size, vk::BufferUsageFlags buffer_usage,
         VmaMemoryUsage alloc_usage, VmaAllocationCreateFlags alloc_flags) const;
     /*

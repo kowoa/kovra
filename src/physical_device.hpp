@@ -33,6 +33,14 @@ class PhysicalDevice {
     get_supported_features() const noexcept {
         return supported_features;
     }
+    [[nodiscard]] vk::DeviceSize
+    get_min_uniform_buffer_offset_alignment() const noexcept {
+        return limits.minUniformBufferOffsetAlignment;
+    }
+    [[nodiscard]] vk::DeviceSize
+    get_min_storage_buffer_offset_alignment() const noexcept {
+        return limits.minStorageBufferOffsetAlignment;
+    }
 
     [[nodiscard]] QueueFamily get_graphics_queue_family() const;
     [[nodiscard]] QueueFamily get_present_queue_family() const;

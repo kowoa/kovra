@@ -16,15 +16,13 @@ class GpuBuffer {
     void write(const void *data, vk::DeviceSize size);
 
     [[nodiscard]] vk::Buffer get() const { return buffer; }
-    [[nodiscard]] vk::DeviceSize get_size() const {
-        return allocation_info.size;
-    }
+    [[nodiscard]] vk::DeviceSize get_size() const { return buffer_size; }
 
   private:
     std::shared_ptr<VmaAllocator> allocator;
     VkBuffer buffer;
     VmaAllocation allocation;
     VmaAllocationInfo allocation_info;
-    bool is_mapped;
+    uint32_t buffer_size;
 };
 } // namespace kovra

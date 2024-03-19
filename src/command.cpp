@@ -1,5 +1,6 @@
 #include "command.hpp"
 #include "device.hpp"
+#include "spdlog/spdlog.h"
 
 namespace kovra {
 CommandEncoder::CommandEncoder(const Device &device)

@@ -66,6 +66,14 @@ class Device {
           const vk::ImageCreateInfo &image_info,
           VmaMemoryUsage memory_usage) const;
     */
+    [[nodiscard]] vk::DeviceSize
+    get_buffer_alignment(const GpuBuffer &buffer) const noexcept {
+        vk::MemoryRequirements2 mem_reqs;
+        auto mem_reqs_info =
+            vk::BufferMemoryRequirementsInfo2{}.setBuffer(buffer.get());
+        device.get().getBufferMemoryRequirements2(&mem_reqs_info, &mem_reqs);
+        return mem_reqs.memoryRequirements.alignment;
+    }
 
   private:
     std::shared_ptr<PhysicalDevice> physical_device;

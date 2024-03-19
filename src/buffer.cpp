@@ -9,7 +9,7 @@ GpuBuffer::GpuBuffer(
     VmaAllocationCreateFlags alloc_flags) {
     spdlog::debug("GpuBuffer::GpuBuffer()");
 
-    is_mapped = alloc_flags & VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    buffer_size = size;
 
     VkBufferCreateInfo buffer_info{};
     buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -39,12 +39,11 @@ GpuBuffer::~GpuBuffer() {
 }
 
 void GpuBuffer::write(const void *data, vk::DeviceSize size) {
-    if (is_mapped) {
+    if (allocation_info.pMappedData != nullptr) {
         std::memcpy(allocation_info.pMappedData, data, size);
         return;
     }
 
-    spdlog::error("GpuBuffer::write(): Buffer is not mapped");
     void *mapped_data;
     vmaMapMemory(*allocator, allocation, &mapped_data);
     std::memcpy(mapped_data, data, size);

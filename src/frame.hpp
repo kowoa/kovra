@@ -32,11 +32,11 @@ class Frame {
     vk::UniqueSemaphore render_semaphore;
     // Signals when render commands all finish execution
     vk::UniqueFence render_fence;
-
     std::unique_ptr<CommandEncoder> cmd_encoder;
     std::unique_ptr<DescriptorAllocator> desc_allocator;
     std::unique_ptr<GpuBuffer> scene_buffer;
 
     void draw_background(const DrawContext &ctx);
+    void present(uint32_t swapchain_image_index, const DrawContext &ctx);
 };
 } // namespace kovra

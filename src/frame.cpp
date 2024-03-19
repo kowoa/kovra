@@ -74,10 +74,35 @@ void Frame::draw(const DrawContext &ctx) {
         ctx.swapchain->get_images().at(swapchain_image_index.value);
 
     draw_background(ctx);
+
+    // Submit command buffer to the graphics queue
+    auto cmd = cmd_encoder->finish();
+    auto wait_stages = std::array<vk::PipelineStageFlags, 1>{
+        vk::PipelineStageFlagBits::eColorAttachmentOutput};
+    ctx.device->get_graphics_queue().submit(
+        vk::SubmitInfo{}
+            .setPWaitDstStageMask(wait_stages.data())
+            .setWaitSemaphores(present_semaphore.get())
+            .setSignalSemaphores(render_semaphore.get())
+            .setCommandBuffers(cmd),
+        render_fence.get());
 }
 
 void Frame::draw_background(const DrawContext &ctx) {
     ComputePass pass = cmd_encoder->begin_compute_pass();
     // auto background_image = ctx.background_image;
+}
+
+void Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx) {
+    auto swapchains = std::array{ctx.swapchain->get()};
+    auto wait_semaphores = std::array{present_semaphore.get()};
+    auto result = ctx.device->get_present_queue().presentKHR(
+        vk::PresentInfoKHR{}
+            .setSwapchains(swapchains)
+            .setWaitSemaphores(wait_semaphores)
+            .setPImageIndices(&swapchain_image_index));
+    if (result != vk::Result::eSuccess) {
+        throw std::runtime_error("Failed to present swapchain image");
+    }
 }
 } // namespace kovra

@@ -11,9 +11,10 @@ class CommandEncoder {
   public:
     CommandEncoder(const Device &device);
 
-    RenderPass begin_render_pass(const RenderPassDescriptor &desc);
-    ComputePass begin_compute_pass();
-    vk::CommandBuffer finish();
+    [[nodiscard]] RenderPass
+    begin_render_pass(const RenderPassDescriptor &desc);
+    [[nodiscard]] ComputePass begin_compute_pass();
+    [[nodiscard]] vk::CommandBuffer finish();
 
   private:
     static constexpr const uint32_t CMD_POOL_SIZE = 1;

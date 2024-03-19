@@ -36,7 +36,14 @@ Renderer::~Renderer() {
         }
     }
 
+    for (auto &[name, desc_set_layout] : desc_set_layouts) {
+        desc_set_layout.reset();
+    }
     desc_set_layouts.clear();
+
+    for (auto &frame : frames) {
+        frame.reset();
+    }
     frames.clear();
     context.reset();
 }
@@ -49,7 +56,9 @@ void Renderer::draw_frame(const Camera &camera) {
         .camera = camera,
         .desc_set_layouts = desc_set_layouts};
 
-    // get_current_frame().draw(draw_ctx);
+    spdlog::debug("Before drawing frame");
+    get_current_frame().draw(draw_ctx);
+    spdlog::debug("After drawing frame");
     frame_number++;
 }
 

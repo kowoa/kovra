@@ -25,5 +25,6 @@ class GpuBuffer {
     VkBuffer buffer;
     VmaAllocation allocation;
     VmaAllocationInfo allocation_info;
+    bool is_mapped;
 };
 } // namespace kovra

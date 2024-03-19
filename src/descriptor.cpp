@@ -21,9 +21,7 @@ DescriptorSetLayoutBuilder &DescriptorSetLayoutBuilder::add_binding(
 vk::UniqueDescriptorSetLayout
 DescriptorSetLayoutBuilder::build(const vk::Device &device) {
     return device.createDescriptorSetLayoutUnique(
-        vk::DescriptorSetLayoutCreateInfo{}
-            .setBindingCount(static_cast<uint32_t>(bindings.size()))
-            .setPBindings(bindings.data()));
+        vk::DescriptorSetLayoutCreateInfo{}.setBindings(bindings));
 }
 
 DescriptorAllocator::DescriptorAllocator(

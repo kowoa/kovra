@@ -68,8 +68,8 @@ class Device {
     */
 
   private:
-    vk::UniqueDevice device;
     std::shared_ptr<PhysicalDevice> physical_device;
+    vk::UniqueDevice device;
 
     std::unique_ptr<Queue> graphics_queue;
     std::unique_ptr<Queue> present_queue;

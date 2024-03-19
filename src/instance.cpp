@@ -56,11 +56,7 @@ Instance::Instance(SDL_Window *window) : physical_devices{} {
         nullptr);
 }
 
-Instance::~Instance() {
-    spdlog::debug("Instance::~Instance()");
-    debug_messenger.reset();
-    instance.reset();
-}
+Instance::~Instance() { spdlog::debug("Instance::~Instance()"); }
 
 const std::vector<std::shared_ptr<PhysicalDevice>> &
 Instance::enumerate_physical_devices(const Surface &surface) {

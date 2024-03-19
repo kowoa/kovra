@@ -89,6 +89,15 @@ Device::Device(
 Device::~Device() {
     spdlog::debug("Device::~Device()");
     device.get().waitIdle();
+    transfer_context.reset();
+    command_pool.reset();
+    vmaDestroyAllocator(*allocator);
+    compute_queue.reset();
+    transfer_queue.reset();
+    present_queue.reset();
+    graphics_queue.reset();
+    device.reset();
+    physical_device.reset();
 }
 
 [[nodiscard]] CommandEncoder Device::create_command_encoder() const {

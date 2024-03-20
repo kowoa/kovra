@@ -12,6 +12,7 @@ class GpuBuffer {
         vk::BufferUsageFlags buffer_usage, VmaMemoryUsage alloc_usage,
         VmaAllocationCreateFlags alloc_flags);
     ~GpuBuffer();
+    GpuBuffer(const GpuBuffer &) = delete;
 
     void write(const void *data, vk::DeviceSize size);
 

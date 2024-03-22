@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 
 #include "instance.hpp"
 #include "vk_mem_alloc.h"
@@ -20,7 +20,7 @@ class GpuImage {
   public:
     GpuImage(
         const GpuImageDescriptor &desc, const vk::Device &device,
-        const VmaAllocator &allocator);
+        std::shared_ptr<VmaAllocator> allocator);
     ~GpuImage();
 
     GpuImage(const GpuImage &) = delete;
@@ -54,13 +54,13 @@ class GpuImage {
   private:
     std::shared_ptr<VmaAllocator> allocator;
     VkImage image;
+    VmaAllocation allocation; // GPU-only memory allocation
+    VmaAllocationInfo allocation_info;
     vk::UniqueImageView view;
     vk::Format format;
     vk::Extent3D extent;
     vk::ImageAspectFlags aspect;
     std::optional<vk::Sampler> sampler;
-    VmaAllocation allocation; // GPU-only memory allocation
-    VmaAllocationInfo allocation_info;
 
     void upload(const void *data, const Device &device);
 };

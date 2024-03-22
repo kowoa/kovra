@@ -1,3 +1,5 @@
+#define VMA_IMPLEMENTATION
+
 #include "renderer.hpp"
 #include "descriptor.hpp"
 #include "frame.hpp"
@@ -34,10 +36,12 @@ Renderer::Renderer(SDL_Window *window)
         create_sampler(vk::Filter::eLinear, context->get_device()));
 
     // Create background image
+    spdlog::debug("Creating background image");
     background_image = context->get_device_owned()->create_storage_image(
         context->get_swapchain().get_extent().width,
         context->get_swapchain().get_extent().height,
         samplers.at(vk::Filter::eNearest).get());
+    spdlog::debug("Finished creating background image");
 }
 
 Renderer::~Renderer() {

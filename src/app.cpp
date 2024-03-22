@@ -19,6 +19,8 @@ App::~App() {
 }
 
 void App::run() {
+    spdlog::debug("App::run()");
+
     SDL_Event event;
     bool running = true;
     while (running) {

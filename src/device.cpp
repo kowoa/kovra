@@ -1,5 +1,3 @@
-#define VMA_IMPLEMENTATION
-
 #include "device.hpp"
 #include "image.hpp"
 #include "queue.hpp"

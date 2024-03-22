@@ -1,11 +1,14 @@
 #include "image.hpp"
 #include "device.hpp"
+#include "spdlog/spdlog.h"
 #include "utils.hpp"
 
 namespace kovra {
 GpuImage::GpuImage(
     const GpuImageDescriptor &desc, const vk::Device &device,
-    const VmaAllocator &allocator) {
+    std::shared_ptr<VmaAllocator> allocator)
+    : allocator{allocator}, format{desc.format}, extent{desc.extent},
+      aspect{desc.aspect}, sampler{desc.sampler} {
     VkImageCreateInfo image_ci{};
     image_ci.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_ci.imageType = VK_IMAGE_TYPE_2D;
@@ -29,11 +32,13 @@ GpuImage::GpuImage(
         VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     // Allocate and create image
+    spdlog::debug("Creating image");
     if (vmaCreateImage(
-            allocator, &image_ci, &alloc_ci, &image, &allocation,
+            *allocator, &image_ci, &alloc_ci, &image, &allocation,
             &allocation_info) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create image");
     }
+    spdlog::debug("Created image");
 
     // Create image view
     view = device.createImageViewUnique(
@@ -48,8 +53,6 @@ GpuImage::GpuImage(
                     .setLevelCount(desc.mipmapped ? image_ci.mipLevels : 1)
                     .setBaseArrayLayer(0)
                     .setLayerCount(1)));
-
-    sampler = desc.sampler;
 }
 
 GpuImage::~GpuImage() {
@@ -70,8 +73,8 @@ std::unique_ptr<GpuImage> GpuImage::new_color_image(
         .aspect = vk::ImageAspectFlagBits::eColor,
         .mipmapped = false,
         .sampler = sampler};
-    auto image =
-        std::make_unique<GpuImage>(desc, device.get(), device.get_allocator());
+    auto image = std::make_unique<GpuImage>(
+        desc, device.get(), device.get_allocator_owned());
     image->upload(data, device);
     return image;
 }
@@ -87,7 +90,7 @@ std::unique_ptr<GpuImage> GpuImage::new_depth_image(
         .mipmapped = false,
         .sampler = sampler};
     return std::make_unique<GpuImage>(
-        desc, device.get(), device.get_allocator());
+        desc, device.get(), device.get_allocator_owned());
 }
 // Create an image used by compute shaders
 std::unique_ptr<GpuImage> GpuImage::new_storage_image(
@@ -103,7 +106,7 @@ std::unique_ptr<GpuImage> GpuImage::new_storage_image(
         .mipmapped = false,
         .sampler = sampler};
     return std::make_unique<GpuImage>(
-        desc, device.get(), device.get_allocator());
+        desc, device.get(), device.get_allocator_owned());
 }
 
 void GpuImage::transition_layout(

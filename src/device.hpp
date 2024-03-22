@@ -55,6 +55,9 @@ class Device {
     [[nodiscard]] const VmaAllocator &get_allocator() const noexcept {
         return *allocator.get();
     }
+    [[nodiscard]] std::shared_ptr<VmaAllocator> get_allocator_owned() const {
+        return allocator;
+    }
     [[nodiscard]] const vk::CommandPool &get_command_pool() const noexcept {
         return command_pool.get();
     }

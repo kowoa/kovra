@@ -10,6 +10,9 @@ class Device;
 class CommandEncoder {
   public:
     CommandEncoder(const Device &device);
+    ~CommandEncoder();
+    CommandEncoder(const CommandEncoder &) = delete;
+    CommandEncoder &operator=(const CommandEncoder &) = delete;
 
     [[nodiscard]] RenderPass
     begin_render_pass(const RenderPassDescriptor &desc);
@@ -20,7 +23,7 @@ class CommandEncoder {
     }
 
   private:
-    static constexpr const uint32_t CMD_POOL_SIZE = 1;
+    static constexpr const uint32_t CMD_BUFFER_COUNT = 1;
 
     std::vector<vk::UniqueCommandBuffer> cmd_buffers;
     uint32_t cmd_index;

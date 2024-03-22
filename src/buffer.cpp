@@ -33,9 +33,9 @@ GpuBuffer::GpuBuffer(
 
 GpuBuffer::~GpuBuffer() {
     spdlog::debug("GpuBuffer::~GpuBuffer()");
-    allocator.reset();
     vmaDestroyBuffer(*allocator, buffer, allocation);
-    vmaFreeMemory(*allocator, allocation);
+    // vmaFreeMemory(*allocator, allocation);
+    allocator.reset();
 }
 
 void GpuBuffer::write(const void *data, vk::DeviceSize size) {

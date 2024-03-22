@@ -18,30 +18,32 @@ Renderer::Renderer(SDL_Window *window)
     spdlog::debug("Renderer::Renderer()");
 
     // Create frames
-    frames.reserve(FRAME_OVERLAP);
+    // frames.reserve(FRAME_OVERLAP);
     for (uint32_t i = 0; i < FRAME_OVERLAP; i++) {
         frames.emplace_back(
             std::make_unique<Frame>(*context->get_device_owned()));
     }
 
-    // Create descriptor set layouts
-    init_desc_set_layouts(context->get_device(), desc_set_layouts);
+    /*
+      // Create descriptor set layouts
+      init_desc_set_layouts(context->get_device(), desc_set_layouts);
 
-    // Create samplers
-    samplers.emplace(
-        vk::Filter::eNearest,
-        create_sampler(vk::Filter::eNearest, context->get_device()));
-    samplers.emplace(
-        vk::Filter::eLinear,
-        create_sampler(vk::Filter::eLinear, context->get_device()));
+      // Create samplers
+      samplers.emplace(
+          vk::Filter::eNearest,
+          create_sampler(vk::Filter::eNearest, context->get_device()));
+      samplers.emplace(
+          vk::Filter::eLinear,
+          create_sampler(vk::Filter::eLinear, context->get_device()));
 
-    // Create background image
-    spdlog::debug("Creating background image");
-    background_image = context->get_device_owned()->create_storage_image(
-        context->get_swapchain().get_extent().width,
-        context->get_swapchain().get_extent().height,
-        samplers.at(vk::Filter::eNearest).get());
-    spdlog::debug("Finished creating background image");
+      // Create background image
+      spdlog::debug("Creating background image");
+      background_image = context->get_device_owned()->create_storage_image(
+          context->get_swapchain().get_extent().width,
+          context->get_swapchain().get_extent().height,
+          samplers.at(vk::Filter::eNearest).get());
+      spdlog::debug("Finished creating background image");
+           */
 }
 
 Renderer::~Renderer() {
@@ -56,17 +58,6 @@ Renderer::~Renderer() {
                 "Failed to wait for render fence: {}", vk::to_string(result));
         }
     }
-
-    for (auto &[name, desc_set_layout] : desc_set_layouts) {
-        desc_set_layout.reset();
-    }
-    desc_set_layouts.clear();
-
-    for (auto &frame : frames) {
-        frame.reset();
-    }
-    frames.clear();
-    context.reset();
 }
 
 void Renderer::draw_frame(const Camera &camera) {
@@ -75,7 +66,8 @@ void Renderer::draw_frame(const Camera &camera) {
         .swapchain = context->get_swapchain_owned(),
         .frame_number = frame_number,
         .camera = camera,
-        .desc_set_layouts = desc_set_layouts,
+        //.desc_set_layouts = desc_set_layouts,
+        .desc_set_layouts = {},
         .background_image = background_image};
 
     spdlog::debug("Before drawing frame");
@@ -105,6 +97,6 @@ void init_desc_set_layouts(
                          vk::ShaderStageFlagBits::eVertex |
                              vk::ShaderStageFlagBits::eFragment)
                      .build(device);
-    desc_set_layouts["scene"] = std::move(scene);
+    desc_set_layouts.emplace("scene", std::move(scene));
 }
 } // namespace kovra

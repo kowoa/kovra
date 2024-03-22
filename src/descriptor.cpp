@@ -31,6 +31,11 @@ DescriptorAllocator::DescriptorAllocator(
     sets_per_pool = static_cast<uint32_t>(max_sets * 1.5);
 }
 
+DescriptorAllocator::~DescriptorAllocator() {
+    // Destroy all pools
+    destroy_pools();
+}
+
 vk::UniqueDescriptorSet DescriptorAllocator::allocate(
     vk::DescriptorSetLayout layout, const vk::Device &device) {
     auto pool_to_use = get_next_ready_pool(device);
@@ -86,13 +91,13 @@ void DescriptorAllocator::clear_pools(const vk::Device &device) {
     full_pools.clear();
 }
 
-void DescriptorAllocator::destroy_pools(const vk::Device &device) {
+void DescriptorAllocator::destroy_pools() {
     for (auto &pool : ready_pools) {
-        device.destroyDescriptorPool(pool.get());
+        pool.reset();
     }
     ready_pools.clear();
     for (auto &pool : full_pools) {
-        device.destroyDescriptorPool(pool.get());
+        pool.reset();
     }
     full_pools.clear();
 }

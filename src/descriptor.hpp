@@ -23,12 +23,15 @@ struct DescriptorPoolSizeRatio {
 class DescriptorAllocator {
   public:
     DescriptorAllocator(const vk::Device &device, uint32_t max_sets);
+    ~DescriptorAllocator();
+    DescriptorAllocator(const DescriptorAllocator &) = delete;
+    DescriptorAllocator &operator=(const DescriptorAllocator &) = delete;
 
     [[nodiscard]] vk::UniqueDescriptorSet
     allocate(vk::DescriptorSetLayout layout, const vk::Device &device);
 
     void clear_pools(const vk::Device &device);
-    void destroy_pools(const vk::Device &device);
+    void destroy_pools();
 
   private:
     // Needed to reallocate pools

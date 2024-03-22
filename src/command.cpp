@@ -1,5 +1,6 @@
 #include "command.hpp"
 #include "device.hpp"
+#include "spdlog/spdlog.h"
 
 namespace kovra {
 CommandEncoder::CommandEncoder(const Device &device)
@@ -7,8 +8,18 @@ CommandEncoder::CommandEncoder(const Device &device)
           vk::CommandBufferAllocateInfo{}
               .setCommandPool(device.get_command_pool())
               .setLevel(vk::CommandBufferLevel::ePrimary)
-              .setCommandBufferCount(CMD_POOL_SIZE))},
-      cmd_index{0}, is_recording{false} {}
+              .setCommandBufferCount(CMD_BUFFER_COUNT))},
+      cmd_index{0}, is_recording{false} {
+    spdlog::debug("CommandEncoder::CommandEncoder()");
+}
+
+CommandEncoder::~CommandEncoder() {
+    spdlog::debug("CommandEncoder::~CommandEncoder()");
+    for (auto &cmd_buffer : cmd_buffers) {
+        cmd_buffer.reset();
+    }
+    cmd_buffers.clear();
+}
 
 ComputePass CommandEncoder::begin_compute_pass() {
     begin_recording();
@@ -21,7 +32,7 @@ vk::CommandBuffer CommandEncoder::finish() {
         throw std::runtime_error(
             "Tried to finish command encoder but never began it");
     }
-    cmd_index = (cmd_index + 1) % CMD_POOL_SIZE;
+    cmd_index = (cmd_index + 1) % CMD_BUFFER_COUNT;
     return cmd.value();
 }
 

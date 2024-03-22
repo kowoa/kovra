@@ -91,6 +91,7 @@ Device::~Device() {
     transfer_context.reset();
     command_pool.reset();
     vmaDestroyAllocator(*allocator);
+    allocator.reset();
     compute_queue.reset();
     transfer_queue.reset();
     present_queue.reset();

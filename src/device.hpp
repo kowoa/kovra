@@ -1,7 +1,5 @@
 #pragma once
 
-#include "vk_mem_alloc.h"
-
 #include "physical_device.hpp"
 
 #include "buffer.hpp"
@@ -19,6 +17,8 @@ class Device {
         const Instance &instance,
         std::shared_ptr<PhysicalDevice> physical_device);
     ~Device();
+    Device(const Device &) = delete;
+    Device &operator=(const Device &) = delete;
 
     // Getters -----------------------------------------------------------------
     [[nodiscard]] const vk::Device &get() const noexcept {

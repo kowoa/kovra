@@ -12,11 +12,10 @@ class DescriptorAllocator;
 
 class Frame {
   public:
-    Frame() = delete;
-    Frame(const Frame &) = delete;
-
     explicit Frame(const Device &device);
     ~Frame();
+    Frame() = delete;
+    Frame(const Frame &) = delete;
 
     [[nodiscard]] vk::Fence get_render_fence() const noexcept {
         return render_fence.get();

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vk_mem_alloc.h"
+
 #include "context.hpp"
 
 namespace kovra {
@@ -26,9 +28,8 @@ class Renderer {
     std::vector<std::unique_ptr<Frame>> frames;
 
     // Resources
-    std::unordered_map<std::string, vk::UniqueDescriptorSetLayout>
-        desc_set_layouts;
-    std::unordered_map<vk::Filter, vk::UniqueSampler> samplers;
+    std::unordered_map<std::string, vk::DescriptorSetLayout> desc_set_layouts;
+    std::unordered_map<vk::Filter, vk::Sampler> samplers;
     std::shared_ptr<GpuImage> background_image;
 
     [[nodiscard]] Frame &get_current_frame() const noexcept {

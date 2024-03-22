@@ -1,5 +1,6 @@
 #include "app.hpp"
 #include "SDL.h"
+#include "SDL_vulkan.h"
 #include "spdlog/spdlog.h"
 
 namespace kovra {
@@ -15,6 +16,7 @@ App::~App() {
     renderer.reset();
     // Destroy the window
     SDL_DestroyWindow(window);
+    SDL_Vulkan_UnloadLibrary();
     SDL_Quit();
 }
 
@@ -33,7 +35,7 @@ void App::run() {
                 }
             }
 
-            renderer->draw_frame(camera);
+            // renderer->draw_frame(camera);
         }
     }
 }
@@ -43,6 +45,7 @@ SDL_Window *create_window() {
         throw std::runtime_error(
             std::format("SDL_Init failed: {}", SDL_GetError()));
     }
+    SDL_Vulkan_LoadLibrary(nullptr);
     auto window = SDL_CreateWindow(
         "Kovra", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1600, 900,
         SDL_WINDOW_VULKAN);

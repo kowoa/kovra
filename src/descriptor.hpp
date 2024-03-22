@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <vulkan/vulkan.hpp>
 
 namespace kovra {
@@ -9,7 +10,7 @@ class DescriptorSetLayoutBuilder {
         uint32_t binding, vk::DescriptorType descriptor_type,
         vk::ShaderStageFlags stage_flags);
 
-    [[nodiscard]] vk::UniqueDescriptorSetLayout build(const vk::Device &device);
+    [[nodiscard]] vk::DescriptorSetLayout build(const vk::Device &device) const;
 
   private:
     std::vector<vk::DescriptorSetLayoutBinding> bindings;

@@ -21,7 +21,15 @@ Frame::Frame(const Device &device)
     spdlog::debug("Frame::Frame()");
 }
 
-Frame::~Frame() { spdlog::debug("Frame::~Frame()"); }
+Frame::~Frame() {
+    spdlog::debug("Frame::~Frame()");
+    scene_buffer.reset();
+    desc_allocator.reset();
+    cmd_encoder.reset();
+    render_fence.reset();
+    render_semaphore.reset();
+    present_semaphore.reset();
+}
 
 void Frame::draw(const DrawContext &ctx) {
     auto device = ctx.device.get()->get();

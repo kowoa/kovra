@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vk_mem_alloc.h"
+#define VULKAN_HPP_EXCEPTIONS
 
 #include "context.hpp"
 
@@ -11,11 +11,10 @@ class Frame;
 
 class Renderer {
   public:
-    Renderer() = delete;
-    Renderer(const Renderer &) = delete;
-
     explicit Renderer(SDL_Window *window);
     ~Renderer();
+    Renderer() = delete;
+    Renderer(const Renderer &) = delete;
 
     void draw_frame(const Camera &camera);
 
@@ -29,7 +28,7 @@ class Renderer {
 
     // Resources
     std::unordered_map<std::string, vk::DescriptorSetLayout> desc_set_layouts;
-    std::unordered_map<vk::Filter, vk::Sampler> samplers;
+    std::unordered_map<vk::Filter, vk::UniqueSampler> samplers;
     std::shared_ptr<GpuImage> background_image;
 
     [[nodiscard]] Frame &get_current_frame() const noexcept {

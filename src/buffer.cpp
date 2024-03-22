@@ -34,7 +34,6 @@ GpuBuffer::GpuBuffer(
 GpuBuffer::~GpuBuffer() {
     spdlog::debug("GpuBuffer::~GpuBuffer()");
     vmaDestroyBuffer(*allocator, buffer, allocation);
-    // vmaFreeMemory(*allocator, allocation);
     allocator.reset();
 }
 

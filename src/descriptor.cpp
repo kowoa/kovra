@@ -18,9 +18,9 @@ DescriptorSetLayoutBuilder &DescriptorSetLayoutBuilder::add_binding(
     return *this;
 }
 
-vk::UniqueDescriptorSetLayout
-DescriptorSetLayoutBuilder::build(const vk::Device &device) {
-    return device.createDescriptorSetLayoutUnique(
+vk::DescriptorSetLayout
+DescriptorSetLayoutBuilder::build(const vk::Device &device) const {
+    return device.createDescriptorSetLayout(
         vk::DescriptorSetLayoutCreateInfo{}.setBindings(bindings));
 }
 

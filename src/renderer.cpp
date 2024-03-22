@@ -9,7 +9,7 @@
 namespace kovra {
 void init_desc_set_layouts(
     const vk::Device &device,
-    std::unordered_map<std::string, vk::UniqueDescriptorSetLayout>
+    std::unordered_map<std::string, vk::DescriptorSetLayout>
         &desc_sets_layouts);
 vk::UniqueSampler create_sampler(vk::Filter filter, const vk::Device &device);
 
@@ -18,16 +18,16 @@ Renderer::Renderer(SDL_Window *window)
     spdlog::debug("Renderer::Renderer()");
 
     // Create frames
-    // frames.reserve(FRAME_OVERLAP);
+    frames.reserve(FRAME_OVERLAP);
     for (uint32_t i = 0; i < FRAME_OVERLAP; i++) {
         frames.emplace_back(
             std::make_unique<Frame>(*context->get_device_owned()));
     }
 
-    /*
-      // Create descriptor set layouts
-      init_desc_set_layouts(context->get_device(), desc_set_layouts);
+    // Create descriptor set layouts
+    init_desc_set_layouts(context->get_device(), desc_set_layouts);
 
+    /*
       // Create samplers
       samplers.emplace(
           vk::Filter::eNearest,
@@ -58,6 +58,20 @@ Renderer::~Renderer() {
                 "Failed to wait for render fence: {}", vk::to_string(result));
         }
     }
+
+    background_image.reset();
+
+    // Destroy samplers
+    for (auto &[_, sampler] : samplers) {
+        sampler.reset();
+    }
+    samplers.clear();
+
+    // Destroy descriptor set layouts
+    for (auto &[_, scene_desc_set_layout] : desc_set_layouts) {
+        context->get_device().destroyDescriptorSetLayout(scene_desc_set_layout);
+    }
+    desc_set_layouts.clear();
 }
 
 void Renderer::draw_frame(const Camera &camera) {
@@ -66,8 +80,8 @@ void Renderer::draw_frame(const Camera &camera) {
         .swapchain = context->get_swapchain_owned(),
         .frame_number = frame_number,
         .camera = camera,
-        //.desc_set_layouts = desc_set_layouts,
         .desc_set_layouts = {},
+        //.desc_set_layouts = desc_set_layouts,
         .background_image = background_image};
 
     spdlog::debug("Before drawing frame");
@@ -88,7 +102,7 @@ vk::UniqueSampler create_sampler(vk::Filter filter, const vk::Device &device) {
 
 void init_desc_set_layouts(
     const vk::Device &device,
-    std::unordered_map<std::string, vk::UniqueDescriptorSetLayout>
+    std::unordered_map<std::string, vk::DescriptorSetLayout>
         &desc_set_layouts) {
     // Create a descriptor set layout for the scene buffer
     auto scene = DescriptorSetLayoutBuilder{}

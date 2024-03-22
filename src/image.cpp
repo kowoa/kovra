@@ -58,7 +58,6 @@ GpuImage::GpuImage(
 GpuImage::~GpuImage() {
     view.reset();
     vmaDestroyImage(*allocator, image, allocation);
-    vmaFreeMemory(*allocator, allocation);
 }
 
 // Create a 32-bit shader-readable image from a byte array

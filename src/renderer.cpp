@@ -27,23 +27,19 @@ Renderer::Renderer(SDL_Window *window)
     // Create descriptor set layouts
     init_desc_set_layouts(context->get_device(), desc_set_layouts);
 
-    /*
-      // Create samplers
-      samplers.emplace(
-          vk::Filter::eNearest,
-          create_sampler(vk::Filter::eNearest, context->get_device()));
-      samplers.emplace(
-          vk::Filter::eLinear,
-          create_sampler(vk::Filter::eLinear, context->get_device()));
+    // Create samplers
+    samplers.emplace(
+        vk::Filter::eNearest,
+        create_sampler(vk::Filter::eNearest, context->get_device()));
+    samplers.emplace(
+        vk::Filter::eLinear,
+        create_sampler(vk::Filter::eLinear, context->get_device()));
 
-      // Create background image
-      spdlog::debug("Creating background image");
-      background_image = context->get_device_owned()->create_storage_image(
-          context->get_swapchain().get_extent().width,
-          context->get_swapchain().get_extent().height,
-          samplers.at(vk::Filter::eNearest).get());
-      spdlog::debug("Finished creating background image");
-           */
+    // Create background image
+    background_image = context->get_device_owned()->create_storage_image(
+        context->get_swapchain().get_extent().width,
+        context->get_swapchain().get_extent().height,
+        samplers.at(vk::Filter::eNearest).get());
 }
 
 Renderer::~Renderer() {
@@ -68,10 +64,19 @@ Renderer::~Renderer() {
     samplers.clear();
 
     // Destroy descriptor set layouts
-    for (auto &[_, scene_desc_set_layout] : desc_set_layouts) {
-        context->get_device().destroyDescriptorSetLayout(scene_desc_set_layout);
+    for (auto &[name, desc_set_layout] : desc_set_layouts) {
+        spdlog::debug("Destroying descriptor set layout: {}", name);
+        context->get_device().destroyDescriptorSetLayout(desc_set_layout);
     }
     desc_set_layouts.clear();
+
+    // Destroy frames
+    for (auto &frame : frames) {
+        frame.reset();
+    }
+    frames.clear();
+
+    context.reset();
 }
 
 void Renderer::draw_frame(const Camera &camera) {

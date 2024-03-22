@@ -32,13 +32,46 @@ GpuImage::GpuImage(
         VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     // Allocate and create image
-    spdlog::debug("Creating image");
-    if (vmaCreateImage(
+    if (VkResult result = vmaCreateImage(
             *allocator, &image_ci, &alloc_ci, &image, &allocation,
-            &allocation_info) != VK_SUCCESS) {
+            &allocation_info);
+        result != VK_SUCCESS) {
+        switch (result) {
+        case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+            spdlog::error("Failed to allocate image: out of device memory");
+            break;
+        case VK_ERROR_OUT_OF_HOST_MEMORY:
+            spdlog::error("Failed to allocate image: out of host memory");
+            break;
+        case VK_ERROR_INVALID_EXTERNAL_HANDLE:
+            spdlog::error("Failed to allocate image: invalid external handle");
+            break;
+        case VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS:
+            spdlog::error(
+                "Failed to allocate image: invalid opaque capture address");
+            break;
+        case VK_ERROR_FORMAT_NOT_SUPPORTED:
+            spdlog::error("Failed to allocate image: format not supported");
+            break;
+        case VK_ERROR_FRAGMENTED_POOL:
+            spdlog::error("Failed to allocate image: fragmented pool");
+            break;
+        case VK_ERROR_INITIALIZATION_FAILED:
+            spdlog::error("Failed to allocate image: initialization failed");
+            break;
+        case VK_ERROR_DEVICE_LOST:
+            spdlog::error("Failed to allocate image: device lost");
+            break;
+        case VK_ERROR_SURFACE_LOST_KHR:
+            spdlog::error("Failed to allocate image: surface lost");
+            break;
+            throw std::runtime_error("Failed to create image");
+        default:
+            spdlog::error("Failed to allocate image: unknown error");
+        }
+
         throw std::runtime_error("Failed to create image");
     }
-    spdlog::debug("Created image");
 
     // Create image view
     view = device.createImageViewUnique(

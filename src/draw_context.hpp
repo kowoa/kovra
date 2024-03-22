@@ -7,6 +7,7 @@ namespace kovra {
 // Forward declarations
 class Device;
 class Swapchain;
+class GpuImage;
 
 struct DrawContext {
     std::shared_ptr<Device> device;
@@ -15,5 +16,6 @@ struct DrawContext {
     const Camera &camera;
     const std::unordered_map<std::string, vk::UniqueDescriptorSetLayout>
         &desc_set_layouts;
+    std::shared_ptr<GpuImage> background_image;
 };
 } // namespace kovra

@@ -24,8 +24,12 @@ class Renderer {
 
     uint32_t frame_number;
     std::vector<std::unique_ptr<Frame>> frames;
+
+    // Resources
     std::unordered_map<std::string, vk::UniqueDescriptorSetLayout>
         desc_set_layouts;
+    std::unordered_map<vk::Filter, vk::UniqueSampler> samplers;
+    std::shared_ptr<GpuImage> background_image;
 
     [[nodiscard]] Frame &get_current_frame() const noexcept {
         return *frames.at(frame_number % frames.size());

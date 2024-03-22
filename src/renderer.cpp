@@ -1,6 +1,7 @@
 #include "renderer.hpp"
 #include "descriptor.hpp"
 #include "frame.hpp"
+#include "image.hpp"
 #include "spdlog/spdlog.h"
 
 namespace kovra {
@@ -8,6 +9,7 @@ void init_desc_set_layouts(
     const vk::Device &device,
     std::unordered_map<std::string, vk::UniqueDescriptorSetLayout>
         &desc_sets_layouts);
+vk::UniqueSampler create_sampler(vk::Filter filter, const vk::Device &device);
 
 Renderer::Renderer(SDL_Window *window)
     : context{std::make_unique<Context>(window)}, frame_number{0} {
@@ -20,7 +22,22 @@ Renderer::Renderer(SDL_Window *window)
             std::make_unique<Frame>(*context->get_device_owned()));
     }
 
+    // Create descriptor set layouts
     init_desc_set_layouts(context->get_device(), desc_set_layouts);
+
+    // Create samplers
+    samplers.emplace(
+        vk::Filter::eNearest,
+        create_sampler(vk::Filter::eNearest, context->get_device()));
+    samplers.emplace(
+        vk::Filter::eLinear,
+        create_sampler(vk::Filter::eLinear, context->get_device()));
+
+    // Create background image
+    background_image = context->get_device_owned()->create_storage_image(
+        context->get_swapchain().get_extent().width,
+        context->get_swapchain().get_extent().height,
+        samplers.at(vk::Filter::eNearest).get());
 }
 
 Renderer::~Renderer() {
@@ -54,12 +71,23 @@ void Renderer::draw_frame(const Camera &camera) {
         .swapchain = context->get_swapchain_owned(),
         .frame_number = frame_number,
         .camera = camera,
-        .desc_set_layouts = desc_set_layouts};
+        .desc_set_layouts = desc_set_layouts,
+        .background_image = background_image};
 
     spdlog::debug("Before drawing frame");
     get_current_frame().draw(draw_ctx);
     spdlog::debug("After drawing frame");
     frame_number++;
+}
+
+vk::UniqueSampler create_sampler(vk::Filter filter, const vk::Device &device) {
+    return device.createSamplerUnique(
+        vk::SamplerCreateInfo{}
+            .setMagFilter(filter)
+            .setMinFilter(filter)
+            .setAddressModeU(vk::SamplerAddressMode::eRepeat)
+            .setAddressModeV(vk::SamplerAddressMode::eRepeat)
+            .setAddressModeW(vk::SamplerAddressMode::eRepeat));
 }
 
 void init_desc_set_layouts(

@@ -10,6 +10,9 @@
 #include "transfer_context.hpp"
 
 namespace kovra {
+// Forward declarations
+class GpuImage;
+
 class Device {
   public:
     Device(
@@ -61,11 +64,18 @@ class Device {
     [[nodiscard]] std::unique_ptr<GpuBuffer> create_buffer(
         vk::DeviceSize size, vk::BufferUsageFlags buffer_usage,
         VmaMemoryUsage alloc_usage, VmaAllocationCreateFlags alloc_flags) const;
-    /*
-      [[nodiscard]] GpuImage create_image(
-          const vk::ImageCreateInfo &image_info,
-          VmaMemoryUsage memory_usage) const;
-    */
+    [[nodiscard]] std::unique_ptr<GpuImage> create_color_image(
+        const void *data, uint32_t width, uint32_t height,
+        std::optional<vk::Sampler> sampler) const;
+    [[nodiscard]] std::unique_ptr<GpuImage> create_depth_image(
+        uint32_t width, uint32_t height,
+        std::optional<vk::Sampler> sampler) const;
+    [[nodiscard]] std::unique_ptr<GpuImage> create_storage_image(
+        uint32_t width, uint32_t height,
+        std::optional<vk::Sampler> sampler) const;
+    void
+    immediate_submit(std::function<void(vk::CommandBuffer)> &&function) const;
+
     [[nodiscard]] vk::DeviceSize
     get_buffer_alignment(const GpuBuffer &buffer) const noexcept {
         vk::MemoryRequirements2 mem_reqs;

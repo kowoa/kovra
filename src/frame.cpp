@@ -3,6 +3,7 @@
 #include "descriptor.hpp"
 #include "device.hpp"
 #include "gpu_data.hpp"
+#include "image.hpp"
 #include "spdlog/spdlog.h"
 #include "swapchain.hpp"
 
@@ -74,6 +75,10 @@ void Frame::draw(const DrawContext &ctx) {
         ctx.swapchain->get_images().at(swapchain_image_index.value);
 
     draw_background(ctx);
+    // Copy background image to swapchain image
+    ctx.background_image->copy_to_vkimage(
+        cmd_encoder->get_cmd_buffer(), swapchain_image,
+        ctx.swapchain->get_extent());
 
     // Submit command buffer to the graphics queue
     auto cmd = cmd_encoder->finish();
@@ -86,11 +91,19 @@ void Frame::draw(const DrawContext &ctx) {
             .setSignalSemaphores(render_semaphore.get())
             .setCommandBuffers(cmd),
         render_fence.get());
+    present(swapchain_image_index.value, ctx);
 }
 
 void Frame::draw_background(const DrawContext &ctx) {
-    ComputePass pass = cmd_encoder->begin_compute_pass();
-    // auto background_image = ctx.background_image;
+    // ComputePass pass = cmd_encoder->begin_compute_pass();
+    auto cmd = cmd_encoder->get_cmd_buffer();
+    ctx.background_image->transition_layout(
+        cmd, vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
+    cmd.clearColorImage(
+        ctx.background_image->get(), vk::ImageLayout::eGeneral,
+        vk::ClearColorValue{std::array{0.0f, 0.0f, 0.0f, 1.0f}},
+        vk::ImageSubresourceRange{
+            ctx.background_image->get_aspect(), 0, 1, 0, 1});
 }
 
 void Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx) {

@@ -1,6 +1,7 @@
 #define VMA_IMPLEMENTATION
 
 #include "device.hpp"
+#include "image.hpp"
 #include "queue.hpp"
 #include "spdlog/spdlog.h"
 #include <set>
@@ -140,6 +141,24 @@ bool DeviceFeatures::is_compatible_with(const DeviceFeatures &other) const {
            (!other.buffer_device_address || buffer_device_address) &&
            (!other.ray_tracing_pipeline || ray_tracing_pipeline) &&
            (!other.acceleration_structure || acceleration_structure);
+}
+
+[[nodiscard]] std::unique_ptr<GpuImage> Device::create_color_image(
+    const void *data, uint32_t width, uint32_t height,
+    std::optional<vk::Sampler> sampler) const {
+    return GpuImage::new_color_image(data, width, height, sampler, *this);
+}
+[[nodiscard]] std::unique_ptr<GpuImage> Device::create_depth_image(
+    uint32_t width, uint32_t height, std::optional<vk::Sampler> sampler) const {
+    return GpuImage::new_depth_image(width, height, sampler, *this);
+}
+[[nodiscard]] std::unique_ptr<GpuImage> Device::create_storage_image(
+    uint32_t width, uint32_t height, std::optional<vk::Sampler> sampler) const {
+    return GpuImage::new_storage_image(width, height, sampler, *this);
+}
+void Device::immediate_submit(
+    std::function<void(vk::CommandBuffer)> &&function) const {
+    transfer_context->immediate_submit(std::move(function), device.get());
 }
 
 std::vector<const char *> get_required_device_extensions() {

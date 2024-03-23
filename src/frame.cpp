@@ -4,6 +4,7 @@
 #include "device.hpp"
 #include "gpu_data.hpp"
 #include "image.hpp"
+#include "render_resources.hpp"
 #include "spdlog/spdlog.h"
 #include "swapchain.hpp"
 #include "utils.hpp"
@@ -47,7 +48,8 @@ void Frame::draw(const DrawContext &ctx) {
     desc_allocator.get()->clear_pools(device);
 
     // Create a descriptor set for the scene buffer
-    auto scene_desc_set_layout = ctx.desc_set_layouts.at("scene");
+    auto scene_desc_set_layout =
+        ctx.render_resources->get_desc_set_layout("scene");
     auto scene_desc_set =
         desc_allocator.get()->allocate(scene_desc_set_layout, device);
 
@@ -85,7 +87,7 @@ void Frame::draw(const DrawContext &ctx) {
 
     // Compute commands
     ComputePass compute_pass = cmd_encoder->begin_compute_pass();
-    draw_background(compute_pass.get_cmd(), ctx);
+    draw_background(compute_pass, ctx);
 
     // Copy background image to swapchain image
     ctx.background_image->transition_layout(
@@ -118,10 +120,10 @@ void Frame::draw(const DrawContext &ctx) {
     present(swapchain_image_index.value, ctx);
 }
 
-void Frame::draw_background(vk::CommandBuffer cmd, const DrawContext &ctx) {
+void Frame::draw_background(ComputePass &pass, const DrawContext &ctx) {
     ctx.background_image->transition_layout(
-        cmd, vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
-    cmd.clearColorImage(
+        pass.get_cmd(), vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
+    pass.get_cmd().clearColorImage(
         ctx.background_image->get(), vk::ImageLayout::eGeneral,
         vk::ClearColorValue{std::array{0.0f, 0.0f, 0.0f, 1.0f}},
         vk::ImageSubresourceRange{

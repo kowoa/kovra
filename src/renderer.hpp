@@ -8,7 +8,7 @@
 
 namespace kovra {
 // Forward declarations
-// class Camera;
+class RenderResources;
 
 class Renderer {
   public:
@@ -28,8 +28,7 @@ class Renderer {
     std::vector<std::unique_ptr<Frame>> frames;
 
     // Resources
-    std::unordered_map<std::string, vk::DescriptorSetLayout> desc_set_layouts;
-    std::unordered_map<vk::Filter, vk::UniqueSampler> samplers;
+    std::shared_ptr<RenderResources> render_resources;
     std::shared_ptr<GpuImage> background_image;
 
     [[nodiscard]] Frame &get_current_frame() const noexcept {

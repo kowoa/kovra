@@ -1,20 +1,23 @@
+#include "material.hpp"
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
 #include "descriptor.hpp"
+#include "render_resources.hpp"
 #include "renderer.hpp"
 
 #include "spdlog/spdlog.h"
 
 namespace kovra {
 void init_desc_set_layouts(
-    const vk::Device &device,
-    std::unordered_map<std::string, vk::DescriptorSetLayout>
-        &desc_sets_layouts);
-vk::UniqueSampler create_sampler(vk::Filter filter, const vk::Device &device);
+    const vk::Device &device, RenderResources &resources);
+void init_materials(const vk::Device &device, RenderResources &resources);
+vk::Sampler create_sampler(vk::Filter filter, const vk::Device &device);
 
 Renderer::Renderer(SDL_Window *window)
-    : context{std::make_unique<Context>(window)}, frame_number{0} {
+    : context{std::make_unique<Context>(window)}, frame_number{0},
+      render_resources{
+          std::make_shared<RenderResources>(context->get_device_owned())} {
     spdlog::debug("Renderer::Renderer()");
 
     // Create frames
@@ -25,13 +28,16 @@ Renderer::Renderer(SDL_Window *window)
     }
 
     // Create descriptor set layouts
-    init_desc_set_layouts(context->get_device(), desc_set_layouts);
+    init_desc_set_layouts(context->get_device(), *render_resources);
+
+    // Create materials
+    init_materials(context->get_device(), *render_resources);
 
     // Create samplers
-    samplers.emplace(
+    render_resources->add_sampler(
         vk::Filter::eNearest,
         create_sampler(vk::Filter::eNearest, context->get_device()));
-    samplers.emplace(
+    render_resources->add_sampler(
         vk::Filter::eLinear,
         create_sampler(vk::Filter::eLinear, context->get_device()));
 
@@ -39,7 +45,7 @@ Renderer::Renderer(SDL_Window *window)
     auto swapchain_extent = context->get_swapchain().get_extent();
     background_image = context->get_device_owned()->create_storage_image(
         swapchain_extent.width, swapchain_extent.height,
-        samplers.at(vk::Filter::eNearest).get());
+        render_resources->get_sampler(vk::Filter::eNearest));
 }
 
 Renderer::~Renderer() {
@@ -56,19 +62,7 @@ Renderer::~Renderer() {
     }
 
     background_image.reset();
-
-    // Destroy samplers
-    for (auto &[_, sampler] : samplers) {
-        sampler.reset();
-    }
-    samplers.clear();
-
-    // Destroy descriptor set layouts
-    for (auto &[name, desc_set_layout] : desc_set_layouts) {
-        spdlog::debug("Destroying descriptor set layout: {}", name);
-        context->get_device().destroyDescriptorSetLayout(desc_set_layout);
-    }
-    desc_set_layouts.clear();
+    render_resources.reset();
 
     // Destroy frames
     for (auto &frame : frames) {
@@ -85,15 +79,15 @@ void Renderer::draw_frame(const Camera &camera) {
         .swapchain = context->get_swapchain_owned(),
         .frame_number = frame_number,
         .camera = camera,
-        .desc_set_layouts = desc_set_layouts,
+        .render_resources = render_resources,
         .background_image = background_image};
 
     get_current_frame().draw(draw_ctx);
     frame_number++;
 }
 
-vk::UniqueSampler create_sampler(vk::Filter filter, const vk::Device &device) {
-    return device.createSamplerUnique(
+vk::Sampler create_sampler(vk::Filter filter, const vk::Device &device) {
+    return device.createSampler(
         vk::SamplerCreateInfo{}
             .setMagFilter(filter)
             .setMinFilter(filter)
@@ -103,9 +97,7 @@ vk::UniqueSampler create_sampler(vk::Filter filter, const vk::Device &device) {
 }
 
 void init_desc_set_layouts(
-    const vk::Device &device,
-    std::unordered_map<std::string, vk::DescriptorSetLayout>
-        &desc_set_layouts) {
+    const vk::Device &device, RenderResources &resources) {
     // Create a descriptor set layout for the scene buffer
     auto scene = DescriptorSetLayoutBuilder{}
                      .add_binding(
@@ -113,6 +105,30 @@ void init_desc_set_layouts(
                          vk::ShaderStageFlagBits::eVertex |
                              vk::ShaderStageFlagBits::eFragment)
                      .build(device);
-    desc_set_layouts.emplace("scene", std::move(scene));
+    resources.add_desc_set_layout("scene", std::move(scene));
+
+    // Create a descriptor set layout for the background image
+    auto background = DescriptorSetLayoutBuilder{}
+                          .add_binding(
+                              0, vk::DescriptorType::eStorageImage,
+                              vk::ShaderStageFlagBits::eCompute)
+                          .build(device);
+    resources.add_desc_set_layout("background", std::move(background));
+}
+
+void init_materials(const vk::Device &device, RenderResources &resources) {
+    // Create a material for the background image
+    {
+        auto desc_set_layouts =
+            std::array{resources.get_desc_set_layout("background")};
+        auto pipeline_layout = device.createPipelineLayoutUnique(
+            vk::PipelineLayoutCreateInfo{}.setSetLayouts(desc_set_layouts));
+        auto background = ComputeMaterialBuilder{}
+                              .set_pipeline_layout(std::move(pipeline_layout))
+                              .set_shader(std::make_unique<ComputeShader>(
+                                  ComputeShader{"sky", device}))
+                              .build(device);
+        resources.add_material("background", std::move(background));
+    }
 }
 } // namespace kovra

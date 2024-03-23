@@ -36,7 +36,7 @@ DescriptorAllocator::~DescriptorAllocator() {
     destroy_pools();
 }
 
-vk::UniqueDescriptorSet DescriptorAllocator::allocate(
+vk::DescriptorSet DescriptorAllocator::allocate(
     vk::DescriptorSetLayout layout, const vk::Device &device) {
     auto pool_to_use = get_next_ready_pool(device);
 
@@ -75,7 +75,7 @@ vk::UniqueDescriptorSet DescriptorAllocator::allocate(
     }
 
     ready_pools.push_back(std::move(pool_to_use));
-    return vk::UniqueDescriptorSet(vk_desc_set);
+    return vk_desc_set;
 }
 
 void DescriptorAllocator::clear_pools(const vk::Device &device) {

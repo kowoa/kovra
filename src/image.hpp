@@ -1,7 +1,8 @@
 #pragma once
 
-#include "instance.hpp"
 #include "vk_mem_alloc.h"
+#include <memory>
+#include <vulkan/vulkan.hpp>
 
 namespace kovra {
 // Forward declarations

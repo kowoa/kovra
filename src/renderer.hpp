@@ -3,11 +3,12 @@
 #define VULKAN_HPP_EXCEPTIONS
 
 #include "context.hpp"
+#include "frame.hpp"
+#include "image.hpp"
 
 namespace kovra {
 // Forward declarations
-class Camera;
-class Frame;
+// class Camera;
 
 class Renderer {
   public:

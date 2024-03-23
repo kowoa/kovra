@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <vulkan/vulkan.hpp>
 
 namespace kovra {
@@ -28,7 +27,7 @@ class DescriptorAllocator {
     DescriptorAllocator(const DescriptorAllocator &) = delete;
     DescriptorAllocator &operator=(const DescriptorAllocator &) = delete;
 
-    [[nodiscard]] vk::UniqueDescriptorSet
+    [[nodiscard]] vk::DescriptorSet
     allocate(vk::DescriptorSetLayout layout, const vk::Device &device);
 
     void clear_pools(const vk::Device &device);

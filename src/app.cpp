@@ -35,7 +35,7 @@ void App::run() {
                 }
             }
 
-            // renderer->draw_frame(camera);
+            renderer->draw_frame(camera);
         }
     }
 }

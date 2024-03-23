@@ -6,6 +6,7 @@
 #include "image.hpp"
 #include "spdlog/spdlog.h"
 #include "swapchain.hpp"
+#include "utils.hpp"
 
 namespace kovra {
 Frame::Frame(const Device &device)
@@ -46,7 +47,7 @@ void Frame::draw(const DrawContext &ctx) {
     desc_allocator.get()->clear_pools(device);
 
     // Create a descriptor set for the scene buffer
-    auto scene_desc_set_layout = ctx.desc_set_layouts.at("scene").get();
+    auto scene_desc_set_layout = ctx.desc_set_layouts.at("scene");
     auto scene_desc_set =
         desc_allocator.get()->allocate(scene_desc_set_layout, device);
 
@@ -71,7 +72,7 @@ void Frame::draw(const DrawContext &ctx) {
     writer.write_buffer(
         0, scene_buffer->get(), scene_buffer->get_size(), 0,
         vk::DescriptorType::eUniformBuffer);
-    writer.update_set(device, scene_desc_set.get());
+    writer.update_set(device, scene_desc_set);
 
     // Request image from swapchain (1 sec timeout)
     auto swapchain_image_index = device.acquireNextImageKHR(
@@ -82,11 +83,25 @@ void Frame::draw(const DrawContext &ctx) {
     auto swapchain_image =
         ctx.swapchain->get_images().at(swapchain_image_index.value);
 
-    draw_background(ctx);
-    // Copy background image to swapchain image
-    ctx.background_image->copy_to_vkimage(
-        cmd_encoder->get_cmd_buffer(), swapchain_image,
-        ctx.swapchain->get_extent());
+    auto pass = cmd_encoder->begin_compute_pass();
+    utils::transition_image_layout(
+        pass.get_cmd(), swapchain_image, vk::ImageAspectFlagBits::eColor,
+        vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
+    cmd_encoder->get_cmd_buffer().clearColorImage(
+        swapchain_image, vk::ImageLayout::eGeneral,
+        vk::ClearColorValue{std::array{0.0f, 0.0f, 0.0f, 1.0f}},
+        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
+    utils::transition_image_layout(
+        pass.get_cmd(), swapchain_image, vk::ImageAspectFlagBits::eColor,
+        vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR);
+
+    /*
+      draw_background(ctx);
+      // Copy background image to swapchain image
+      ctx.background_image->copy_to_vkimage(
+          cmd_encoder->get_cmd_buffer(), swapchain_image,
+          ctx.swapchain->get_extent());
+    */
 
     // Submit command buffer to the graphics queue
     auto cmd = cmd_encoder->finish();
@@ -116,7 +131,7 @@ void Frame::draw_background(const DrawContext &ctx) {
 
 void Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx) {
     auto swapchains = std::array{ctx.swapchain->get()};
-    auto wait_semaphores = std::array{present_semaphore.get()};
+    auto wait_semaphores = std::array{render_semaphore.get()};
     auto result = ctx.device->get_present_queue().presentKHR(
         vk::PresentInfoKHR{}
             .setSwapchains(swapchains)

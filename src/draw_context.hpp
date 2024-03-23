@@ -14,7 +14,7 @@ struct DrawContext {
     std::shared_ptr<Swapchain> swapchain;
     uint32_t frame_number;
     const Camera &camera;
-    const std::unordered_map<std::string, vk::UniqueDescriptorSetLayout>
+    const std::unordered_map<std::string, vk::DescriptorSetLayout>
         &desc_set_layouts;
     std::shared_ptr<GpuImage> background_image;
 };

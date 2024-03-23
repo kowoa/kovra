@@ -65,7 +65,6 @@ GpuImage::GpuImage(
         case VK_ERROR_SURFACE_LOST_KHR:
             spdlog::error("Failed to allocate image: surface lost");
             break;
-            throw std::runtime_error("Failed to create image");
         default:
             spdlog::error("Failed to allocate image: unknown error");
         }

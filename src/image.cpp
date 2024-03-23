@@ -19,6 +19,8 @@ GpuImage::GpuImage(
             static_cast<uint32_t>(std::floor(
                 std::log2(std::max(desc.extent.width, desc.extent.height)))) +
             1;
+    } else {
+        image_ci.mipLevels = 1;
     }
     image_ci.arrayLayers = 1;
     image_ci.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -33,7 +35,7 @@ GpuImage::GpuImage(
 
     // Allocate and create image
     if (VkResult result = vmaCreateImage(
-            *allocator, &image_ci, &alloc_ci, &image, &allocation,
+            *this->allocator, &image_ci, &alloc_ci, &image, &allocation,
             &allocation_info);
         result != VK_SUCCESS) {
         switch (result) {

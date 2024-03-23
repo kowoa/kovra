@@ -36,12 +36,10 @@ Renderer::Renderer(SDL_Window *window)
         create_sampler(vk::Filter::eLinear, context->get_device()));
 
     // Create background image
-    /*
-      background_image = context->get_device_owned()->create_storage_image(
-          context->get_swapchain().get_extent().width,
-          context->get_swapchain().get_extent().height,
-          samplers.at(vk::Filter::eNearest).get());
-    */
+    auto swapchain_extent = context->get_swapchain().get_extent();
+    background_image = context->get_device_owned()->create_storage_image(
+        swapchain_extent.width, swapchain_extent.height,
+        samplers.at(vk::Filter::eNearest).get());
 }
 
 Renderer::~Renderer() {

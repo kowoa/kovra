@@ -1,7 +1,6 @@
 #include "app.hpp"
 #include "spdlog/spdlog.h"
 
-#include <iostream>
 #include <vulkan/vulkan.hpp>
 
 int main() {
@@ -10,14 +9,14 @@ int main() {
     try {
         auto app = kovra::App{};
         app.run();
-    } catch (vk::SystemError &e) {
-        std::cout << "vk::SystemError: " << e.what() << std::endl;
+    } catch (const vk::SystemError &e) {
+        spdlog::error("vk::SystemError: {}", e.what());
         return 1;
-    } catch (std::exception &e) {
-        std::cout << "std::exception: " << e.what() << std::endl;
+    } catch (const std::exception &e) {
+        spdlog::error("std::exception: {}", e.what());
         return 1;
     } catch (...) {
-        std::cout << "unknown error" << std::endl;
+        spdlog::error("unknown error");
         return 1;
     }
     return 0;

@@ -35,7 +35,7 @@ class Frame {
     std::unique_ptr<DescriptorAllocator> desc_allocator;
     std::unique_ptr<GpuBuffer> scene_buffer;
 
-    void draw_background(const DrawContext &ctx);
+    void draw_background(vk::CommandBuffer cmd, const DrawContext &ctx);
     void present(uint32_t swapchain_image_index, const DrawContext &ctx);
 };
 } // namespace kovra

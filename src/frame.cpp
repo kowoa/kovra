@@ -83,25 +83,26 @@ void Frame::draw(const DrawContext &ctx) {
     auto swapchain_image =
         ctx.swapchain->get_images().at(swapchain_image_index.value);
 
-    auto pass = cmd_encoder->begin_compute_pass();
-    utils::transition_image_layout(
-        pass.get_cmd(), swapchain_image, vk::ImageAspectFlagBits::eColor,
-        vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
-    cmd_encoder->get_cmd_buffer().clearColorImage(
-        swapchain_image, vk::ImageLayout::eGeneral,
-        vk::ClearColorValue{std::array{0.0f, 0.0f, 0.0f, 1.0f}},
-        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
-    utils::transition_image_layout(
-        pass.get_cmd(), swapchain_image, vk::ImageAspectFlagBits::eColor,
-        vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR);
+    // Compute commands
+    ComputePass compute_pass = cmd_encoder->begin_compute_pass();
+    draw_background(compute_pass.get_cmd(), ctx);
 
-    /*
-      draw_background(ctx);
-      // Copy background image to swapchain image
-      ctx.background_image->copy_to_vkimage(
-          cmd_encoder->get_cmd_buffer(), swapchain_image,
-          ctx.swapchain->get_extent());
-    */
+    // Copy background image to swapchain image
+    ctx.background_image->transition_layout(
+        compute_pass.get_cmd(), vk::ImageLayout::eGeneral,
+        vk::ImageLayout::eTransferSrcOptimal);
+    utils::transition_image_layout(
+        compute_pass.get_cmd(), swapchain_image,
+        vk::ImageAspectFlagBits::eColor, vk::ImageLayout::eUndefined,
+        vk::ImageLayout::eTransferDstOptimal);
+    ctx.background_image->copy_to_vkimage(
+        compute_pass.get_cmd(), swapchain_image, ctx.swapchain->get_extent());
+
+    // Transition swapchain image layout to present src layout
+    utils::transition_image_layout(
+        compute_pass.get_cmd(), swapchain_image,
+        vk::ImageAspectFlagBits::eColor, vk::ImageLayout::eTransferDstOptimal,
+        vk::ImageLayout::ePresentSrcKHR);
 
     // Submit command buffer to the graphics queue
     auto cmd = cmd_encoder->finish();
@@ -117,9 +118,7 @@ void Frame::draw(const DrawContext &ctx) {
     present(swapchain_image_index.value, ctx);
 }
 
-void Frame::draw_background(const DrawContext &ctx) {
-    // ComputePass pass = cmd_encoder->begin_compute_pass();
-    auto cmd = cmd_encoder->get_cmd_buffer();
+void Frame::draw_background(vk::CommandBuffer cmd, const DrawContext &ctx) {
     ctx.background_image->transition_layout(
         cmd, vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
     cmd.clearColorImage(

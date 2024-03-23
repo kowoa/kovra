@@ -18,9 +18,6 @@ class CommandEncoder {
     begin_render_pass(const RenderPassDescriptor &desc);
     [[nodiscard]] ComputePass begin_compute_pass();
     [[nodiscard]] vk::CommandBuffer finish();
-    [[nodiscard]] vk::CommandBuffer get_cmd_buffer() const noexcept {
-        return cmd_buffers.at(cmd_index).get();
-    }
 
   private:
     static constexpr const uint32_t CMD_BUFFER_COUNT = 1;
@@ -31,5 +28,9 @@ class CommandEncoder {
 
     std::optional<vk::CommandBuffer> begin_recording();
     std::optional<vk::CommandBuffer> end_recording();
+
+    [[nodiscard]] vk::CommandBuffer get_current_cmd() const noexcept {
+        return cmd_buffers.at(cmd_index).get();
+    }
 };
 } // namespace kovra

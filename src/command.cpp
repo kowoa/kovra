@@ -41,9 +41,9 @@ std::optional<vk::CommandBuffer> CommandEncoder::begin_recording() {
         return {};
     }
 
-    auto cmd = cmd_buffers.at(cmd_index).get();
+    auto cmd = get_current_cmd();
     // Reset the command buffer
-    cmd.reset({});
+    cmd.reset(vk::CommandBufferResetFlagBits::eReleaseResources);
     // Begin recording the command buffer
     cmd.begin(vk::CommandBufferBeginInfo{}.setFlags(
         vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
@@ -56,7 +56,7 @@ std::optional<vk::CommandBuffer> CommandEncoder::end_recording() {
         return {};
     }
 
-    auto cmd = cmd_buffers.at(cmd_index).get();
+    auto cmd = get_current_cmd();
     cmd.end();
     is_recording = false;
     return cmd;

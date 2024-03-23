@@ -25,6 +25,9 @@ class GpuImage {
     ~GpuImage();
 
     GpuImage(const GpuImage &) = delete;
+    GpuImage &operator=(const GpuImage &) = delete;
+    GpuImage(GpuImage &&) noexcept = delete;
+    GpuImage &operator=(GpuImage &&) noexcept = delete;
 
     // Create a 32-bit shader-readable image from a byte array
     [[nodiscard]] static std::unique_ptr<GpuImage> new_color_image(

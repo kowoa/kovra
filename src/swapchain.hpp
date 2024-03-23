@@ -26,6 +26,9 @@ class Swapchain {
     [[nodiscard]] vk::PresentModeKHR get_present_mode() const {
         return present_mode;
     }
+    [[nodiscard]] const GpuImage &get_depth_image() const {
+        return *depth_image;
+    }
 
   private:
     vk::UniqueSwapchainKHR swapchain;
@@ -35,5 +38,7 @@ class Swapchain {
     vk::Extent2D extent;
     vk::ColorSpaceKHR color_space;
     vk::PresentModeKHR present_mode;
+
+    std::unique_ptr<GpuImage> depth_image;
 };
 } // namespace kovra

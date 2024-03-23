@@ -1,4 +1,5 @@
 #include "swapchain.hpp"
+#include "image.hpp"
 #include "spdlog/spdlog.h"
 
 namespace kovra {
@@ -95,6 +96,10 @@ Swapchain::Swapchain(
                         .setBaseArrayLayer(0)
                         .setLayerCount(1))));
     }
+
+    // Depth image
+    depth_image =
+        device.create_depth_image(extent.width, extent.height, std::nullopt);
 }
 
 Swapchain::~Swapchain() { spdlog::debug("Swapchain::~Swapchain()"); }

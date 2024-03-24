@@ -10,13 +10,13 @@ cmake .. || exit 1
 # Build the project
 cmake --build . || exit 1
 
-# Run the executable
-if [ -f ./src/kovra ]; then
-	./src/kovra
-else
-	echo "Error: ./src/kovra not found. Build may have failed."
-	exit 1
-fi
-
 # Return to original directory
 cd ..
+
+# Run the executable
+if [ -f ./build/src/kovra ]; then
+	./build/src/kovra
+else
+	echo "Error: ./build/src/kovra not found. Build may have failed."
+	exit 1
+fi

@@ -1,4 +1,5 @@
 #include "shader.hpp"
+#include "spdlog/spdlog.h"
 #include <filesystem>
 #include <fstream>
 

@@ -14,10 +14,24 @@ class Material {
   public:
     Material(
         vk::UniquePipeline pipeline, vk::UniquePipelineLayout pipeline_layout,
-        vk::PipelineBindPoint pipeline_bind_point)
+        const vk::PipelineBindPoint &&pipeline_bind_point)
         : pipeline(std::move(pipeline)),
           pipeline_layout(std::move(pipeline_layout)),
-          pipeline_bind_point(pipeline_bind_point) {}
+          pipeline_bind_point(std::move(pipeline_bind_point)) {}
+    Material(const Material &) = delete;
+    Material &operator=(const Material &) = delete;
+    Material(Material &&rhs) noexcept
+        : pipeline(std::move(rhs.pipeline)),
+          pipeline_layout(std::move(rhs.pipeline_layout)),
+          pipeline_bind_point(std::move(rhs.pipeline_bind_point)) {}
+    Material &operator=(Material &&rhs) noexcept {
+        if (this != &rhs) {
+            pipeline = std::move(rhs.pipeline);
+            pipeline_layout = std::move(rhs.pipeline_layout);
+            pipeline_bind_point = std::move(rhs.pipeline_bind_point);
+        }
+        return *this;
+    }
 
     void update_push_constants(
         vk::CommandBuffer cmd, vk::ShaderStageFlags stages,

@@ -20,20 +20,21 @@ RenderResources::~RenderResources() {
 }
 
 void RenderResources::add_material(
-    const std::string &name, const Material &material) {
-    materials.emplace(name, material);
+    const std::string &&name, Material &&material) {
+    materials.emplace(
+        std::move(name), std::make_unique<Material>(std::move(material)));
 }
 void RenderResources::add_sampler(
-    vk::Filter filter, const vk::Sampler &sampler) {
-    samplers.emplace(filter, sampler);
+    const vk::Filter &&filter, const vk::Sampler &&sampler) {
+    samplers.emplace(std::move(filter), std::move(sampler));
 }
 void RenderResources::add_desc_set_layout(
-    const std::string &name, const vk::DescriptorSetLayout &desc_set_layout) {
-    desc_set_layouts.emplace(name, desc_set_layout);
+    const std::string &&name, const vk::DescriptorSetLayout &&desc_set_layout) {
+    desc_set_layouts.emplace(std::move(name), std::move(desc_set_layout));
 }
 [[nodiscard]] const Material &
 RenderResources::get_material(const std::string &name) const {
-    return materials.at(name);
+    return *materials.at(name);
 }
 [[nodiscard]] const vk::Sampler &
 RenderResources::get_sampler(vk::Filter filter) const {

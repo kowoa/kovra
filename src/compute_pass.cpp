@@ -23,4 +23,8 @@ void ComputePass::set_desc_sets(
     }
     material->bind_desc_sets(cmd, first_set, desc_sets, dynamic_offsets);
 }
+void ComputePass::dispatch_workgroups(
+    uint32_t x, uint32_t y, uint32_t z) const {
+    cmd.dispatch(x, y, z);
+}
 } // namespace kovra

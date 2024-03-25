@@ -51,8 +51,14 @@ class GpuImage {
         const vk::Extent2D &dst_extent) const noexcept;
 
     [[nodiscard]] vk::Image get() const noexcept { return image; }
+    [[nodiscard]] vk::ImageView get_view() const noexcept { return view.get(); }
+    [[nodiscard]] vk::Format get_format() const noexcept { return format; }
+    [[nodiscard]] vk::Extent3D get_extent() const noexcept { return extent; }
     [[nodiscard]] vk::ImageAspectFlags get_aspect() const noexcept {
         return aspect;
+    }
+    [[nodiscard]] vk::Sampler get_sampler() const noexcept {
+        return sampler.value();
     }
 
   private:

@@ -16,6 +16,9 @@ class ComputePass {
     void set_desc_sets(
         uint32_t first_set, const std::vector<vk::DescriptorSet> &desc_sets,
         const std::vector<uint32_t> &dynamic_offsets) const;
+    // Dispatch compute work operations
+    // x, y, z: number of workgroups to dispatch in each dimension
+    void dispatch_workgroups(uint32_t x, uint32_t y, uint32_t z) const;
 
     [[nodiscard]] const vk::CommandBuffer &get_cmd() const { return cmd; }
 

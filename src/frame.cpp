@@ -121,13 +121,40 @@ void Frame::draw(const DrawContext &ctx) {
 }
 
 void Frame::draw_background(ComputePass &pass, const DrawContext &ctx) {
+    // Transition background image layout to general
     ctx.background_image->transition_layout(
         pass.get_cmd(), vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
-    pass.get_cmd().clearColorImage(
-        ctx.background_image->get(), vk::ImageLayout::eGeneral,
-        vk::ClearColorValue{std::array{0.0f, 0.0f, 0.0f, 1.0f}},
-        vk::ImageSubresourceRange{
-            ctx.background_image->get_aspect(), 0, 1, 0, 1});
+
+    // Clear background image to black
+    /*
+      pass.get_cmd().clearColorImage(
+          ctx.background_image->get(), vk::ImageLayout::eGeneral,
+          vk::ClearColorValue{std::array{0.0f, 0.0f, 0.0f, 1.0f}},
+          vk::ImageSubresourceRange{
+              ctx.background_image->get_aspect(), 0, 1, 0, 1});
+    */
+
+    // Create a descriptor set for the background image
+    auto desc_set = desc_allocator->allocate(
+        ctx.render_resources->get_desc_set_layout("background"),
+        ctx.device->get());
+
+    // Write the background image to the descriptor set
+    auto writer = DescriptorWriter{};
+    writer.write_image(
+        0, ctx.background_image->get_view(),
+        ctx.background_image->get_sampler(), vk::ImageLayout::eGeneral,
+        vk::DescriptorType::eStorageImage);
+    writer.update_set(ctx.device->get(), desc_set);
+
+    // Set pipeline and descriptor sets
+    pass.set_material(ctx.render_resources->get_material_owned("sky"));
+    pass.set_desc_sets(0, {desc_set}, {});
+    auto extent = ctx.background_image->get_extent();
+
+    // Dispatch compute shader
+    pass.dispatch_workgroups(
+        std::ceil(extent.width / 16.0), std::ceil(extent.height / 16.0), 1);
 }
 
 void Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx) {

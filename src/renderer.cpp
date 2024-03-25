@@ -128,7 +128,7 @@ void init_materials(const vk::Device &device, RenderResources &resources) {
                               .set_shader(std::make_unique<ComputeShader>(
                                   ComputeShader{"sky", device}))
                               .build(device);
-        resources.add_material("background", std::move(background));
+        resources.add_material("sky", std::move(background));
     }
 }
 } // namespace kovra

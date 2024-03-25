@@ -22,7 +22,7 @@ RenderResources::~RenderResources() {
 void RenderResources::add_material(
     const std::string &&name, Material &&material) {
     materials.emplace(
-        std::move(name), std::make_unique<Material>(std::move(material)));
+        std::move(name), std::make_shared<Material>(std::move(material)));
 }
 void RenderResources::add_sampler(
     const vk::Filter &&filter, const vk::Sampler &&sampler) {
@@ -35,6 +35,10 @@ void RenderResources::add_desc_set_layout(
 [[nodiscard]] const Material &
 RenderResources::get_material(const std::string &name) const {
     return *materials.at(name);
+}
+[[nodiscard]] std::shared_ptr<Material>
+RenderResources::get_material_owned(const std::string &name) const {
+    return materials.at(name);
 }
 [[nodiscard]] const vk::Sampler &
 RenderResources::get_sampler(vk::Filter filter) const {

@@ -27,13 +27,15 @@ class RenderResources {
         const vk::DescriptorSetLayout &&desc_set_layout);
 
     [[nodiscard]] const Material &get_material(const std::string &name) const;
+    [[nodiscard]] std::shared_ptr<Material>
+    get_material_owned(const std::string &name) const;
     [[nodiscard]] const vk::Sampler &get_sampler(vk::Filter filter) const;
     [[nodiscard]] const vk::DescriptorSetLayout &
     get_desc_set_layout(const std::string &name) const;
 
   private:
     std::shared_ptr<Device> device;
-    std::unordered_map<std::string, std::unique_ptr<Material>> materials;
+    std::unordered_map<std::string, std::shared_ptr<Material>> materials;
     std::unordered_map<vk::Filter, vk::Sampler> samplers;
     std::unordered_map<std::string, vk::DescriptorSetLayout> desc_set_layouts;
 };

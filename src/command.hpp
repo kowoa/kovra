@@ -19,6 +19,10 @@ class CommandEncoder {
     [[nodiscard]] ComputePass begin_compute_pass();
     [[nodiscard]] vk::CommandBuffer finish();
 
+    void transition_image_layout(
+        const vk::Image &image, vk::ImageAspectFlagBits aspect,
+        vk::ImageLayout old_layout, vk::ImageLayout new_layout) const;
+
   private:
     static constexpr const uint32_t CMD_BUFFER_COUNT = 1;
 

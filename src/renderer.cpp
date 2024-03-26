@@ -11,7 +11,9 @@
 namespace kovra {
 void init_desc_set_layouts(
     const vk::Device &device, RenderResources &resources);
-void init_materials(const vk::Device &device, RenderResources &resources);
+void init_materials(
+    const vk::Device &device, const Swapchain &swapchain,
+    RenderResources &resources);
 vk::Sampler create_sampler(vk::Filter filter, const vk::Device &device);
 
 Renderer::Renderer(SDL_Window *window)
@@ -31,7 +33,8 @@ Renderer::Renderer(SDL_Window *window)
     init_desc_set_layouts(context->get_device(), *render_resources);
 
     // Create materials
-    init_materials(context->get_device(), *render_resources);
+    init_materials(
+        context->get_device(), context->get_swapchain(), *render_resources);
 
     // Create samplers
     render_resources->add_sampler(
@@ -98,6 +101,14 @@ vk::Sampler create_sampler(vk::Filter filter, const vk::Device &device) {
 
 void init_desc_set_layouts(
     const vk::Device &device, RenderResources &resources) {
+    // Create a descriptor set layout for the background image
+    auto background = DescriptorSetLayoutBuilder{}
+                          .add_binding(
+                              0, vk::DescriptorType::eStorageImage,
+                              vk::ShaderStageFlagBits::eCompute)
+                          .build(device);
+    resources.add_desc_set_layout("background", std::move(background));
+
     // Create a descriptor set layout for the scene buffer
     auto scene = DescriptorSetLayoutBuilder{}
                      .add_binding(
@@ -106,18 +117,12 @@ void init_desc_set_layouts(
                              vk::ShaderStageFlagBits::eFragment)
                      .build(device);
     resources.add_desc_set_layout("scene", std::move(scene));
-
-    // Create a descriptor set layout for the background image
-    auto background = DescriptorSetLayoutBuilder{}
-                          .add_binding(
-                              0, vk::DescriptorType::eStorageImage,
-                              vk::ShaderStageFlagBits::eCompute)
-                          .build(device);
-    resources.add_desc_set_layout("background", std::move(background));
 }
 
-void init_materials(const vk::Device &device, RenderResources &resources) {
-    // Create a material for the background image
+void init_materials(
+    const vk::Device &device, const Swapchain &swapchain,
+    RenderResources &resources) {
+    // Background
     {
         auto desc_set_layouts =
             std::array{resources.get_desc_set_layout("background")};
@@ -128,7 +133,24 @@ void init_materials(const vk::Device &device, RenderResources &resources) {
                               .set_shader(std::make_unique<ComputeShader>(
                                   ComputeShader{"sky", device}))
                               .build(device);
-        resources.add_material("sky", std::move(background));
+        resources.add_material("background", std::move(background));
+    }
+
+    // Grid
+    {
+        auto desc_set_layouts =
+            std::array{resources.get_desc_set_layout("scene")};
+        auto pipeline_layout = device.createPipelineLayoutUnique(
+            vk::PipelineLayoutCreateInfo{}.setSetLayouts(desc_set_layouts));
+        auto grid = GraphicsMaterialBuilder{}
+                        .set_pipeline_layout(std::move(pipeline_layout))
+                        .set_shader(std::make_unique<GraphicsShader>(
+                            GraphicsShader{"grid", device}))
+                        .set_color_attachment_format(swapchain.get_format())
+                        .set_depth_attachment_format(
+                            swapchain.get_depth_image().get_format())
+                        .build(device);
+        resources.add_material("grid", std::move(grid));
     }
 }
 } // namespace kovra

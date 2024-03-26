@@ -84,30 +84,73 @@ void Frame::draw(const DrawContext &ctx) {
     }
     auto swapchain_image =
         ctx.swapchain->get_images().at(swapchain_image_index.value);
+    auto swapchain_image_view =
+        ctx.swapchain->get_views().at(swapchain_image_index.value).get();
 
     // Compute commands
-    ComputePass compute_pass = cmd_encoder->begin_compute_pass();
-    draw_background(compute_pass, ctx);
+    {
+        ComputePass compute_pass = cmd_encoder->begin_compute_pass();
+        draw_background(compute_pass, ctx);
 
-    // Copy background image to swapchain image
-    ctx.background_image->transition_layout(
-        compute_pass.get_cmd(), vk::ImageLayout::eGeneral,
-        vk::ImageLayout::eTransferSrcOptimal);
-    utils::transition_image_layout(
-        compute_pass.get_cmd(), swapchain_image,
-        vk::ImageAspectFlagBits::eColor, vk::ImageLayout::eUndefined,
-        vk::ImageLayout::eTransferDstOptimal);
-    ctx.background_image->copy_to_vkimage(
-        compute_pass.get_cmd(), swapchain_image, ctx.swapchain->get_extent());
+        // Copy background image to swapchain image
+        ctx.background_image->transition_layout(
+            compute_pass.get_cmd(), vk::ImageLayout::eGeneral,
+            vk::ImageLayout::eTransferSrcOptimal);
+        utils::transition_image_layout(
+            compute_pass.get_cmd(), swapchain_image,
+            vk::ImageAspectFlagBits::eColor, vk::ImageLayout::eUndefined,
+            vk::ImageLayout::eTransferDstOptimal);
+        ctx.background_image->copy_to_vkimage(
+            compute_pass.get_cmd(), swapchain_image,
+            ctx.swapchain->get_extent());
+        utils::transition_image_layout(
+            compute_pass.get_cmd(), swapchain_image,
+            vk::ImageAspectFlagBits::eColor,
+            vk::ImageLayout::eTransferDstOptimal,
+            vk::ImageLayout::eColorAttachmentOptimal);
+    }
+
+    // Render commands
+    {
+        auto color_attachment =
+            vk::RenderingAttachmentInfo{}
+                .setImageView(swapchain_image_view)
+                .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
+                .setLoadOp(vk::AttachmentLoadOp::eLoad)
+                .setStoreOp(vk::AttachmentStoreOp::eStore)
+                .setClearValue(
+                    vk::ClearValue{}.setColor({0.0f, 0.0f, 0.0f, 1.0f}));
+        auto depth_attachment =
+            vk::RenderingAttachmentInfo{}
+                .setImageView(ctx.swapchain->get_depth_image().get_view())
+                .setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
+                .setLoadOp(vk::AttachmentLoadOp::eClear)
+                .setStoreOp(vk::AttachmentStoreOp::eStore)
+                .setClearValue(vk::ClearValue{}.setDepthStencil({1.0f, 0}));
+        auto render_area =
+            vk::Rect2D{}.setOffset({0, 0}).setExtent(swapchain_extent);
+        RenderPass render_pass =
+            cmd_encoder->begin_render_pass(RenderPassDescriptor{
+                .color_attachments = {color_attachment},
+                .depth_attachment = depth_attachment,
+                .render_area = render_area,
+            });
+        render_pass.set_viewport_scissor(
+            swapchain_extent.width, swapchain_extent.height);
+
+        draw_grid(render_pass, ctx);
+    }
 
     // Transition swapchain image layout to present src layout
-    utils::transition_image_layout(
-        compute_pass.get_cmd(), swapchain_image,
-        vk::ImageAspectFlagBits::eColor, vk::ImageLayout::eTransferDstOptimal,
+    cmd_encoder->transition_image_layout(
+        swapchain_image, vk::ImageAspectFlagBits::eColor,
+        vk::ImageLayout::eColorAttachmentOptimal,
         vk::ImageLayout::ePresentSrcKHR);
 
-    // Submit command buffer to the graphics queue
+    // Finish recording commands
     auto cmd = cmd_encoder->finish();
+
+    // Submit command buffer to the graphics queue
     auto wait_stages = std::array<vk::PipelineStageFlags, 1>{
         vk::PipelineStageFlagBits::eColorAttachmentOutput};
     ctx.device->get_graphics_queue().submit(
@@ -148,13 +191,18 @@ void Frame::draw_background(ComputePass &pass, const DrawContext &ctx) {
     writer.update_set(ctx.device->get(), desc_set);
 
     // Set pipeline and descriptor sets
-    pass.set_material(ctx.render_resources->get_material_owned("sky"));
+    pass.set_material(ctx.render_resources->get_material_owned("background"));
     pass.set_desc_sets(0, {desc_set}, {});
     auto extent = ctx.background_image->get_extent();
 
     // Dispatch compute shader
     pass.dispatch_workgroups(
         std::ceil(extent.width / 16.0), std::ceil(extent.height / 16.0), 1);
+}
+
+void Frame::draw_grid(RenderPass &pass, const DrawContext &ctx) {
+    pass.set_material(ctx.render_resources->get_material_owned("grid"));
+    // pass.set_desc_sets(0, {ctx.grid_desc_set}, {});
 }
 
 void Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx) {

@@ -1,6 +1,7 @@
 #include "command.hpp"
 #include "device.hpp"
 #include "spdlog/spdlog.h"
+#include "utils.hpp"
 
 namespace kovra {
 CommandEncoder::CommandEncoder(const Device &device)
@@ -24,6 +25,11 @@ CommandEncoder::~CommandEncoder() {
 ComputePass CommandEncoder::begin_compute_pass() {
     begin_recording();
     return ComputePass{cmd_buffers.at(cmd_index).get()};
+}
+
+RenderPass CommandEncoder::begin_render_pass(const RenderPassDescriptor &desc) {
+    begin_recording();
+    return RenderPass{desc, cmd_buffers.at(cmd_index).get()};
 }
 
 vk::CommandBuffer CommandEncoder::finish() {
@@ -60,6 +66,13 @@ std::optional<vk::CommandBuffer> CommandEncoder::end_recording() {
     cmd.end();
     is_recording = false;
     return cmd;
+}
+
+void CommandEncoder::transition_image_layout(
+    const vk::Image &image, vk::ImageAspectFlagBits aspect,
+    vk::ImageLayout old_layout, vk::ImageLayout new_layout) const {
+    utils::transition_image_layout(
+        get_current_cmd(), image, aspect, old_layout, new_layout);
 }
 
 } // namespace kovra

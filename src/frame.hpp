@@ -38,7 +38,9 @@ class Frame {
     std::unique_ptr<GpuBuffer> scene_buffer;
 
     void draw_background(ComputePass &pass, const DrawContext &ctx);
-    void draw_grid(RenderPass &pass, const DrawContext &ctx);
+    void draw_grid(
+        RenderPass &pass, const DrawContext &ctx,
+        const vk::DescriptorSet &scene_desc_set);
     void present(uint32_t swapchain_image_index, const DrawContext &ctx);
 };
 } // namespace kovra

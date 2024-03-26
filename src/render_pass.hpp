@@ -25,6 +25,13 @@ class RenderPass {
         const std::vector<uint32_t> &dynamic_offsets) const;
     void set_viewport_scissor(uint32_t width, uint32_t height) const noexcept;
 
+    void draw(
+        uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex,
+        uint32_t first_instance) const noexcept;
+    void draw_indexed(
+        uint32_t index_count, uint32_t instance_count, uint32_t first_index,
+        int32_t vertex_offset, uint32_t first_instance) const;
+
     [[nodiscard]] const vk::CommandBuffer &get_cmd() const { return cmd; }
 
   private:

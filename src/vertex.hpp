@@ -12,7 +12,12 @@ struct VertexInputDescription {
 
 struct Vertex {
   public:
-    static VertexInputDescription get_vertex_desc() {
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec3 color;
+    glm::vec2 uv;
+
+    [[nodiscard]] static VertexInputDescription get_vertex_desc() {
         VertexInputDescription desc{};
         desc.bindings = {vk::VertexInputBindingDescription(
             0, sizeof(Vertex), vk::VertexInputRate::eVertex)};
@@ -28,10 +33,13 @@ struct Vertex {
         return desc;
     }
 
-  private:
-    glm::vec3 position;
-    glm::vec3 normal;
-    glm::vec3 color;
-    glm::vec2 uv;
+    [[nodiscard]] GpuVertexData as_gpu_data() const {
+        return GpuVertexData{
+            .position = position,
+            .uv_x = uv.x,
+            .normal = normal,
+            .uv_y = uv.y,
+            .color = glm::vec4(color, 1.0f)};
+    }
 };
 } // namespace kovra

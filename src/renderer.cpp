@@ -76,7 +76,7 @@ Renderer::~Renderer() {
     context.reset();
 }
 
-void Renderer::draw_frame(const Camera &camera) {
+void Renderer::draw_frame(Camera &camera) {
     auto draw_ctx = DrawContext{
         .device = context->get_device_owned(),
         .swapchain = context->get_swapchain_owned(),
@@ -149,6 +149,8 @@ void init_materials(
                         .set_color_attachment_format(swapchain.get_format())
                         .set_depth_attachment_format(
                             swapchain.get_depth_image().get_format())
+                        .set_vertex_input_desc(VertexInputDescription{
+                            .bindings = {}, .attributes = {}, .flags = {}})
                         .build(device);
         resources.add_material("grid", std::move(grid));
     }

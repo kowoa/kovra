@@ -234,9 +234,9 @@ GraphicsMaterialBuilder::enable_depth_test(bool enable) {
     depth_stencil_ci.setMaxDepthBounds(1.0f);
     return *this;
 }
-GraphicsMaterialBuilder &
-GraphicsMaterialBuilder::set_vertex_input_desc(VertexInputDescription desc) {
-    vertex_input_desc = desc;
+GraphicsMaterialBuilder &GraphicsMaterialBuilder::set_vertex_input_desc(
+    const VertexInputDescription &&desc) {
+    vertex_input_desc = std::move(desc);
     vertex_input_ci =
         vk::PipelineVertexInputStateCreateInfo{}
             .setVertexAttributeDescriptions(vertex_input_desc.attributes)

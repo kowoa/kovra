@@ -80,7 +80,7 @@ Swapchain::Swapchain(
 
     // Swapchain images and image views
     images = device.get().getSwapchainImagesKHR(swapchain.get());
-    views = std::vector<vk::UniqueImageView>(images.size());
+    views.reserve(images.size());
     for (const auto &image : images) {
         views.emplace_back(device.get().createImageViewUnique(
             vk::ImageViewCreateInfo{}

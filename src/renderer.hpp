@@ -17,7 +17,7 @@ class Renderer {
     Renderer() = delete;
     Renderer(const Renderer &) = delete;
 
-    void draw_frame(const Camera &camera);
+    void draw_frame(Camera &camera);
 
   private:
     static constexpr const uint32_t FRAME_OVERLAP = 2;

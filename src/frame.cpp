@@ -1,5 +1,6 @@
 #include "frame.hpp"
 #include "buffer.hpp"
+#include "camera.hpp"
 #include "descriptor.hpp"
 #include "device.hpp"
 #include "gpu_data.hpp"
@@ -55,6 +56,7 @@ void Frame::draw(const DrawContext &ctx) {
 
     // Update the scene buffer
     auto swapchain_extent = ctx.swapchain->get_extent();
+    ctx.camera.set_position({0.0f, 1.0f, 5.0f});
     GpuSceneData scene_data{
         .camera =
             GpuCameraData{
@@ -138,7 +140,7 @@ void Frame::draw(const DrawContext &ctx) {
         render_pass.set_viewport_scissor(
             swapchain_extent.width, swapchain_extent.height);
 
-        draw_grid(render_pass, ctx);
+        draw_grid(render_pass, ctx, scene_desc_set);
     }
 
     // Transition swapchain image layout to present src layout
@@ -200,9 +202,12 @@ void Frame::draw_background(ComputePass &pass, const DrawContext &ctx) {
         std::ceil(extent.width / 16.0), std::ceil(extent.height / 16.0), 1);
 }
 
-void Frame::draw_grid(RenderPass &pass, const DrawContext &ctx) {
+void Frame::draw_grid(
+    RenderPass &pass, const DrawContext &ctx,
+    const vk::DescriptorSet &scene_desc_set) {
     pass.set_material(ctx.render_resources->get_material_owned("grid"));
-    // pass.set_desc_sets(0, {ctx.grid_desc_set}, {});
+    pass.set_desc_sets(0, {scene_desc_set}, {});
+    pass.draw(6, 1, 0, 0);
 }
 
 void Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx) {

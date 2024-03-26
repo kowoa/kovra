@@ -53,4 +53,18 @@ void RenderPass::set_viewport_scissor(
     cmd.setScissor(
         0, vk::Rect2D{}.setOffset({0, 0}).setExtent({width, height}));
 }
+
+void RenderPass::draw(
+    uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex,
+    uint32_t first_instance) const noexcept {
+    cmd.draw(vertex_count, instance_count, first_vertex, first_instance);
+}
+
+void RenderPass::draw_indexed(
+    uint32_t index_count, uint32_t instance_count, uint32_t first_index,
+    int32_t vertex_offset, uint32_t first_instance) const {
+    cmd.drawIndexed(
+        index_count, instance_count, first_index, vertex_offset,
+        first_instance);
+}
 } // namespace kovra

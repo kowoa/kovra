@@ -81,14 +81,40 @@ void App::run() {
             continue;
         }
 
-        ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplSDL2_NewFrame();
-        ImGui::NewFrame();
-        ImGui::ShowDemoWindow();
-        ImGui::Render();
+        draw_imgui();
 
         renderer->draw_frame(camera);
     }
+}
+
+void App::draw_imgui() {
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+
+    // Calculate FPS
+    float curr_frame_time = SDL_GetTicks() / 1000.0f;
+    float elapsed = std::max(curr_frame_time - prev_frame_time, 0.0001f);
+    double frame_count_time = frame_count_since_last_second / elapsed;
+    if (elapsed > 1.0f) {
+        frame_count_since_last_second = 0;
+        prev_frame_time = curr_frame_time;
+        fps = frame_count_time;
+    }
+    frame_count_since_last_second++;
+
+    // Show FPS
+    ImGui::SetNextWindowPos({10, 10});
+    ImGui::SetNextWindowSize({100, 20});
+    ImGui::Begin(
+        "FPS", nullptr,
+        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration |
+            ImGuiWindowFlags_NoBackground);
+    ImGui::Text("FPS: %.2f", fps);
+    ImGui::End();
+
+    ImGui::Render();
 }
 
 SDL_Window *create_window() {

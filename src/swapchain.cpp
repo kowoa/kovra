@@ -37,15 +37,18 @@ Swapchain::Swapchain(
     }
 
     // Swapchain present mode
-    auto present_modes =
-        physical_device.get().getSurfacePresentModesKHR(surface.get());
-    if (std::find(
-            present_modes.begin(), present_modes.end(),
-            vk::PresentModeKHR::eMailbox) != present_modes.end()) {
-        present_mode = vk::PresentModeKHR::eMailbox;
-    } else {
-        present_mode = vk::PresentModeKHR::eFifo;
-    }
+    /*
+      auto present_modes =
+          physical_device.get().getSurfacePresentModesKHR(surface.get());
+      if (std::find(
+              present_modes.begin(), present_modes.end(),
+              vk::PresentModeKHR::eMailbox) != present_modes.end()) {
+          present_mode = vk::PresentModeKHR::eMailbox;
+      } else {
+          present_mode = vk::PresentModeKHR::eFifo;
+      }
+    */
+    present_mode = vk::PresentModeKHR::eFifo;
 
     // Swapchain
     auto capabilities =

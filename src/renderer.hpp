@@ -37,8 +37,13 @@ class Renderer {
     std::shared_ptr<RenderResources> render_resources;
     std::shared_ptr<GpuImage> background_image;
 
+    // ImGui
+    VkDescriptorPool imgui_pool;
+
     [[nodiscard]] Frame &get_current_frame() const noexcept {
         return *frames.at(frame_number % frames.size());
     }
+
+    void init_imgui(SDL_Window *window, const Context &ctx);
 };
 } // namespace kovra

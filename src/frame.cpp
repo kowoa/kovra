@@ -10,6 +10,10 @@
 #include "swapchain.hpp"
 #include "utils.hpp"
 
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_vulkan.h"
+
 namespace kovra {
 Frame::Frame(const Device &device)
     : present_semaphore{device.get().createSemaphoreUnique({})},
@@ -140,6 +144,10 @@ void Frame::draw(const DrawContext &ctx) {
             swapchain_extent.width, swapchain_extent.height);
 
         draw_grid(render_pass, ctx, scene_desc_set);
+
+        // ImGui
+        ImGui_ImplVulkan_RenderDrawData(
+            ImGui::GetDrawData(), render_pass.get_cmd());
     }
 
     // Transition swapchain image layout to present src layout
@@ -221,4 +229,5 @@ void Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx) {
         throw std::runtime_error("Failed to present swapchain image");
     }
 }
+
 } // namespace kovra

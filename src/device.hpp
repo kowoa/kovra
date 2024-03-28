@@ -51,7 +51,6 @@ class Device {
     [[nodiscard]] uint32_t get_compute_family_index() const noexcept {
         return compute_queue->get_family_index();
     }
-
     [[nodiscard]] const VmaAllocator &get_allocator() const noexcept {
         return *allocator.get();
     }

@@ -8,7 +8,7 @@ add_subdirectory(VulkanMemoryAllocator)
 
 # imgui
 add_library(imgui STATIC)
-target_include_directories(imgui PUBLIC imgui)
+target_include_directories(imgui PUBLIC imgui imgui/backends)
 target_sources(
   imgui
   PRIVATE imgui/imgui.cpp

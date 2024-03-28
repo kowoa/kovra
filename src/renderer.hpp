@@ -18,6 +18,12 @@ class Renderer {
     Renderer(const Renderer &) = delete;
 
     void draw_frame(Camera &camera);
+    [[nodiscard]] const Context &get_context() const noexcept {
+        return *context;
+    }
+    [[nodiscard]] uint32_t get_frame_number() const noexcept {
+        return frame_number;
+    }
 
   private:
     static constexpr const uint32_t FRAME_OVERLAP = 2;

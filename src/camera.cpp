@@ -30,7 +30,7 @@ void Camera::zoom(glm::f32 delta) noexcept {
 }
 
 void Camera::rotate(
-    glm::vec2 last_mouse_pos, glm::vec2 curr_mouse_pos, glm::f32 viewport_width,
+    glm::vec2 prev_mouse_pos, glm::vec2 curr_mouse_pos, glm::f32 viewport_width,
     glm::f32 viewport_height) noexcept {
     // Get the homogeneous positions of the camera eye and pivot
     auto pos = glm::vec4(position, 1.0f);
@@ -41,8 +41,8 @@ void Camera::rotate(
     auto delta_angle_x = 2.0f * glm::pi<glm::f32>() / viewport_width;
     // Top to bottom = PI = 180 deg
     auto delta_angle_y = glm::pi<glm::f32>() / viewport_height;
-    auto angle_x = (last_mouse_pos.x - curr_mouse_pos.x) * delta_angle_x;
-    auto angle_y = (last_mouse_pos.y - curr_mouse_pos.y) * delta_angle_y;
+    auto angle_x = (prev_mouse_pos.x - curr_mouse_pos.x) * delta_angle_x;
+    auto angle_y = (prev_mouse_pos.y - curr_mouse_pos.y) * delta_angle_y;
 
     // Handle case where the camera's forward is the same as its up
     auto cos_angle = glm::dot(forward, up);

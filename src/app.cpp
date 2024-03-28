@@ -27,16 +27,37 @@ void App::run() {
     bool running = true;
     while (running) {
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
+            switch (event.type) {
+            case SDL_QUIT:
                 running = false;
-            } else if (event.type == SDL_KEYDOWN) {
+                break;
+            case SDL_KEYDOWN:
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     running = false;
                 }
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                if (event.button.button == SDL_BUTTON_RIGHT) {
+                    camera_movable = true;
+                }
+                break;
+            case SDL_MOUSEBUTTONUP:
+                if (event.button.button == SDL_BUTTON_RIGHT) {
+                    camera_movable = false;
+                }
+                break;
+            case SDL_MOUSEMOTION:
+                glm::vec2 curr_mouse_pos{event.motion.x, event.motion.y};
+                if (camera_movable) {
+                    camera.rotate(
+                        prev_mouse_pos, curr_mouse_pos, 1600.0f, 900.0f);
+                }
+                prev_mouse_pos = curr_mouse_pos;
+                break;
             }
-
-            renderer->draw_frame(camera);
         }
+
+        renderer->draw_frame(camera);
     }
 }
 

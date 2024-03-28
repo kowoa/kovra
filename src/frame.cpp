@@ -56,7 +56,6 @@ void Frame::draw(const DrawContext &ctx) {
 
     // Update the scene buffer
     auto swapchain_extent = ctx.swapchain->get_extent();
-    ctx.camera.set_position({0.0f, 1.0f, 5.0f});
     GpuSceneData scene_data{
         .camera =
             GpuCameraData{

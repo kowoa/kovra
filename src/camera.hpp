@@ -12,7 +12,7 @@ class Camera {
     void look_at(const glm::vec3 &target) noexcept;
     void zoom(glm::f32 delta) noexcept;
     void rotate(
-        glm::vec2 last_mouse_pos, glm::vec2 curr_mouse_pos,
+        glm::vec2 prev_mouse_pos, glm::vec2 curr_mouse_pos,
         glm::f32 viewport_width, glm::f32 viewport_height) noexcept;
 
     [[nodiscard]] glm::mat4x4 get_viewproj_mat(

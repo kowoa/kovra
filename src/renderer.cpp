@@ -71,8 +71,8 @@ Renderer::~Renderer() {
     }
 
     // Destroy ImGui
-    vkDestroyDescriptorPool(get_context().get_device(), imgui_pool, nullptr);
     ImGui_ImplVulkan_Shutdown();
+    vkDestroyDescriptorPool(get_context().get_device(), imgui_pool, nullptr);
 
     background_image.reset();
     render_resources.reset();

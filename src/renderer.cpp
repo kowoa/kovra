@@ -131,7 +131,7 @@ void init_materials(
         auto background = ComputeMaterialBuilder{}
                               .set_pipeline_layout(std::move(pipeline_layout))
                               .set_shader(std::make_unique<ComputeShader>(
-                                  ComputeShader{"sky", device}))
+                                  ComputeShader{"black", device}))
                               .build(device);
         resources.add_material("background", std::move(background));
     }

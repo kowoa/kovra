@@ -24,12 +24,14 @@ void Camera::look_at(const glm::vec3 &target) noexcept {
     up = glm::normalize(glm::cross(right, forward));
 }
 
-void Camera::zoom(glm::f32 delta) noexcept {
-    // Subtracting because lower FOV means zooming in
-    fov_y_deg = std::clamp(fov_y_deg - delta, 1.0f, 179.0f);
+void Camera::mouse_zoom(glm::f32 mouse_wheel_delta_y) noexcept {
+    auto new_pos = position + forward * mouse_wheel_delta_y;
+    if (glm::distance(new_pos, pivot) > 0.1f) {
+        set_position(new_pos);
+    }
 }
 
-void Camera::rotate(
+void Camera::mouse_rotate(
     glm::vec2 prev_mouse_pos, glm::vec2 curr_mouse_pos, glm::f32 viewport_width,
     glm::f32 viewport_height) noexcept {
     // Get the homogeneous positions of the camera eye and pivot

@@ -10,8 +10,10 @@ class Camera {
 
     void set_position(const glm::vec3 &pos) noexcept;
     void look_at(const glm::vec3 &target) noexcept;
-    void zoom(glm::f32 delta) noexcept;
-    void rotate(
+
+    // Mouse processing
+    void mouse_zoom(glm::f32 mouse_wheel_delta_y) noexcept;
+    void mouse_rotate(
         glm::vec2 prev_mouse_pos, glm::vec2 curr_mouse_pos,
         glm::f32 viewport_width, glm::f32 viewport_height) noexcept;
 

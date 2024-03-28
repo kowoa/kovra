@@ -46,18 +46,21 @@ void App::run() {
                     camera_movable = false;
                 }
                 break;
+            case SDL_MOUSEWHEEL:
+                camera.mouse_zoom(event.wheel.preciseY);
+                break;
             case SDL_MOUSEMOTION:
                 glm::vec2 curr_mouse_pos{event.motion.x, event.motion.y};
                 if (camera_movable) {
-                    camera.rotate(
+                    camera.mouse_rotate(
                         prev_mouse_pos, curr_mouse_pos, 1600.0f, 900.0f);
                 }
                 prev_mouse_pos = curr_mouse_pos;
                 break;
             }
-        }
 
-        renderer->draw_frame(camera);
+            renderer->draw_frame(camera);
+        }
     }
 }
 

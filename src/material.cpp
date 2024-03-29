@@ -6,7 +6,7 @@ void
 Material::update_push_constants(
   vk::CommandBuffer cmd,
   vk::ShaderStageFlags stages,
-  const std::vector<uint8_t> &data
+  const std::span<const std::byte> &data
 ) const
 {
     cmd.pushConstants(

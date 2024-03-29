@@ -12,14 +12,16 @@ class DescriptorAllocator;
 class ComputePass;
 class RenderPass;
 
-class Frame {
+class Frame
+{
   public:
     explicit Frame(const Device &device);
     ~Frame();
     Frame() = delete;
     Frame(const Frame &) = delete;
 
-    [[nodiscard]] vk::Fence get_render_fence() const noexcept {
+    [[nodiscard]] vk::Fence get_render_fence() const noexcept
+    {
         return render_fence.get();
     }
 
@@ -38,9 +40,16 @@ class Frame {
     std::unique_ptr<GpuBuffer> scene_buffer;
 
     void draw_background(ComputePass &pass, const DrawContext &ctx);
+    void draw_meshes(
+      RenderPass &pass,
+      const DrawContext &ctx,
+      const vk::DescriptorSet &scene_desc_set
+    );
     void draw_grid(
-        RenderPass &pass, const DrawContext &ctx,
-        const vk::DescriptorSet &scene_desc_set);
+      RenderPass &pass,
+      const DrawContext &ctx,
+      const vk::DescriptorSet &scene_desc_set
+    );
     void present(uint32_t swapchain_image_index, const DrawContext &ctx);
 };
 } // namespace kovra

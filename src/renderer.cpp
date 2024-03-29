@@ -1,4 +1,5 @@
 #include "material.hpp"
+#include "mesh.hpp"
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
@@ -57,6 +58,12 @@ Renderer::Renderer(SDL_Window *window)
       vk::Filter::eLinear,
       create_sampler(vk::Filter::eLinear, context->get_device().get())
     );
+
+    // Create meshes
+    render_resources->add_mesh(
+      "triangle", Mesh::new_triangle(context->get_device())
+    );
+    render_resources->add_mesh("quad", Mesh::new_quad(context->get_device()));
 
     // Create background image
     auto swapchain_extent = context->get_swapchain().get_extent();
@@ -223,6 +230,7 @@ init_materials(
             .set_depth_attachment_format(swapchain.get_depth_image().get_format(
             ))
             .build(device);
+        resources.add_material("mesh", std::move(mesh));
     }
 }
 

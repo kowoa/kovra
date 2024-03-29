@@ -95,4 +95,50 @@ upload(
         cmd.copyBuffer(staging_buffer->get(), index_buffer.get(), index_copy);
     });
 }
+
+[[nodiscard]] std::unique_ptr<Mesh>
+Mesh::new_triangle(const Device &device)
+{
+    auto vertices = std::array{ Vertex{ .position = { -0.5f, -0.5f, 0.0f },
+                                        .normal = { 0.0f, 0.0f, 1.0f },
+                                        .color = { 1.0f, 0.0f, 0.0f },
+                                        .uv = { 0.0f, 0.0f } },
+                                Vertex{ .position = { 0.5f, -0.5f, 0.0f },
+                                        .normal = { 0.0f, 0.0f, 1.0f },
+                                        .color = { 0.0f, 1.0f, 0.0f },
+                                        .uv = { 0.5f, 1.0f } },
+                                Vertex{ .position = { 0.0f, 0.5f, 0.0f },
+                                        .normal = { 0.0f, 0.0f, 1.0f },
+                                        .color = { 0.0f, 0.0f, 1.0f },
+                                        .uv = { 1.0f, 0.0f } } };
+    std::array<uint32_t, 3> indices = { 0, 1, 2 };
+    return std::make_unique<Mesh>(
+      std::span<Vertex>(vertices), std::span<uint32_t>(indices), device
+    );
+}
+
+[[nodiscard]] std::unique_ptr<Mesh>
+Mesh::new_quad(const Device &device)
+{
+    auto vertices = std::array{ Vertex{ .position = { -0.5f, -0.5f, 0.0f },
+                                        .normal = { 0.0f, 0.0f, 1.0f },
+                                        .color = { 1.0f, 0.0f, 0.0f },
+                                        .uv = { 0.0f, 0.0f } },
+                                Vertex{ .position = { 0.5f, -0.5f, 0.0f },
+                                        .normal = { 0.0f, 0.0f, 1.0f },
+                                        .color = { 0.0f, 1.0f, 0.0f },
+                                        .uv = { 1.0f, 0.0f } },
+                                Vertex{ .position = { 0.5f, 0.5f, 0.0f },
+                                        .normal = { 0.0f, 0.0f, 1.0f },
+                                        .color = { 0.0f, 0.0f, 1.0f },
+                                        .uv = { 1.0f, 1.0f } },
+                                Vertex{ .position = { -0.5f, 0.5f, 0.0f },
+                                        .normal = { 0.0f, 0.0f, 1.0f },
+                                        .color = { 1.0f, 1.0f, 0.0f },
+                                        .uv = { 0.0f, 1.0f } } };
+    std::array<uint32_t, 6> indices = { 0, 1, 2, 2, 3, 0 };
+    return std::make_unique<Mesh>(
+      std::span<Vertex>(vertices), std::span<uint32_t>(indices), device
+    );
+}
 } // namespace kovra

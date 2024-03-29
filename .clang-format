@@ -1,0 +1,6 @@
+BasedOnStyle: Mozilla
+IndentWidth: 4
+PointerAlignment: Right
+ReferenceAlignment: Right
+AlignAfterOpenBracket: BlockIndent
+ColumnLimit: 80

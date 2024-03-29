@@ -4,9 +4,13 @@
 namespace kovra {
 
 GpuBuffer::GpuBuffer(
-    std::shared_ptr<VmaAllocator> allocator, vk::DeviceSize size,
-    vk::BufferUsageFlags buffer_usage, VmaMemoryUsage alloc_usage,
-    VmaAllocationCreateFlags alloc_flags) {
+  std::shared_ptr<VmaAllocator> allocator,
+  vk::DeviceSize size,
+  vk::BufferUsageFlags buffer_usage,
+  VmaMemoryUsage alloc_usage,
+  VmaAllocationCreateFlags alloc_flags
+)
+{
     spdlog::debug("GpuBuffer::GpuBuffer()");
 
     buffer_size = size;
@@ -22,8 +26,13 @@ GpuBuffer::GpuBuffer(
     alloc_info.flags = alloc_flags;
 
     auto result = vmaCreateBuffer(
-        *allocator, &buffer_info, &alloc_info, &buffer, &allocation,
-        &allocation_info);
+      *allocator,
+      &buffer_info,
+      &alloc_info,
+      &buffer,
+      &allocation,
+      &allocation_info
+    );
     if (result != VK_SUCCESS) {
         throw std::runtime_error("Failed to create buffer");
     }
@@ -31,21 +40,24 @@ GpuBuffer::GpuBuffer(
     this->allocator = allocator;
 }
 
-GpuBuffer::~GpuBuffer() {
+GpuBuffer::~GpuBuffer()
+{
     spdlog::debug("GpuBuffer::~GpuBuffer()");
     vmaDestroyBuffer(*allocator, buffer, allocation);
     allocator.reset();
 }
 
-void GpuBuffer::write(const void *data, vk::DeviceSize size) {
+void
+GpuBuffer::write(const void *data, size_t size, size_t offset)
+{
     if (allocation_info.pMappedData != nullptr) {
-        std::memcpy(allocation_info.pMappedData, data, size);
+        std::memcpy((char *)allocation_info.pMappedData + offset, data, size);
         return;
     }
 
     void *mapped_data;
     vmaMapMemory(*allocator, allocation, &mapped_data);
-    std::memcpy(mapped_data, data, size);
+    std::memcpy((char *)mapped_data + offset, data, size);
     vmaUnmapMemory(*allocator, allocation);
 }
 

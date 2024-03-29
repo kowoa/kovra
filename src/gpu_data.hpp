@@ -1,9 +1,11 @@
 #pragma once
 
 #include "glm/glm.hpp"
+#include <vulkan/vulkan_core.h>
 
 namespace kovra {
-struct GpuVertexData {
+struct GpuVertexData
+{
     glm::vec3 position;
     glm::f32 uv_x;
     glm::vec3 normal;
@@ -11,16 +13,23 @@ struct GpuVertexData {
     glm::vec4 color;
 };
 
-struct GpuCameraData {
+struct GpuCameraData
+{
     glm::mat4x4 viewproj;
     glm::f32 near;
     glm::f32 far;
 };
 
-struct GpuSceneData {
+struct GpuSceneData
+{
     GpuCameraData camera;
     glm::vec4 ambient_color;
     glm::vec4 sunlight_direction;
     glm::vec4 sunlight_color;
+};
+
+struct GpuPushConstants
+{
+    VkDeviceAddress vertex_buffer;
 };
 } // namespace kovra

@@ -27,6 +27,13 @@ target_include_directories(tinyobjloader INTERFACE tinyobjloader)
 # spdlog
 add_subdirectory(spdlog)
 
+# stb image
+add_library(stb_image INTERFACE)
+target_include_directories(stb_image INTERFACE stb_image)
+
+# fastgltf
+add_subdirectory(fastgltf)
+
 target_link_libraries(
   external
   INTERFACE Vulkan::Vulkan
@@ -35,4 +42,6 @@ target_link_libraries(
             VulkanMemoryAllocator
             imgui
             tinyobjloader
-            spdlog::spdlog)
+            spdlog::spdlog
+            stb_image
+            fastgltf)

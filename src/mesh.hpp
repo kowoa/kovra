@@ -39,6 +39,12 @@ class Mesh
     {
         return vertex_buffer_address;
     }
+    [[nodiscard]] uint32_t get_index_count() const noexcept
+    {
+        return static_cast<uint32_t>(
+          index_buffer->get_size() / sizeof(uint32_t)
+        );
+    }
 
   private:
     static uint32_t MESH_ID_COUNTER;

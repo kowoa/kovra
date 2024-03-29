@@ -254,11 +254,10 @@ Frame::draw_meshes(
     pass.set_material(ctx.render_resources->get_material_owned("mesh"));
     pass.set_desc_sets(0, { scene_desc_set }, {});
     const Mesh &mesh = ctx.render_resources->get_mesh("triangle");
-    auto push_constants =
-      GpuPushConstants{ .vertex_buffer = mesh.get_vertex_buffer_address() };
-    pass.set_push_constants(utils::cast_to_bytes(push_constants));
+    pass.set_push_constants(utils::cast_to_bytes(GpuPushConstants{
+      .vertex_buffer = mesh.get_vertex_buffer_address() }));
     pass.set_index_buffer(mesh.get_index_buffer().get());
-    pass.draw_indexed(3, 1, 0, 0, 0);
+    pass.draw_indexed(mesh.get_index_count(), 1, 0, 0, 0);
 }
 
 void

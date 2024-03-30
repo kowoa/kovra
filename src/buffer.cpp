@@ -13,6 +13,11 @@ GpuBuffer::GpuBuffer(
 {
     spdlog::debug("GpuBuffer::GpuBuffer()");
 
+    if (size == 0) {
+        throw std::runtime_error("Buffer size must be greater than zero");
+        return;
+    }
+
     buffer_size = size;
 
     VkBufferCreateInfo buffer_info{};

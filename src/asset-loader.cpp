@@ -75,7 +75,7 @@ AssetLoader::load_gltf_meshes(
             {
                 fastgltf::Accessor &accessor =
                   gltf.accessors[p.findAttribute("POSITION")->second];
-                vertices.reserve(vertices.size() + accessor.count);
+                vertices.resize(vertices.size() + accessor.count);
                 fastgltf::iterateAccessorWithIndex<glm::vec3>(
                   gltf,
                   accessor,

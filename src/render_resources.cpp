@@ -1,7 +1,7 @@
 #include "render_resources.hpp"
+#include "asset-loader.hpp"
 #include "device.hpp"
 #include "material.hpp"
-#include "mesh.hpp"
 
 namespace kovra {
 RenderResources::RenderResources(std::shared_ptr<Device> device)
@@ -10,7 +10,7 @@ RenderResources::RenderResources(std::shared_ptr<Device> device)
 }
 RenderResources::~RenderResources()
 {
-    meshes.clear();
+    mesh_assets.clear();
 
     for (const auto &[_, desc_set_layout] : desc_set_layouts) {
         device->get().destroyDescriptorSetLayout(desc_set_layout);
@@ -49,12 +49,9 @@ RenderResources::add_desc_set_layout(
     desc_set_layouts.emplace(std::move(name), std::move(desc_set_layout));
 }
 void
-RenderResources::add_mesh(
-  const std::string &&name,
-  std::unique_ptr<Mesh> &&mesh
-)
+RenderResources::add_mesh_asset(std::shared_ptr<MeshAsset> &&mesh_asset)
 {
-    meshes.emplace(std::move(name), std::move(mesh));
+    mesh_assets.push_back(std::move(mesh_asset));
 }
 
 [[nodiscard]] const Material &
@@ -77,9 +74,5 @@ RenderResources::get_desc_set_layout(const std::string &name) const
 {
     return desc_set_layouts.at(name);
 }
-[[nodiscard]] const Mesh &
-RenderResources::get_mesh(const std::string &name) const
-{
-    return *meshes.at(name);
-}
+
 } // namespace kovra

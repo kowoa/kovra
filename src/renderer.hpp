@@ -20,6 +20,7 @@ class Renderer
     Renderer(const Renderer &) = delete;
 
     void draw_frame(Camera &camera);
+    void load_gltf(const std::filesystem::path &filepath) noexcept;
 
     [[nodiscard]] const Context &get_context() const noexcept
     {

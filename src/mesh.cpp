@@ -1,5 +1,6 @@
 #include "mesh.hpp"
 #include "device.hpp"
+#include "spdlog/spdlog.h"
 
 namespace kovra {
 void

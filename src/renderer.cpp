@@ -59,12 +59,6 @@ Renderer::Renderer(SDL_Window *window)
       create_sampler(vk::Filter::eLinear, context->get_device().get())
     );
 
-    // Create meshes
-    render_resources->add_mesh(
-      "triangle", Mesh::new_triangle(context->get_device())
-    );
-    render_resources->add_mesh("quad", Mesh::new_quad(context->get_device()));
-
     // Create background image
     auto swapchain_extent = context->get_swapchain().get_extent();
     background_image = context->get_device_owned()->create_storage_image(
@@ -122,6 +116,18 @@ Renderer::draw_frame(Camera &camera)
 
     get_current_frame().draw(draw_ctx);
     frame_number++;
+}
+void
+Renderer::load_gltf(const std::filesystem::path &filepath) noexcept
+{
+    auto mesh_assets = asset_loader->load_gltf_meshes(*this, filepath);
+    if (!mesh_assets.has_value()) {
+        return;
+    }
+
+    for (auto &&asset : mesh_assets.value()) {
+        render_resources->add_mesh_asset(std::move(asset));
+    }
 }
 
 vk::Sampler

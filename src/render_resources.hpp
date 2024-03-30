@@ -9,7 +9,7 @@ namespace kovra {
 // Forward declarations
 class Device;
 class Material;
-class Mesh;
+class MeshAsset;
 
 class RenderResources
 {
@@ -28,7 +28,7 @@ class RenderResources
       const std::string &&name,
       const vk::DescriptorSetLayout &&desc_set_layout
     );
-    void add_mesh(const std::string &&name, std::unique_ptr<Mesh> &&mesh);
+    void add_mesh_asset(std::shared_ptr<MeshAsset> &&mesh_asset);
 
     [[nodiscard]] const Material &get_material(const std::string &name) const;
     [[nodiscard]] std::shared_ptr<Material> get_material_owned(
@@ -38,13 +38,12 @@ class RenderResources
     [[nodiscard]] const vk::DescriptorSetLayout &get_desc_set_layout(
       const std::string &name
     ) const;
-    [[nodiscard]] const Mesh &get_mesh(const std::string &name) const;
 
   private:
     std::shared_ptr<Device> device;
     std::unordered_map<std::string, std::shared_ptr<Material>> materials;
     std::unordered_map<vk::Filter, vk::Sampler> samplers;
     std::unordered_map<std::string, vk::DescriptorSetLayout> desc_set_layouts;
-    std::unordered_map<std::string, std::unique_ptr<Mesh>> meshes;
+    std::vector<std::shared_ptr<MeshAsset>> mesh_assets;
 };
 } // namespace kovra

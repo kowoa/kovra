@@ -25,15 +25,47 @@ GpuBuffer::GpuBuffer(
     alloc_info.usage = alloc_usage;
     alloc_info.flags = alloc_flags;
 
-    auto result = vmaCreateBuffer(
-      *allocator,
-      &buffer_info,
-      &alloc_info,
-      &buffer,
-      &allocation,
-      &allocation_info
-    );
-    if (result != VK_SUCCESS) {
+    if (auto result = vmaCreateBuffer(
+          *allocator,
+          &buffer_info,
+          &alloc_info,
+          &buffer,
+          &allocation,
+          &allocation_info
+        );
+        result != VK_SUCCESS) {
+        switch (result) {
+            case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+                spdlog::error("Failed to allocate buffer: out of device memory"
+                );
+                break;
+            case VK_ERROR_OUT_OF_HOST_MEMORY:
+                spdlog::error("Failed to allocate buffer: out of host memory");
+                break;
+            case VK_ERROR_INVALID_EXTERNAL_HANDLE:
+                spdlog::error(
+                  "Failed to allocate buffer: invalid external handle"
+                );
+                break;
+            case VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS:
+                spdlog::error(
+                  "Failed to allocate buffer: invalid opaque capture address"
+                );
+                break;
+            case VK_ERROR_FORMAT_NOT_SUPPORTED:
+                spdlog::error("Failed to allocate buffer: format not supported"
+                );
+                break;
+            case VK_ERROR_FRAGMENTED_POOL:
+                spdlog::error("Failed to allocate buffer: fragmented pool");
+                break;
+            case VK_ERROR_INITIALIZATION_FAILED:
+                spdlog::error("Failed to allocate buffer: initialization failed"
+                );
+                break;
+            default:
+                spdlog::error("Failed to allocate buffer: unknown error");
+        }
         throw std::runtime_error("Failed to create buffer");
     }
 

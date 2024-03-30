@@ -15,7 +15,7 @@ std::optional<std::vector<std::shared_ptr<MeshAsset>>>
 AssetLoader::load_gltf_meshes(
   const Renderer &renderer,
   std::filesystem::path filepath
-)
+) const
 {
     spdlog::debug("Loading GLTF file: {}", filepath.string());
 

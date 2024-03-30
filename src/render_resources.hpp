@@ -38,6 +38,11 @@ class RenderResources
     [[nodiscard]] const vk::DescriptorSetLayout &get_desc_set_layout(
       const std::string &name
     ) const;
+    [[nodiscard]] const std::vector<std::shared_ptr<MeshAsset>> &
+    get_mesh_assets() const
+    {
+        return mesh_assets;
+    }
 
   private:
     std::shared_ptr<Device> device;

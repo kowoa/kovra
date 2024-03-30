@@ -2,6 +2,7 @@
 
 #define VULKAN_HPP_EXCEPTIONS
 
+#include "asset-loader.hpp"
 #include "context.hpp"
 #include "frame.hpp"
 #include "image.hpp"
@@ -33,6 +34,7 @@ class Renderer
     static constexpr const uint32_t FRAME_OVERLAP = 2;
 
     std::unique_ptr<Context> context;
+    std::unique_ptr<AssetLoader> asset_loader;
 
     uint32_t frame_number;
     std::vector<std::unique_ptr<Frame>> frames;

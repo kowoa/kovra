@@ -1,15 +1,21 @@
-#include "gltf-loader.hpp"
+#include "asset-loader.hpp"
 
+#include "mesh.hpp"
 #include "renderer.hpp"
+#include "vertex.hpp"
 
 #include "fastgltf/core.hpp"
+#include "fastgltf/glm_element_traits.hpp"
 #include "fastgltf/tools.hpp"
 #include "spdlog/spdlog.h"
 #include "stb_image.h"
 
 namespace kovra {
 std::optional<std::vector<std::shared_ptr<MeshAsset>>>
-load_gltf_meshes(Renderer &renderer, std::filesystem::path filepath)
+AssetLoader::load_gltf_meshes(
+  const Renderer &renderer,
+  std::filesystem::path filepath
+)
 {
     spdlog::debug("Loading GLTF file: {}", filepath.string());
 
@@ -43,12 +49,12 @@ load_gltf_meshes(Renderer &renderer, std::filesystem::path filepath)
         indices.clear();
 
         for (auto &&p : mesh.primitives) {
-            auto surface =
-              GeometrySurface{ .start_index =
-                                 static_cast<uint32_t>(indices.size()),
-                               .count = static_cast<uint32_t>(
-                                 gltf.accessors[p.indicesAccessor.value()].count
-                               ) };
+            auto surface = MeshAsset::GeometrySurface{
+                .start_index = static_cast<uint32_t>(indices.size()),
+                .count = static_cast<uint32_t>(
+                  gltf.accessors[p.indicesAccessor.value()].count
+                )
+            };
             size_t initial_vertex_count = vertices.size();
 
             // Load indices

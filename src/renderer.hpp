@@ -19,13 +19,15 @@ class Renderer
     Renderer() = delete;
     Renderer(const Renderer &) = delete;
 
-    void draw_frame(Camera &camera);
+    void draw_frame(Camera &camera, SDL_Window *window);
+
     void load_gltf(const std::filesystem::path &filepath) noexcept;
 
     [[nodiscard]] const Context &get_context() const noexcept
     {
         return *context;
     }
+    [[nodiscard]] Context &get_context_mut() const noexcept { return *context; }
     [[nodiscard]] uint32_t get_frame_number() const noexcept
     {
         return frame_number;
@@ -42,7 +44,7 @@ class Renderer
 
     // Resources
     std::shared_ptr<RenderResources> render_resources;
-    std::shared_ptr<GpuImage> background_image;
+    std::unique_ptr<GpuImage> draw_image;
 
     // ImGui
     VkDescriptorPool imgui_pool;

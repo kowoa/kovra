@@ -94,7 +94,7 @@ App::run()
 
         draw_imgui();
 
-        renderer->draw_frame(camera);
+        renderer->draw_frame(camera, window);
     }
 }
 
@@ -147,7 +147,7 @@ create_window()
       SDL_WINDOWPOS_UNDEFINED,
       1600,
       900,
-      SDL_WINDOW_VULKAN
+      SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE
     );
     if (!window) {
         throw std::runtime_error(

@@ -1,4 +1,5 @@
 #include "material.hpp"
+#include "spdlog/spdlog.h"
 #include <vulkan/vulkan.hpp>
 
 namespace kovra {
@@ -262,14 +263,14 @@ GraphicsMaterialBuilder::set_color_attachment_format(vk::Format format)
 {
     color_attachment_format = format;
     rendering_ci.setColorAttachmentCount(1);
-    rendering_ci.setPColorAttachmentFormats(&*color_attachment_format);
+    rendering_ci.setPColorAttachmentFormats(&color_attachment_format.value());
     return *this;
 }
 GraphicsMaterialBuilder &
 GraphicsMaterialBuilder::set_depth_attachment_format(vk::Format format)
 {
     depth_attachment_format = format;
-    rendering_ci.setDepthAttachmentFormat(*depth_attachment_format);
+    rendering_ci.setDepthAttachmentFormat(depth_attachment_format.value());
     return *this;
 }
 GraphicsMaterialBuilder &

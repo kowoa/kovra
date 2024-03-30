@@ -175,6 +175,11 @@ DeviceFeatures::is_compatible_with(const DeviceFeatures &other) const
 }
 
 [[nodiscard]] std::unique_ptr<GpuImage>
+Device::create_image(const GpuImageDescriptor &desc) const
+{
+    return std::make_unique<GpuImage>(desc, device.get(), allocator);
+}
+[[nodiscard]] std::unique_ptr<GpuImage>
 Device::create_color_image(
   const void *data,
   uint32_t width,

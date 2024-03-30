@@ -10,12 +10,13 @@ class Swapchain;
 class GpuImage;
 class RenderResources;
 
-struct DrawContext {
+struct DrawContext
+{
     std::shared_ptr<Device> device;
-    std::shared_ptr<Swapchain> swapchain;
+    Swapchain &swapchain;
     uint32_t frame_number;
     Camera &camera;
     std::shared_ptr<RenderResources> render_resources;
-    std::shared_ptr<GpuImage> background_image;
+    GpuImage &draw_image;
 };
 } // namespace kovra

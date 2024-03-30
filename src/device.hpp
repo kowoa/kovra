@@ -10,6 +10,7 @@
 namespace kovra {
 // Forward declarations
 class GpuImage;
+class GpuImageDescriptor;
 
 class Device
 {
@@ -83,6 +84,9 @@ class Device
       vk::BufferUsageFlags buffer_usage,
       VmaMemoryUsage alloc_usage,
       VmaAllocationCreateFlags alloc_flags
+    ) const;
+    [[nodiscard]] std::unique_ptr<GpuImage> create_image(
+      const GpuImageDescriptor &desc
     ) const;
     [[nodiscard]] std::unique_ptr<GpuImage> create_color_image(
       const void *data,

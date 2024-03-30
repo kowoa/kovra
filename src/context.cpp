@@ -4,22 +4,29 @@
 #include <memory>
 
 namespace kovra {
-std::shared_ptr<PhysicalDevice> pick_physical_device(
-    const std::vector<std::shared_ptr<PhysicalDevice>> &physical_devices,
-    const Surface &surface);
+std::shared_ptr<PhysicalDevice>
+pick_physical_device(
+  const std::vector<std::shared_ptr<PhysicalDevice>> &physical_devices,
+  const Surface &surface
+);
 
 Context::Context(SDL_Window *window)
-    : instance{std::make_unique<Instance>(window)},
-      surface{std::make_unique<Surface>(*instance, window)},
-      physical_device{pick_physical_device(
-          instance->enumerate_physical_devices(*surface), *surface)},
-      device{std::make_shared<Device>(*instance, physical_device)},
-      swapchain{std::make_shared<Swapchain>(
-          window, *surface, *physical_device, *device)} {
+  : instance{ std::make_unique<Instance>(window) }
+  , surface{ std::make_unique<Surface>(*instance, window) }
+  , physical_device{ pick_physical_device(
+      instance->enumerate_physical_devices(*surface),
+      *surface
+    ) }
+  , device{ std::make_shared<Device>(*instance, physical_device) }
+  , swapchain{
+      std::make_unique<Swapchain>(window, *surface, *physical_device, *device)
+  }
+{
     spdlog::debug("Context::Context()");
 }
 
-Context::~Context() {
+Context::~Context()
+{
     spdlog::debug("Context::~Context()");
     swapchain.reset();
     device.reset();
@@ -28,15 +35,27 @@ Context::~Context() {
     instance.reset();
 }
 
-std::shared_ptr<PhysicalDevice> pick_physical_device(
-    const std::vector<std::shared_ptr<PhysicalDevice>> &physical_devices,
-    const Surface &surface) {
+void
+Context::recreate_swapchain(SDL_Window *window)
+{
+    device->get().waitIdle();
+    swapchain.reset();
+    swapchain =
+      std::make_unique<Swapchain>(window, *surface, *physical_device, *device);
+}
+
+std::shared_ptr<PhysicalDevice>
+pick_physical_device(
+  const std::vector<std::shared_ptr<PhysicalDevice>> &physical_devices,
+  const Surface &surface
+)
+{
     // Loop through each physical device
     for (const auto &physical_device : physical_devices) {
         // Check if the physical device supports the surface
         bool surface_supported = physical_device->get().getSurfaceSupportKHR(
-            physical_device->get_present_queue_family().get_index(),
-            surface.get());
+          physical_device->get_present_queue_family().get_index(), surface.get()
+        );
 
         // Check if the physical device supports the required features
         auto features = physical_device->get_supported_features();

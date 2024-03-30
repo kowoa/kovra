@@ -20,6 +20,7 @@ void
 init_materials(
   const vk::Device &device,
   const Swapchain &swapchain,
+  const GpuImage &draw_image,
   RenderResources &resources
 );
 vk::Sampler
@@ -44,11 +45,6 @@ Renderer::Renderer(SDL_Window *window)
     // Create descriptor set layouts
     init_desc_set_layouts(context->get_device().get(), *render_resources);
 
-    // Create materials
-    init_materials(
-      context->get_device().get(), context->get_swapchain(), *render_resources
-    );
-
     // Create samplers
     render_resources->add_sampler(
       vk::Filter::eNearest,
@@ -59,12 +55,28 @@ Renderer::Renderer(SDL_Window *window)
       create_sampler(vk::Filter::eLinear, context->get_device().get())
     );
 
-    // Create background image
-    auto swapchain_extent = context->get_swapchain().get_extent();
-    background_image = context->get_device_owned()->create_storage_image(
-      swapchain_extent.width,
-      swapchain_extent.height,
-      render_resources->get_sampler(vk::Filter::eNearest)
+    // Create draw image
+    {
+        auto swapchain_extent = context->get_swapchain().get_extent();
+        draw_image = context->get_device().create_image(GpuImageDescriptor{
+          .format = vk::Format::eR16G16B16A16Sfloat,
+          .extent =
+            vk::Extent3D{ swapchain_extent.width, swapchain_extent.height, 1 },
+          .usage = vk::ImageUsageFlagBits::eTransferSrc |
+                   vk::ImageUsageFlagBits::eTransferDst |
+                   vk::ImageUsageFlagBits::eStorage |
+                   vk::ImageUsageFlagBits::eColorAttachment,
+          .aspect = vk::ImageAspectFlagBits::eColor,
+          .mipmapped = false,
+          .sampler = render_resources->get_sampler(vk::Filter::eNearest) });
+    }
+
+    // Create materials
+    init_materials(
+      context->get_device().get(),
+      context->get_swapchain(),
+      *draw_image,
+      *render_resources
     );
 
     init_imgui(window, *context);
@@ -92,7 +104,7 @@ Renderer::~Renderer()
       get_context().get_device().get(), imgui_pool, nullptr
     );
 
-    background_image.reset();
+    draw_image.reset();
     render_resources.reset();
 
     // Destroy frames
@@ -105,16 +117,21 @@ Renderer::~Renderer()
 }
 
 void
-Renderer::draw_frame(Camera &camera)
+Renderer::draw_frame(Camera &camera, SDL_Window *window)
 {
     auto draw_ctx = DrawContext{ .device = context->get_device_owned(),
-                                 .swapchain = context->get_swapchain_owned(),
+                                 .swapchain = context->get_swapchain_mut(),
                                  .frame_number = frame_number,
                                  .camera = camera,
                                  .render_resources = render_resources,
-                                 .background_image = background_image };
+                                 .draw_image = *draw_image };
 
     get_current_frame().draw(draw_ctx);
+
+    if (context->get_swapchain().is_dirty()) {
+        context->recreate_swapchain(window);
+    }
+
     frame_number++;
 }
 void
@@ -172,6 +189,7 @@ void
 init_materials(
   const vk::Device &device,
   const Swapchain &swapchain,
+  const GpuImage &draw_image,
   RenderResources &resources
 )
 {
@@ -203,7 +221,7 @@ init_materials(
             .set_pipeline_layout(std::move(pipeline_layout))
             .set_shader(std::make_unique<GraphicsShader>(GraphicsShader{
               "grid", device }))
-            .set_color_attachment_format(swapchain.get_format())
+            .set_color_attachment_format(draw_image.get_format())
             .set_depth_attachment_format(swapchain.get_depth_image().get_format(
             ))
             .build(device);
@@ -232,7 +250,7 @@ init_materials(
             .set_pipeline_layout(std::move(pipeline_layout))
             .set_shader(std::make_unique<GraphicsShader>(GraphicsShader{
               "mesh", device }))
-            .set_color_attachment_format(swapchain.get_format())
+            .set_color_attachment_format(draw_image.get_format())
             .set_depth_attachment_format(swapchain.get_depth_image().get_format(
             ))
             .build(device);

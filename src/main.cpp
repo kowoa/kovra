@@ -3,7 +3,9 @@
 
 #include <vulkan/vulkan.hpp>
 
-int main() {
+int
+main()
+{
     spdlog::set_level(spdlog::level::debug);
 
     try {

@@ -58,6 +58,45 @@ Frame::draw(const DrawContext &ctx)
     }
     device.resetFences(render_fence.get());
 
+    // Request image from swapchain (1 sec timeout)
+    auto swapchain_image_index = device.acquireNextImageKHR(
+      ctx.swapchain.get(), 1000000000, present_semaphore.get(), nullptr
+    );
+    if (swapchain_image_index.result != vk::Result::eSuccess) {
+        switch (swapchain_image_index.result) {
+            case vk::Result::eErrorOutOfDateKHR:
+                spdlog::debug(
+                  "Swapchain image is out of date. Requesting resize ..."
+                );
+                ctx.swapchain.request_resize();
+                return; // Early return since failed to acquire swapchain image
+            case vk::Result::eSuboptimalKHR:
+                spdlog::debug(
+                  "Swapchain image is suboptimal. Requesting resize ..."
+                );
+                ctx.swapchain.request_resize();
+                break;
+            default:
+                spdlog::error("Failed to acquire swapchain image: unknown error"
+                );
+                throw std::runtime_error("Failed to acquire swapchain image");
+        }
+    }
+    auto swapchain_image =
+      ctx.swapchain.get_images().at(swapchain_image_index.value);
+    auto swapchain_image_view =
+      ctx.swapchain.get_views().at(swapchain_image_index.value).get();
+    auto swapchain_image_extent = ctx.swapchain.get_extent();
+
+    // Set draw extent
+    draw_extent = ctx.draw_image.get_extent2d();
+    draw_extent.setWidth(
+      std::min(swapchain_image_extent.width, draw_extent.width) * render_scale
+    );
+    draw_extent.setHeight(
+      std::min(swapchain_image_extent.height, draw_extent.height) * render_scale
+    );
+
     // Clear descriptor pools
     desc_allocator.get()->clear_pools(device);
 
@@ -68,7 +107,7 @@ Frame::draw(const DrawContext &ctx)
       desc_allocator.get()->allocate(scene_desc_set_layout, device);
 
     // Update the scene buffer
-    auto swapchain_extent = ctx.swapchain->get_extent();
+    auto swapchain_extent = ctx.swapchain.get_extent();
     GpuSceneData scene_data{
         .camera =
           GpuCameraData{
@@ -95,53 +134,25 @@ Frame::draw(const DrawContext &ctx)
     );
     writer.update_set(device, scene_desc_set);
 
-    // Request image from swapchain (1 sec timeout)
-    auto swapchain_image_index = device.acquireNextImageKHR(
-      ctx.swapchain->get(), 1000000000, present_semaphore.get(), nullptr
-    );
-    if (swapchain_image_index.result != vk::Result::eSuccess) {
-        throw std::runtime_error("Failed to acquire swapchain image");
-    }
-    auto swapchain_image =
-      ctx.swapchain->get_images().at(swapchain_image_index.value);
-    auto swapchain_image_view =
-      ctx.swapchain->get_views().at(swapchain_image_index.value).get();
-
     // Compute commands
     {
         ComputePass compute_pass = cmd_encoder->begin_compute_pass();
         draw_background(compute_pass, ctx);
-
-        // Copy background image to swapchain image
-        ctx.background_image->transition_layout(
-          compute_pass.get_cmd(),
-          vk::ImageLayout::eGeneral,
-          vk::ImageLayout::eTransferSrcOptimal
-        );
-        utils::transition_image_layout(
-          compute_pass.get_cmd(),
-          swapchain_image,
-          vk::ImageAspectFlagBits::eColor,
-          vk::ImageLayout::eUndefined,
-          vk::ImageLayout::eTransferDstOptimal
-        );
-        ctx.background_image->copy_to_vkimage(
-          compute_pass.get_cmd(), swapchain_image, ctx.swapchain->get_extent()
-        );
-        utils::transition_image_layout(
-          compute_pass.get_cmd(),
-          swapchain_image,
-          vk::ImageAspectFlagBits::eColor,
-          vk::ImageLayout::eTransferDstOptimal,
-          vk::ImageLayout::eColorAttachmentOptimal
-        );
     }
+
+    // Transition draw image layout to color attachment optimal for rendering
+    cmd_encoder->transition_image_layout(
+      ctx.draw_image.get(),
+      vk::ImageAspectFlagBits::eColor,
+      vk::ImageLayout::eGeneral,
+      vk::ImageLayout::eColorAttachmentOptimal
+    );
 
     // Render commands
     {
         auto color_attachment =
           vk::RenderingAttachmentInfo{}
-            .setImageView(swapchain_image_view)
+            .setImageView(ctx.draw_image.get_view())
             .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
             .setLoadOp(vk::AttachmentLoadOp::eLoad)
             .setStoreOp(vk::AttachmentStoreOp::eStore)
@@ -149,13 +160,13 @@ Frame::draw(const DrawContext &ctx)
             );
         auto depth_attachment =
           vk::RenderingAttachmentInfo{}
-            .setImageView(ctx.swapchain->get_depth_image().get_view())
+            .setImageView(ctx.swapchain.get_depth_image().get_view())
             .setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
             .setLoadOp(vk::AttachmentLoadOp::eClear)
             .setStoreOp(vk::AttachmentStoreOp::eStore)
             .setClearValue(vk::ClearValue{}.setDepthStencil({ 1.0f, 0 }));
         auto render_area =
-          vk::Rect2D{}.setOffset({ 0, 0 }).setExtent(swapchain_extent);
+          vk::Rect2D{}.setOffset({ 0, 0 }).setExtent(draw_extent);
         RenderPass render_pass =
           cmd_encoder->begin_render_pass(RenderPassDescriptor{
             .color_attachments = { color_attachment },
@@ -175,11 +186,31 @@ Frame::draw(const DrawContext &ctx)
         );
     }
 
+    // Copy draw image to swapchain image
+    cmd_encoder->transition_image_layout(
+      ctx.draw_image.get(),
+      vk::ImageAspectFlagBits::eColor,
+      vk::ImageLayout::eColorAttachmentOptimal,
+      vk::ImageLayout::eTransferSrcOptimal
+    );
+    cmd_encoder->transition_image_layout(
+      swapchain_image,
+      vk::ImageAspectFlagBits::eColor,
+      vk::ImageLayout::eUndefined,
+      vk::ImageLayout::eTransferDstOptimal
+    );
+    cmd_encoder->copy_image_to_image(
+      ctx.draw_image.get(),
+      swapchain_image,
+      ctx.draw_image.get_extent2d(),
+      swapchain_extent
+    );
+
     // Transition swapchain image layout to present src layout
     cmd_encoder->transition_image_layout(
       swapchain_image,
       vk::ImageAspectFlagBits::eColor,
-      vk::ImageLayout::eColorAttachmentOptimal,
+      vk::ImageLayout::eTransferDstOptimal,
       vk::ImageLayout::ePresentSrcKHR
     );
 
@@ -205,7 +236,7 @@ void
 Frame::draw_background(ComputePass &pass, const DrawContext &ctx)
 {
     // Transition background image layout to general
-    ctx.background_image->transition_layout(
+    ctx.draw_image.transition_layout(
       pass.get_cmd(), vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral
     );
 
@@ -227,8 +258,8 @@ Frame::draw_background(ComputePass &pass, const DrawContext &ctx)
     auto writer = DescriptorWriter{};
     writer.write_image(
       0,
-      ctx.background_image->get_view(),
-      ctx.background_image->get_sampler(),
+      ctx.draw_image.get_view(),
+      ctx.draw_image.get_sampler(),
       vk::ImageLayout::eGeneral,
       vk::DescriptorType::eStorageImage
     );
@@ -237,11 +268,12 @@ Frame::draw_background(ComputePass &pass, const DrawContext &ctx)
     // Set pipeline and descriptor sets
     pass.set_material(ctx.render_resources->get_material_owned("background"));
     pass.set_desc_sets(0, { desc_set }, {});
-    auto extent = ctx.background_image->get_extent();
 
     // Dispatch compute shader
     pass.dispatch_workgroups(
-      std::ceil(extent.width / 16.0), std::ceil(extent.height / 16.0), 1
+      std::ceil(draw_extent.width / 16.0),
+      std::ceil(draw_extent.height / 16.0),
+      1
     );
 }
 
@@ -283,7 +315,7 @@ Frame::draw_grid(
 void
 Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx)
 {
-    auto swapchains = std::array{ ctx.swapchain->get() };
+    auto swapchains = std::array{ ctx.swapchain.get() };
     auto wait_semaphores = std::array{ render_semaphore.get() };
     auto result = ctx.device->get_present_queue().presentKHR(
       vk::PresentInfoKHR{}
@@ -292,7 +324,24 @@ Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx)
         .setPImageIndices(&swapchain_image_index)
     );
     if (result != vk::Result::eSuccess) {
-        throw std::runtime_error("Failed to present swapchain image");
+        switch (result) {
+            case vk::Result::eErrorOutOfDateKHR:
+                spdlog::debug(
+                  "Swapchain image is out of date. Requesting resize ..."
+                );
+                ctx.swapchain.request_resize();
+                break;
+            case vk::Result::eSuboptimalKHR:
+                spdlog::debug(
+                  "Swapchain image is suboptimal. Requesting resize ..."
+                );
+                ctx.swapchain.request_resize();
+                break;
+            default:
+                spdlog::error("Failed to present swapchain image: unknown error"
+                );
+                throw std::runtime_error("Failed to present swapchain image");
+        }
     }
 }
 

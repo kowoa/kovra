@@ -86,16 +86,20 @@ Frame::draw(const DrawContext &ctx)
       ctx.swapchain.get_images().at(swapchain_image_index.value);
     auto swapchain_image_view =
       ctx.swapchain.get_views().at(swapchain_image_index.value).get();
-    auto swapchain_image_extent = ctx.swapchain.get_extent();
 
     // Set draw extent
-    draw_extent = ctx.draw_image.get_extent2d();
-    draw_extent.setWidth(
-      std::min(swapchain_image_extent.width, draw_extent.width) * render_scale
-    );
-    draw_extent.setHeight(
-      std::min(swapchain_image_extent.height, draw_extent.height) * render_scale
-    );
+    {
+        auto swapchain_image_extent = ctx.swapchain.get_extent();
+        draw_extent = ctx.draw_image.get_extent2d();
+        draw_extent.setWidth(
+          std::min(swapchain_image_extent.width, draw_extent.width) *
+          render_scale
+        );
+        draw_extent.setHeight(
+          std::min(swapchain_image_extent.height, draw_extent.height) *
+          render_scale
+        );
+    }
 
     // Clear descriptor pools
     desc_allocator.get()->clear_pools(device);
@@ -173,6 +177,7 @@ Frame::draw(const DrawContext &ctx)
             .depth_attachment = depth_attachment,
             .render_area = render_area,
           });
+
         render_pass.set_viewport_scissor(
           swapchain_extent.width, swapchain_extent.height
         );
@@ -181,6 +186,8 @@ Frame::draw(const DrawContext &ctx)
         draw_grid(render_pass, ctx, scene_desc_set);
 
         // ImGui
+        // NOTE: Make sure imgui's color attachment format matches the draw
+        // image format
         ImGui_ImplVulkan_RenderDrawData(
           ImGui::GetDrawData(), render_pass.get_cmd()
         );
@@ -290,6 +297,7 @@ Frame::draw_meshes(
         if (mesh_asset->mesh->get_id() != 2) {
             continue;
         }
+
         const Mesh &mesh = *mesh_asset->mesh;
         pass.set_push_constants(utils::cast_to_bytes(GpuPushConstants{
           .vertex_buffer = mesh.get_vertex_buffer_address() }));

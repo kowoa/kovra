@@ -54,6 +54,6 @@ class Renderer
         return *frames.at(frame_number % frames.size());
     }
 
-    void init_imgui(SDL_Window *window, const Context &ctx);
+    void init_imgui(SDL_Window *window);
 };
 } // namespace kovra

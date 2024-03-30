@@ -79,7 +79,7 @@ Renderer::Renderer(SDL_Window *window)
       *render_resources
     );
 
-    init_imgui(window, *context);
+    init_imgui(window);
 }
 
 Renderer::~Renderer()
@@ -259,8 +259,10 @@ init_materials(
 }
 
 void
-Renderer::init_imgui(SDL_Window *window, const Context &ctx)
+Renderer::init_imgui(SDL_Window *window)
 {
+    const auto &ctx = get_context();
+
     const std::shared_ptr<Device> &device{ ctx.get_device_owned() };
 
     // Create descriptor pool for ImGui
@@ -292,7 +294,6 @@ Renderer::init_imgui(SDL_Window *window, const Context &ctx)
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
     ImGui_ImplSDL2_InitForVulkan(window);
-    vk::Format swapchain_format = ctx.get_swapchain().get_format();
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.Instance = ctx.get_instance();
     init_info.PhysicalDevice = ctx.get_physical_device();
@@ -303,9 +304,10 @@ Renderer::init_imgui(SDL_Window *window, const Context &ctx)
     init_info.MinImageCount = 3;
     init_info.ImageCount = 3;
     init_info.UseDynamicRendering = true;
+    auto color_formats = std::array{ draw_image->get_format() };
     init_info.PipelineRenderingCreateInfo =
       vk::PipelineRenderingCreateInfo{}
-        .setColorAttachmentFormats(swapchain_format)
+        .setColorAttachmentFormats(color_formats)
         .setDepthAttachmentFormat(
           ctx.get_swapchain().get_depth_image().get_format()
         );

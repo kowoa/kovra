@@ -15,6 +15,6 @@ struct MeshAsset
 {
     std::string name;
     std::vector<GeometrySurface> surfaces;
-    Mesh mesh;
+    std::unique_ptr<Mesh> mesh;
 };
 }

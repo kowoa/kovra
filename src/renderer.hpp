@@ -10,7 +10,8 @@ namespace kovra {
 // Forward declarations
 class RenderResources;
 
-class Renderer {
+class Renderer
+{
   public:
     explicit Renderer(SDL_Window *window);
     ~Renderer();
@@ -18,10 +19,13 @@ class Renderer {
     Renderer(const Renderer &) = delete;
 
     void draw_frame(Camera &camera);
-    [[nodiscard]] const Context &get_context() const noexcept {
+
+    [[nodiscard]] const Context &get_context() const noexcept
+    {
         return *context;
     }
-    [[nodiscard]] uint32_t get_frame_number() const noexcept {
+    [[nodiscard]] uint32_t get_frame_number() const noexcept
+    {
         return frame_number;
     }
 
@@ -40,7 +44,8 @@ class Renderer {
     // ImGui
     VkDescriptorPool imgui_pool;
 
-    [[nodiscard]] Frame &get_current_frame() const noexcept {
+    [[nodiscard]] Frame &get_current_frame() const noexcept
+    {
         return *frames.at(frame_number % frames.size());
     }
 

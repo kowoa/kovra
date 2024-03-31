@@ -119,12 +119,18 @@ GpuImage::new_color_image(
   const void *data,
   uint32_t width,
   uint32_t height,
-  std::optional<vk::Sampler> sampler,
-  const Device &device
+  const Device &device,
+  vk::Sampler sampler,
+  vk::Format format
 )
 {
+    if (width == 0 || height == 0) {
+        spdlog::error("Invalid image size: width={}, height={}", width, height);
+        throw std::runtime_error("Invalid image size");
+    }
+
     auto desc =
-      GpuImageDescriptor{ .format = vk::Format::eR8G8B8A8Unorm,
+      GpuImageDescriptor{ .format = format,
                           .extent = vk::Extent3D{ width, height, 1 },
                           .usage = vk::ImageUsageFlagBits::eSampled |
                                    vk::ImageUsageFlagBits::eTransferDst,

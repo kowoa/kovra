@@ -92,7 +92,8 @@ class Device
       const void *data,
       uint32_t width,
       uint32_t height,
-      std::optional<vk::Sampler> sampler
+      vk::Sampler sampler,
+      vk::Format format = vk::Format::eR8G8B8A8Unorm
     ) const;
     [[nodiscard]] std::unique_ptr<GpuImage> create_depth_image(
       uint32_t width,

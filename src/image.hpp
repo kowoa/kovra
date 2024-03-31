@@ -38,8 +38,9 @@ class GpuImage
       const void *data,
       uint32_t width,
       uint32_t height,
-      std::optional<vk::Sampler> sampler,
-      const Device &device
+      const Device &device,
+      vk::Sampler sampler,
+      vk::Format format = vk::Format::eR8G8B8A8Unorm
     );
     // Create an image used for the depth buffer
     [[nodiscard]] static std::unique_ptr<GpuImage> new_depth_image(

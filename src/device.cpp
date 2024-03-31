@@ -188,10 +188,13 @@ Device::create_color_image(
   const void *data,
   uint32_t width,
   uint32_t height,
-  std::optional<vk::Sampler> sampler
+  vk::Sampler sampler,
+  vk::Format format
 ) const
 {
-    return GpuImage::new_color_image(data, width, height, sampler, *this);
+    return GpuImage::new_color_image(
+      data, width, height, *this, sampler, format
+    );
 }
 [[nodiscard]] std::unique_ptr<GpuImage>
 Device::create_depth_image(

@@ -298,8 +298,23 @@ Frame::draw_meshes(
   const vk::DescriptorSet &scene_desc_set
 )
 {
-    pass.set_material(ctx.render_resources->get_material_owned("mesh"));
-    pass.set_desc_sets(0, { scene_desc_set }, {});
+    auto texture_desc_set = desc_allocator->allocate(
+      ctx.render_resources->get_desc_set_layout("texture"), ctx.device->get()
+    );
+    const GpuImage &texture = ctx.render_resources->get_texture("checkerboard");
+    DescriptorWriter writer{};
+    writer.write_image(
+      0,
+      texture.get_view(),
+      texture.get_sampler(),
+      vk::ImageLayout::eShaderReadOnlyOptimal,
+      vk::DescriptorType::eCombinedImageSampler
+    );
+    writer.update_set(ctx.device->get(), texture_desc_set);
+
+    pass.set_material(ctx.render_resources->get_material_owned("textured mesh")
+    );
+    pass.set_desc_sets(0, { scene_desc_set, texture_desc_set }, {});
     for (const auto &mesh_asset : ctx.render_resources->get_mesh_assets()) {
         if (mesh_asset->mesh->get_id() != 2) {
             continue;

@@ -10,6 +10,7 @@ namespace kovra {
 class Device;
 class Material;
 class MeshAsset;
+class GpuImage;
 
 class RenderResources
 {
@@ -28,7 +29,9 @@ class RenderResources
       const std::string &&name,
       const vk::DescriptorSetLayout &&desc_set_layout
     );
-    void add_mesh_asset(std::shared_ptr<MeshAsset> &&mesh_asset);
+    void add_mesh_asset(std::unique_ptr<MeshAsset> &&mesh_asset);
+    void
+    add_texture(const std::string &&name, std::unique_ptr<GpuImage> &&texture);
 
     [[nodiscard]] const Material &get_material(const std::string &name) const;
     [[nodiscard]] std::shared_ptr<Material> get_material_owned(
@@ -38,17 +41,19 @@ class RenderResources
     [[nodiscard]] const vk::DescriptorSetLayout &get_desc_set_layout(
       const std::string &name
     ) const;
-    [[nodiscard]] const std::vector<std::shared_ptr<MeshAsset>> &
-    get_mesh_assets() const
+    [[nodiscard]] std::span<const std::unique_ptr<MeshAsset>> get_mesh_assets(
+    ) const
     {
-        return mesh_assets;
+        return { mesh_assets.data(), mesh_assets.size() };
     }
+    [[nodiscard]] const GpuImage &get_texture(const std::string &name) const;
 
   private:
     std::shared_ptr<Device> device;
     std::unordered_map<std::string, std::shared_ptr<Material>> materials;
     std::unordered_map<vk::Filter, vk::Sampler> samplers;
     std::unordered_map<std::string, vk::DescriptorSetLayout> desc_set_layouts;
-    std::vector<std::shared_ptr<MeshAsset>> mesh_assets;
+    std::vector<std::unique_ptr<MeshAsset>> mesh_assets;
+    std::unordered_map<std::string, std::unique_ptr<GpuImage>> textures;
 };
 } // namespace kovra

@@ -11,7 +11,7 @@
 #include "stb_image.h"
 
 namespace kovra {
-std::optional<std::vector<std::shared_ptr<MeshAsset>>>
+std::optional<std::vector<std::unique_ptr<MeshAsset>>>
 AssetLoader::load_gltf_meshes(
   const Renderer &renderer,
   std::filesystem::path filepath
@@ -37,7 +37,7 @@ AssetLoader::load_gltf_meshes(
     fastgltf::Asset gltf;
     gltf = std::move(result.get());
 
-    std::vector<std::shared_ptr<MeshAsset>> mesh_assets;
+    std::vector<std::unique_ptr<MeshAsset>> mesh_assets;
 
     std::vector<uint32_t> indices;
     std::vector<Vertex> vertices;
@@ -143,7 +143,7 @@ AssetLoader::load_gltf_meshes(
         );
 
         mesh_assets.emplace_back(
-          std::make_shared<MeshAsset>(std::move(mesh_asset))
+          std::make_unique<MeshAsset>(std::move(mesh_asset))
         );
     }
 

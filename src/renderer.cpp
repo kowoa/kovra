@@ -25,6 +25,8 @@ init_materials(
 );
 vk::Sampler
 create_sampler(vk::Filter filter, const vk::Device &device);
+void
+init_default_textures(const Device &device, RenderResources &resources);
 
 Renderer::Renderer(SDL_Window *window)
   : context{ std::make_unique<Context>(window) }
@@ -78,6 +80,9 @@ Renderer::Renderer(SDL_Window *window)
       *draw_image,
       *render_resources
     );
+
+    // Create textures
+    init_default_textures(context->get_device(), *render_resources);
 
     init_imgui(window);
 }
@@ -166,17 +171,17 @@ create_sampler(vk::Filter filter, const vk::Device &device)
 void
 init_desc_set_layouts(const vk::Device &device, RenderResources &resources)
 {
-    // Create a descriptor set layout for the background image
-    auto background = DescriptorSetLayoutBuilder{}
-                        .add_binding(
-                          0,
-                          vk::DescriptorType::eStorageImage,
-                          vk::ShaderStageFlagBits::eCompute
-                        )
-                        .build(device);
-    resources.add_desc_set_layout("background", std::move(background));
+    auto compute_texture = DescriptorSetLayoutBuilder{}
+                             .add_binding(
+                               0,
+                               vk::DescriptorType::eStorageImage,
+                               vk::ShaderStageFlagBits::eCompute
+                             )
+                             .build(device);
+    resources.add_desc_set_layout(
+      "compute texture", std::move(compute_texture)
+    );
 
-    // Create a descriptor set layout for the scene buffer
     auto scene =
       DescriptorSetLayoutBuilder{}
         .add_binding(
@@ -186,6 +191,15 @@ init_desc_set_layouts(const vk::Device &device, RenderResources &resources)
         )
         .build(device);
     resources.add_desc_set_layout("scene", std::move(scene));
+
+    auto texture = DescriptorSetLayoutBuilder{}
+                     .add_binding(
+                       0,
+                       vk::DescriptorType::eCombinedImageSampler,
+                       vk::ShaderStageFlagBits::eFragment
+                     )
+                     .build(device);
+    resources.add_desc_set_layout("texture", std::move(texture));
 }
 
 void
@@ -199,7 +213,7 @@ init_materials(
     // Background
     {
         auto desc_set_layouts =
-          std::array{ resources.get_desc_set_layout("background") };
+          std::array{ resources.get_desc_set_layout("compute texture") };
         auto pipeline_layout = device.createPipelineLayoutUnique(
           vk::PipelineLayoutCreateInfo{}.setSetLayouts(desc_set_layouts)
         );
@@ -252,13 +266,99 @@ init_materials(
           GraphicsMaterialBuilder{}
             .set_pipeline_layout(std::move(pipeline_layout))
             .set_shader(std::make_unique<GraphicsShader>(GraphicsShader{
-              "mesh", device }))
+              "mesh-colored", device }))
             .set_color_attachment_format(draw_image.get_format())
             .set_depth_attachment_format(swapchain.get_depth_image().get_format(
             ))
             .build(device);
-        resources.add_material("mesh", std::move(mesh));
+        resources.add_material("colored mesh", std::move(mesh));
     }
+
+    // Textured mesh
+    {
+        auto desc_set_layouts =
+          std::array{ resources.get_desc_set_layout("scene"),
+                      resources.get_desc_set_layout("texture") };
+        auto push_constant_ranges =
+          std::array{ vk::PushConstantRange{}
+                        .setStageFlags(
+                          vk::ShaderStageFlagBits::eVertex |
+                          vk::ShaderStageFlagBits::eFragment
+                        )
+                        .setOffset(0)
+                        .setSize(sizeof(GpuPushConstants)) };
+        auto pipeline_layout = device.createPipelineLayoutUnique(
+          vk::PipelineLayoutCreateInfo{}
+            .setSetLayouts(desc_set_layouts)
+            .setPushConstantRanges(push_constant_ranges)
+        );
+        auto mesh =
+          GraphicsMaterialBuilder{}
+            .set_pipeline_layout(std::move(pipeline_layout))
+            .set_shader(std::make_unique<GraphicsShader>(GraphicsShader{
+              "mesh-textured", device }))
+            .set_color_attachment_format(draw_image.get_format())
+            .set_depth_attachment_format(swapchain.get_depth_image().get_format(
+            ))
+            .build(device);
+        resources.add_material("textured mesh", std::move(mesh));
+    }
+}
+
+void
+init_default_textures(const Device &device, RenderResources &resources)
+{
+    uint32_t white = 0xFFFFFFFF;
+    resources.add_texture(
+      "white",
+      device.create_color_image(
+        &white,
+        1,
+        1,
+        resources.get_sampler(vk::Filter::eNearest),
+        vk::Format::eR8G8B8A8Unorm
+      )
+    );
+
+    uint32_t gray = 0xFFAAAAAA;
+    resources.add_texture(
+      "gray",
+      device.create_color_image(
+        &gray,
+        1,
+        1,
+        resources.get_sampler(vk::Filter::eNearest),
+        vk::Format::eR8G8B8A8Unorm
+      )
+    );
+
+    uint32_t black = 0xFF000000;
+    resources.add_texture(
+      "black",
+      device.create_color_image(
+        &black,
+        1,
+        1,
+        resources.get_sampler(vk::Filter::eNearest),
+        vk::Format::eR8G8B8A8Unorm
+      )
+    );
+
+    uint32_t magenta = 0xFFFF00FF;
+    std::array<uint32_t, 16 * 16> checkerboard;
+    for (size_t i = 0; i < checkerboard.size(); i++) {
+        checkerboard[i] = (i % 16 + i / 16) % 2 == 0 ? magenta : black;
+    }
+    resources.add_texture(
+      "checkerboard",
+      device.create_color_image(
+        &checkerboard,
+        16,
+        16,
+        resources.get_sampler(vk::Filter::eNearest),
+        vk::Format::eR8G8B8A8Unorm
+      )
+    );
 }
 
 void

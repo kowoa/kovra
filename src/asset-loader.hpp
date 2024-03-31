@@ -28,7 +28,7 @@ struct MeshAsset
 class AssetLoader
 {
   public:
-    std::optional<std::vector<std::shared_ptr<MeshAsset>>> load_gltf_meshes(
+    std::optional<std::vector<std::unique_ptr<MeshAsset>>> load_gltf_meshes(
       const Renderer &renderer,
       std::filesystem::path filepath
     ) const;

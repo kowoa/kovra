@@ -98,7 +98,7 @@ App::run()
 
         draw_imgui();
 
-        renderer->draw_frame(camera, window);
+        renderer->draw_frame(camera);
     }
 }
 

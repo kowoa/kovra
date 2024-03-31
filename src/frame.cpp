@@ -70,9 +70,8 @@ Frame::draw(const DrawContext &ctx)
                 ctx.swapchain.request_resize();
                 return; // Early return since failed to acquire swapchain image
             case vk::Result::eSuboptimalKHR:
-                spdlog::debug(
-                  "Swapchain image is suboptimal. Requesting resize ..."
-                );
+                spdlog::debug("Swapchain image acquired but is suboptimal. "
+                              "Requesting resize ...");
                 ctx.swapchain.request_resize();
                 break;
             default:
@@ -234,6 +233,7 @@ Frame::draw(const DrawContext &ctx)
         .setCommandBuffers(cmd),
       render_fence.get()
     );
+
     present(swapchain_image_index.value, ctx);
 }
 
@@ -328,9 +328,8 @@ Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx)
                 ctx.swapchain.request_resize();
                 break;
             case vk::Result::eSuboptimalKHR:
-                spdlog::debug(
-                  "Swapchain image is suboptimal. Requesting resize ..."
-                );
+                spdlog::debug("Swapchain image presented but is suboptimal. "
+                              "Requesting resize ...");
                 ctx.swapchain.request_resize();
                 break;
             default:

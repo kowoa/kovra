@@ -129,10 +129,6 @@ Renderer::draw_frame(Camera &camera, SDL_Window *window)
 
     get_current_frame().draw(draw_ctx);
 
-    if (context->get_swapchain().is_dirty()) {
-        context->recreate_swapchain(window);
-    }
-
     frame_number++;
 }
 void

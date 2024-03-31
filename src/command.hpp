@@ -32,9 +32,17 @@ class CommandEncoder
       vk::Extent2D src_size,
       vk::Extent2D dst_size
     ) const;
-    // Clears image to zero (black)
-    void clear_image(const vk::Image &image, const vk::ImageLayout &layout)
-      const;
+    // Clear color image to zero (black)
+    void clear_color_image(
+      const vk::Image &image,
+      const vk::ImageLayout &layout
+    ) const;
+    // Clear depth image to 1.0f
+    // NOTE: layout can only be either eGeneral or eTransferDstOptimal
+    void clear_depth_image(
+      const vk::Image &image,
+      const vk::ImageLayout &layout
+    ) const;
 
   private:
     static constexpr const uint32_t CMD_BUFFER_COUNT = 1;

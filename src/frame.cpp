@@ -196,7 +196,7 @@ Frame::draw(const DrawContext &ctx)
       vk::ImageLayout::eUndefined,
       vk::ImageLayout::eTransferDstOptimal
     );
-    cmd_encoder->clear_image(
+    cmd_encoder->clear_color_image(
       swapchain_image, vk::ImageLayout::eTransferDstOptimal
     );
 

@@ -107,7 +107,7 @@ CommandEncoder::copy_image_to_image(
     utils::copy_image_to_image(get_current_cmd(), src, dst, src_size, dst_size);
 }
 void
-CommandEncoder::clear_image(
+CommandEncoder::clear_color_image(
   const vk::Image &image,
   const vk::ImageLayout &layout
 ) const
@@ -117,6 +117,20 @@ CommandEncoder::clear_image(
       layout,
       vk::ClearColorValue{ 0, 0, 0, 0 },
       vk::ImageSubresourceRange{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 }
+    );
+}
+
+void
+CommandEncoder::clear_depth_image(
+  const vk::Image &image,
+  const vk::ImageLayout &layout
+) const
+{
+    get_current_cmd().clearDepthStencilImage(
+      image,
+      layout,
+      vk::ClearDepthStencilValue{ 1.0f, 0 },
+      vk::ImageSubresourceRange{ vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1 }
     );
 }
 

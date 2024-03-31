@@ -51,20 +51,24 @@ Device::Device(
     std::vector<const char *> req_device_exts =
       get_required_device_extensions();
 
+    // NOTE: Some extensions are disabled for now because RenderDoc doesn't
+    // support them
     auto device_features = physical_device->get_supported_features();
-    auto ray_tracing_features =
-      vk::PhysicalDeviceRayTracingPipelineFeaturesKHR{}.setRayTracingPipeline(
-        device_features.ray_tracing_pipeline
-      );
-    auto acceleration_struct_features =
-      vk::PhysicalDeviceAccelerationStructureFeaturesKHR{}
-        .setAccelerationStructure(device_features.acceleration_structure)
-        .setPNext(&ray_tracing_features);
+    /*
+      auto ray_tracing_features =
+        vk::PhysicalDeviceRayTracingPipelineFeaturesKHR{}.setRayTracingPipeline(
+          device_features.ray_tracing_pipeline
+        );
+      auto acceleration_struct_features =
+        vk::PhysicalDeviceAccelerationStructureFeaturesKHR{}
+          .setAccelerationStructure(device_features.acceleration_structure)
+          .setPNext(&ray_tracing_features);
+    */
     auto vulkan_12_features =
       vk::PhysicalDeviceVulkan12Features{}
-        .setRuntimeDescriptorArray(device_features.runtime_descriptor_array)
-        .setBufferDeviceAddress(device_features.buffer_device_address)
-        .setPNext(&acceleration_struct_features);
+        //.setRuntimeDescriptorArray(device_features.runtime_descriptor_array)
+        .setBufferDeviceAddress(device_features.buffer_device_address);
+    //.setPNext(&acceleration_struct_features);
     auto vulkan_13_features =
       vk::PhysicalDeviceVulkan13Features{}
         .setDynamicRendering(device_features.dynamic_rendering)
@@ -217,20 +221,23 @@ Device::immediate_submit(std::function<void(vk::CommandBuffer)> &&function
 std::vector<const char *>
 get_required_device_extensions()
 {
+    // NOTE: Some extensions are disabled for now because RenderDoc doesn't
+    // support them
     return {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 
         VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
         VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
-        VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,
         VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
 
-        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+        // VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,
 
-        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
-        VK_KHR_SPIRV_1_4_EXTENSION_NAME,
-        VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME,
+        // VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+        // VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+
+        // VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+        // VK_KHR_SPIRV_1_4_EXTENSION_NAME,
+        // VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME,
     };
 }
 

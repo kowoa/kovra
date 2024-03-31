@@ -18,5 +18,6 @@ struct DrawContext
     Camera &camera;
     std::shared_ptr<RenderResources> render_resources;
     GpuImage &draw_image;
+    float render_scale = 1.0f;
 };
 } // namespace kovra

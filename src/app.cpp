@@ -129,6 +129,11 @@ App::draw_imgui()
     ImGui::Text("FPS: %.2f", fps);
     ImGui::End();
 
+    // Slider for render scale
+    if (ImGui::SliderFloat("Render Scale", &render_scale, 0.3f, 1.0f)) {
+        renderer->set_render_scale(render_scale);
+    }
+
     ImGui::Render();
 }
 

@@ -40,7 +40,6 @@ class Frame
     std::unique_ptr<GpuBuffer> scene_buffer;
 
     vk::Extent2D draw_extent;
-    float render_scale = 1.0f;
 
     void draw_background(ComputePass &pass, const DrawContext &ctx);
     void draw_meshes(

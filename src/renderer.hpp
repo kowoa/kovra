@@ -20,8 +20,9 @@ class Renderer
     Renderer(const Renderer &) = delete;
 
     void draw_frame(Camera &camera, SDL_Window *window);
-
     void load_gltf(const std::filesystem::path &filepath) noexcept;
+
+    void set_render_scale(float scale) noexcept;
 
     [[nodiscard]] const Context &get_context() const noexcept
     {
@@ -48,6 +49,8 @@ class Renderer
 
     // ImGui
     VkDescriptorPool imgui_pool;
+
+    float render_scale = 1.0f;
 
     [[nodiscard]] Frame &get_current_frame() const noexcept
     {

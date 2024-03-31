@@ -6,7 +6,8 @@
 #include <memory>
 
 namespace kovra {
-class App {
+class App
+{
   public:
     App();
     ~App();
@@ -16,14 +17,17 @@ class App {
     SDL_Window *window;
     std::unique_ptr<Renderer> renderer;
 
-    // Camera
-    Camera camera;
-    glm::vec2 prev_mouse_pos{0.0f, 0.0f};
-    bool camera_movable{false};
-
-    void draw_imgui();
+    // ImGui state
     float prev_frame_time = 0;
     int frame_count_since_last_second = 0;
     double fps = 0;
+    float render_scale = 1.0f;
+
+    // Camera
+    Camera camera;
+    glm::vec2 prev_mouse_pos{ 0.0f, 0.0f };
+    bool camera_movable{ false };
+
+    void draw_imgui();
 };
 } // namespace kovra

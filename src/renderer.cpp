@@ -124,7 +124,8 @@ Renderer::draw_frame(Camera &camera, SDL_Window *window)
                                  .frame_number = frame_number,
                                  .camera = camera,
                                  .render_resources = render_resources,
-                                 .draw_image = *draw_image };
+                                 .draw_image = *draw_image,
+                                 .render_scale = render_scale };
 
     get_current_frame().draw(draw_ctx);
 
@@ -145,6 +146,12 @@ Renderer::load_gltf(const std::filesystem::path &filepath) noexcept
     for (auto &&asset : mesh_assets.value()) {
         render_resources->add_mesh_asset(std::move(asset));
     }
+}
+
+void
+Renderer::set_render_scale(float scale) noexcept
+{
+    render_scale = scale;
 }
 
 vk::Sampler
@@ -204,7 +211,7 @@ init_materials(
           ComputeMaterialBuilder{}
             .set_pipeline_layout(std::move(pipeline_layout))
             .set_shader(std::make_unique<ComputeShader>(ComputeShader{
-              "black", device }))
+              "solid-background", device }))
             .build(device);
         resources.add_material("background", std::move(background));
     }

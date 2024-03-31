@@ -56,7 +56,6 @@ Frame::draw(const DrawContext &ctx)
     if (device.waitForFences(fences, vk::True, 1000000000) != vk::Result::eSuccess) {
         throw std::runtime_error("Failed to wait for render fence");
     }
-    device.resetFences(render_fence.get());
 
     // Request image from swapchain (1 sec timeout)
     auto swapchain_image_index = device.acquireNextImageKHR(
@@ -84,8 +83,8 @@ Frame::draw(const DrawContext &ctx)
     }
     auto swapchain_image =
       ctx.swapchain.get_images().at(swapchain_image_index.value);
-    auto swapchain_image_view =
-      ctx.swapchain.get_views().at(swapchain_image_index.value).get();
+
+    device.resetFences(render_fence.get());
 
     // Set draw extent
     {
@@ -93,11 +92,11 @@ Frame::draw(const DrawContext &ctx)
         draw_extent = ctx.draw_image.get_extent2d();
         draw_extent.setWidth(
           std::min(swapchain_image_extent.width, draw_extent.width) *
-          render_scale
+          ctx.render_scale
         );
         draw_extent.setHeight(
           std::min(swapchain_image_extent.height, draw_extent.height) *
-          render_scale
+          ctx.render_scale
         );
     }
 
@@ -111,12 +110,11 @@ Frame::draw(const DrawContext &ctx)
       desc_allocator.get()->allocate(scene_desc_set_layout, device);
 
     // Update the scene buffer
-    auto swapchain_extent = ctx.swapchain.get_extent();
     GpuSceneData scene_data{
         .camera =
           GpuCameraData{
             .viewproj = ctx.camera.get_viewproj_mat(
-              swapchain_extent.width, swapchain_extent.height
+              draw_extent.width, draw_extent.height
             ),
             .near = ctx.camera.get_near(),
             .far = ctx.camera.get_far(),
@@ -178,9 +176,7 @@ Frame::draw(const DrawContext &ctx)
             .render_area = render_area,
           });
 
-        render_pass.set_viewport_scissor(
-          swapchain_extent.width, swapchain_extent.height
-        );
+        render_pass.set_viewport_scissor(draw_extent.width, draw_extent.height);
 
         draw_meshes(render_pass, ctx, scene_desc_set);
         draw_grid(render_pass, ctx, scene_desc_set);
@@ -207,10 +203,7 @@ Frame::draw(const DrawContext &ctx)
       vk::ImageLayout::eTransferDstOptimal
     );
     cmd_encoder->copy_image_to_image(
-      ctx.draw_image.get(),
-      swapchain_image,
-      ctx.draw_image.get_extent2d(),
-      swapchain_extent
+      ctx.draw_image.get(), swapchain_image, draw_extent, draw_extent
     );
 
     // Transition swapchain image layout to present src layout
@@ -247,15 +240,6 @@ Frame::draw_background(ComputePass &pass, const DrawContext &ctx)
       pass.get_cmd(), vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral
     );
 
-    // Clear background image to black
-    /*
-      pass.get_cmd().clearColorImage(
-          ctx.background_image->get(), vk::ImageLayout::eGeneral,
-          vk::ClearColorValue{std::array{0.0f, 0.0f, 0.0f, 1.0f}},
-          vk::ImageSubresourceRange{
-              ctx.background_image->get_aspect(), 0, 1, 0, 1});
-    */
-
     // Create a descriptor set for the background image
     auto desc_set = desc_allocator->allocate(
       ctx.render_resources->get_desc_set_layout("background"), ctx.device->get()
@@ -277,10 +261,9 @@ Frame::draw_background(ComputePass &pass, const DrawContext &ctx)
     pass.set_desc_sets(0, { desc_set }, {});
 
     // Dispatch compute shader
+    const auto extent = ctx.draw_image.get_extent2d();
     pass.dispatch_workgroups(
-      std::ceil(draw_extent.width / 16.0),
-      std::ceil(draw_extent.height / 16.0),
-      1
+      std::ceil(extent.width / 16.0), std::ceil(extent.height / 16.0), 1
     );
 }
 

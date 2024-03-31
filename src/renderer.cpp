@@ -307,7 +307,7 @@ Renderer::init_imgui(SDL_Window *window)
     init_info.MinImageCount = 3;
     init_info.ImageCount = 3;
     init_info.UseDynamicRendering = true;
-    auto color_formats = std::array{ draw_image->get_format() };
+    auto color_formats = std::array{ ctx.get_swapchain().get_format() };
     init_info.PipelineRenderingCreateInfo =
       vk::PipelineRenderingCreateInfo{}
         .setColorAttachmentFormats(color_formats)

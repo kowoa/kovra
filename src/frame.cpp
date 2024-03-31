@@ -82,22 +82,21 @@ Frame::draw(const DrawContext &ctx)
     }
     auto swapchain_image =
       ctx.swapchain.get_images().at(swapchain_image_index.value);
+    auto swapchain_image_extent = ctx.swapchain.get_extent();
 
     device.resetFences(render_fence.get());
 
-    // Set draw extent
-    {
-        auto swapchain_image_extent = ctx.swapchain.get_extent();
-        draw_extent = ctx.draw_image.get_extent2d();
-        draw_extent.setWidth(
-          std::min(swapchain_image_extent.width, draw_extent.width) *
-          ctx.render_scale
-        );
-        draw_extent.setHeight(
-          std::min(swapchain_image_extent.height, draw_extent.height) *
-          ctx.render_scale
-        );
-    }
+    // Set draw extent (determines resolution to draw at)
+    // This ensures that we don't draw at a higher resolution than the swapchain
+    auto draw_extent = ctx.draw_image.get_extent2d();
+    draw_extent.setWidth(
+      std::min(swapchain_image_extent.width, draw_extent.width) *
+      ctx.render_scale
+    );
+    draw_extent.setHeight(
+      std::min(swapchain_image_extent.height, draw_extent.height) *
+      ctx.render_scale
+    );
 
     // Clear descriptor pools
     desc_allocator.get()->clear_pools(device);
@@ -113,7 +112,7 @@ Frame::draw(const DrawContext &ctx)
         .camera =
           GpuCameraData{
             .viewproj = ctx.camera.get_viewproj_mat(
-              draw_extent.width, draw_extent.height
+              swapchain_image_extent.width, swapchain_image_extent.height
             ),
             .near = ctx.camera.get_near(),
             .far = ctx.camera.get_far(),
@@ -207,7 +206,7 @@ Frame::draw(const DrawContext &ctx)
       vk::ImageLayout::eTransferSrcOptimal
     );
     cmd_encoder->copy_image_to_image(
-      ctx.draw_image.get(), swapchain_image, draw_extent, draw_extent
+      ctx.draw_image.get(), swapchain_image, draw_extent, swapchain_image_extent
     );
 
     // Transition swapchain image layout to present src layout

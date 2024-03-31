@@ -64,14 +64,9 @@ Frame::draw(const DrawContext &ctx)
     if (swapchain_image_index.result != vk::Result::eSuccess) {
         switch (swapchain_image_index.result) {
             case vk::Result::eErrorOutOfDateKHR:
-                spdlog::debug(
-                  "Swapchain image is out of date. Requesting resize ..."
-                );
                 ctx.swapchain.request_resize();
                 return; // Early return since failed to acquire swapchain image
             case vk::Result::eSuboptimalKHR:
-                spdlog::debug("Swapchain image acquired but is suboptimal. "
-                              "Requesting resize ...");
                 ctx.swapchain.request_resize();
                 break;
             default:
@@ -134,17 +129,14 @@ Frame::draw(const DrawContext &ctx)
     );
     writer.update_set(device, scene_desc_set);
 
-    // Compute commands
-    {
-        ComputePass compute_pass = cmd_encoder->begin_compute_pass();
-        draw_background(compute_pass, ctx);
-    }
+    //--------------------------------------------------------------------------
+    cmd_encoder->begin();
 
     // Transition draw image layout to color attachment optimal for rendering
     cmd_encoder->transition_image_layout(
       ctx.draw_image.get(),
       vk::ImageAspectFlagBits::eColor,
-      vk::ImageLayout::eGeneral,
+      vk::ImageLayout::eUndefined,
       vk::ImageLayout::eColorAttachmentOptimal
     );
 
@@ -154,9 +146,9 @@ Frame::draw(const DrawContext &ctx)
           vk::RenderingAttachmentInfo{}
             .setImageView(ctx.draw_image.get_view())
             .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
-            .setLoadOp(vk::AttachmentLoadOp::eLoad)
+            .setLoadOp(vk::AttachmentLoadOp::eClear)
             .setStoreOp(vk::AttachmentStoreOp::eStore)
-            .setClearValue(vk::ClearValue{}.setColor({ 0.0f, 0.0f, 0.0f, 1.0f })
+            .setClearValue(vk::ClearValue{}.setColor({ 0.1f, 0.1f, 0.1f, 1.0f })
             );
         auto depth_attachment =
           vk::RenderingAttachmentInfo{}
@@ -249,6 +241,7 @@ Frame::draw(const DrawContext &ctx)
 
     // Finish recording commands
     auto cmd = cmd_encoder->finish();
+    //--------------------------------------------------------------------------
 
     // Submit command buffer to the graphics queue
     auto wait_stages = std::array<vk::PipelineStageFlags, 1>{
@@ -266,14 +259,10 @@ Frame::draw(const DrawContext &ctx)
     present(swapchain_image_index.value, ctx);
 }
 
+/*
 void
 Frame::draw_background(ComputePass &pass, const DrawContext &ctx)
 {
-    // Transition background image layout to general
-    ctx.draw_image.transition_layout(
-      pass.get_cmd(), vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral
-    );
-
     // Create a descriptor set for the background image
     auto desc_set = desc_allocator->allocate(
       ctx.render_resources->get_desc_set_layout("background"), ctx.device->get()
@@ -300,6 +289,7 @@ Frame::draw_background(ComputePass &pass, const DrawContext &ctx)
       std::ceil(extent.width / 16.0), std::ceil(extent.height / 16.0), 1
     );
 }
+*/
 
 void
 Frame::draw_meshes(
@@ -351,14 +341,9 @@ Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx)
     if (result != vk::Result::eSuccess) {
         switch (result) {
             case vk::Result::eErrorOutOfDateKHR:
-                spdlog::debug(
-                  "Swapchain image is out of date. Requesting resize ..."
-                );
                 ctx.swapchain.request_resize();
                 break;
             case vk::Result::eSuboptimalKHR:
-                spdlog::debug("Swapchain image presented but is suboptimal. "
-                              "Requesting resize ...");
                 ctx.swapchain.request_resize();
                 break;
             default:

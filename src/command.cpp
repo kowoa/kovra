@@ -40,6 +40,12 @@ CommandEncoder::begin_render_pass(const RenderPassDescriptor &desc)
     return RenderPass{ desc, cmd_buffers.at(cmd_index).get() };
 }
 
+void
+CommandEncoder::begin()
+{
+    begin_recording();
+}
+
 vk::CommandBuffer
 CommandEncoder::finish()
 {
@@ -57,7 +63,7 @@ std::optional<vk::CommandBuffer>
 CommandEncoder::begin_recording()
 {
     if (is_recording) {
-        return {};
+        return std::nullopt;
     }
 
     auto cmd = get_current_cmd();
@@ -109,13 +115,14 @@ CommandEncoder::copy_image_to_image(
 void
 CommandEncoder::clear_color_image(
   const vk::Image &image,
-  const vk::ImageLayout &layout
+  const vk::ImageLayout &layout,
+  const vk::ClearColorValue &color
 ) const
 {
     get_current_cmd().clearColorImage(
       image,
       layout,
-      vk::ClearColorValue{ 0, 0, 0, 0 },
+      color,
       vk::ImageSubresourceRange{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 }
     );
 }

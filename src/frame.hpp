@@ -39,7 +39,6 @@ class Frame
     std::unique_ptr<DescriptorAllocator> desc_allocator;
     std::unique_ptr<GpuBuffer> scene_buffer;
 
-    void draw_background(ComputePass &pass, const DrawContext &ctx);
     void draw_meshes(
       RenderPass &pass,
       const DrawContext &ctx,

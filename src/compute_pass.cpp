@@ -1,5 +1,6 @@
 #include "compute_pass.hpp"
 #include "material.hpp"
+#include "utils.hpp"
 
 namespace kovra {
 void
@@ -36,5 +37,15 @@ void
 ComputePass::dispatch_workgroups(uint32_t x, uint32_t y, uint32_t z) const
 {
     cmd.dispatch(x, y, z);
+}
+void
+ComputePass::transition_image_layout(
+  const vk::Image &image,
+  vk::ImageAspectFlagBits aspect,
+  vk::ImageLayout old_layout,
+  vk::ImageLayout new_layout
+) const
+{
+    utils::transition_image_layout(cmd, image, aspect, old_layout, new_layout);
 }
 } // namespace kovra

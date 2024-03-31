@@ -25,6 +25,12 @@ class ComputePass
     // Dispatch compute work operations
     // x, y, z: number of workgroups to dispatch in each dimension
     void dispatch_workgroups(uint32_t x, uint32_t y, uint32_t z) const;
+    void transition_image_layout(
+      const vk::Image &image,
+      vk::ImageAspectFlagBits aspect,
+      vk::ImageLayout old_layout,
+      vk::ImageLayout new_layout
+    ) const;
 
     [[nodiscard]] const vk::CommandBuffer &get_cmd() const { return cmd; }
 

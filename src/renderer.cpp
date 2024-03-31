@@ -117,7 +117,7 @@ Renderer::~Renderer()
 }
 
 void
-Renderer::draw_frame(Camera &camera, SDL_Window *window)
+Renderer::draw_frame(Camera &camera)
 {
     auto draw_ctx = DrawContext{ .device = context->get_device_owned(),
                                  .swapchain = context->get_swapchain_mut(),

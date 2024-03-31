@@ -19,7 +19,7 @@ class Renderer
     Renderer() = delete;
     Renderer(const Renderer &) = delete;
 
-    void draw_frame(Camera &camera, SDL_Window *window);
+    void draw_frame(Camera &camera);
     void load_gltf(const std::filesystem::path &filepath) noexcept;
 
     void set_render_scale(float scale) noexcept;

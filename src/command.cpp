@@ -106,5 +106,18 @@ CommandEncoder::copy_image_to_image(
 {
     utils::copy_image_to_image(get_current_cmd(), src, dst, src_size, dst_size);
 }
+void
+CommandEncoder::clear_image(
+  const vk::Image &image,
+  const vk::ImageLayout &layout
+) const
+{
+    get_current_cmd().clearColorImage(
+      image,
+      layout,
+      vk::ClearColorValue{ 0, 0, 0, 0 },
+      vk::ImageSubresourceRange{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 }
+    );
+}
 
 } // namespace kovra

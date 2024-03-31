@@ -145,7 +145,16 @@ create_window()
           std::format("SDL_Init failed: {}", SDL_GetError())
         );
     }
-    SDL_Vulkan_LoadLibrary(nullptr);
+
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "vulkan");
+    // Do not block compositing on X11
+    SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
+
+    if (SDL_Vulkan_LoadLibrary(nullptr) != 0) {
+        throw std::runtime_error(
+          std::format("SDL_Vulkan_LoadLibrary failed: {}", SDL_GetError())
+        );
+    }
     auto window = SDL_CreateWindow(
       "Kovra",
       SDL_WINDOWPOS_UNDEFINED,

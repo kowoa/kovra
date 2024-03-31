@@ -189,18 +189,23 @@ Frame::draw(const DrawContext &ctx)
         );
     }
 
+    // Clear swapchain image
+    cmd_encoder->transition_image_layout(
+      swapchain_image,
+      vk::ImageAspectFlagBits::eColor,
+      vk::ImageLayout::eUndefined,
+      vk::ImageLayout::eTransferDstOptimal
+    );
+    cmd_encoder->clear_image(
+      swapchain_image, vk::ImageLayout::eTransferDstOptimal
+    );
+
     // Copy draw image to swapchain image
     cmd_encoder->transition_image_layout(
       ctx.draw_image.get(),
       vk::ImageAspectFlagBits::eColor,
       vk::ImageLayout::eColorAttachmentOptimal,
       vk::ImageLayout::eTransferSrcOptimal
-    );
-    cmd_encoder->transition_image_layout(
-      swapchain_image,
-      vk::ImageAspectFlagBits::eColor,
-      vk::ImageLayout::eUndefined,
-      vk::ImageLayout::eTransferDstOptimal
     );
     cmd_encoder->copy_image_to_image(
       ctx.draw_image.get(), swapchain_image, draw_extent, draw_extent

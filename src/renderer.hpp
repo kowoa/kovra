@@ -23,7 +23,7 @@ class Renderer
     Renderer(Renderer &&) = delete;
     Renderer &operator=(Renderer &&) = delete;
 
-    void draw_frame(Camera &camera);
+    void draw_frame(const Camera &camera);
     void load_gltf(const std::filesystem::path &filepath) noexcept;
 
     void set_render_scale(float scale) noexcept;
@@ -49,8 +49,6 @@ class Renderer
   private:
     std::unique_ptr<Context> context;
     std::unique_ptr<AssetLoader> asset_loader;
-    std::unique_ptr<DescriptorAllocator> global_desc_allocator;
-    std::unique_ptr<PbrMaterial> pbr_material;
 
     // Frames
     static constexpr const uint32_t FRAME_OVERLAP = 2;

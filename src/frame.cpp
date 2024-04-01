@@ -6,7 +6,9 @@
 #include "device.hpp"
 #include "gpu_data.hpp"
 #include "image.hpp"
+#include "material.hpp"
 #include "mesh.hpp"
+#include "pbr_material.hpp"
 #include "render_resources.hpp"
 #include "swapchain.hpp"
 #include "utils.hpp"
@@ -31,6 +33,12 @@ Frame::Frame(const Device &device)
       VMA_MEMORY_USAGE_CPU_TO_GPU,
       VMA_ALLOCATION_CREATE_MAPPED_BIT
     ) }
+  , material_buffer{ device.create_buffer(
+      sizeof(GpuPbrMaterialData),
+      vk::BufferUsageFlagBits::eUniformBuffer,
+      VMA_MEMORY_USAGE_CPU_TO_GPU,
+      VMA_ALLOCATION_CREATE_MAPPED_BIT
+    ) }
 {
     spdlog::debug("Frame::Frame()");
 }
@@ -38,6 +46,7 @@ Frame::Frame(const Device &device)
 Frame::~Frame()
 {
     spdlog::debug("Frame::~Frame()");
+    material_buffer.reset();
     scene_buffer.reset();
     desc_allocator.reset();
     cmd_encoder.reset();
@@ -95,6 +104,27 @@ Frame::draw(const DrawContext &ctx)
 
     // Clear descriptor pools
     desc_allocator.get()->clear_pools(device);
+
+    // Create a material instance from the PBR material
+    {
+        // Update the material buffer data
+        auto material_data = GpuPbrMaterialData{
+            .color_factors = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+            .metal_rough_factors = glm::vec4(1.0f, 0.5f, 0.0f, 0.0f)
+        };
+        material_buffer->write(&material_data, sizeof(GpuPbrMaterialData));
+
+        auto mat_inst_ci = PbrMaterial::PbrMaterialInstanceCreateInfo{
+            .albedo_texture = ctx.render_resources.get_texture("white"),
+            .metal_rough_texture = ctx.render_resources.get_texture("white"),
+            .data_buffer = material_buffer->get(),
+            .data_buffer_offset = 0,
+        };
+        auto material_instance =
+          ctx.render_resources.get_pbr_material().create_material_instance(
+            mat_inst_ci, ctx.device, *desc_allocator
+          );
+    }
 
     // Create a descriptor set for the scene buffer
     auto scene_desc_set_layout =

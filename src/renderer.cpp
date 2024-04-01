@@ -32,10 +32,6 @@ init_default_textures(const Device &device, RenderResources &resources);
 Renderer::Renderer(SDL_Window *window)
   : context{ std::make_unique<Context>(window) }
   , asset_loader{ std::make_unique<AssetLoader>() }
-  , global_desc_allocator{ std::make_unique<DescriptorAllocator>(
-      context->get_device().get(),
-      100
-    ) }
   , frame_number{ 0 }
   , render_resources{
       std::make_shared<RenderResources>(context->get_device_owned())
@@ -91,12 +87,12 @@ Renderer::Renderer(SDL_Window *window)
     init_default_textures(context->get_device(), *render_resources);
 
     // Create PBR material
-    pbr_material = std::make_unique<PbrMaterial>(
+    render_resources->set_pbr_material(std::make_unique<PbrMaterial>(
       context->get_device().get(),
       render_resources->get_desc_set_layout("scene"),
       draw_image->get_format(),
       context->get_swapchain().get_depth_image().get_format()
-    );
+    ));
 
     init_imgui(window);
 }
@@ -132,13 +128,11 @@ Renderer::~Renderer()
     }
     frames.clear();
 
-    pbr_material.reset();
-    global_desc_allocator.reset();
     context.reset();
 }
 
 void
-Renderer::draw_frame(Camera &camera)
+Renderer::draw_frame(const Camera &camera)
 {
     auto draw_ctx = DrawContext{ .device = context->get_device(),
                                  .swapchain = context->get_swapchain_mut(),

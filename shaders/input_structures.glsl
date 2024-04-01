@@ -11,5 +11,5 @@ layout (set = 1, binding = 0) uniform GpuPbrMaterialData {
     vec4 color_factors;
     vec4 metal_rough_factors;
 } Material;
-layout (set = 1, binding = 1) uniform sampler2D color_tex;
+layout (set = 1, binding = 1) uniform sampler2D albedo_tex;
 layout (set = 1, binding = 2) uniform sampler2D metal_rough_tex;

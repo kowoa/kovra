@@ -19,8 +19,8 @@ class PbrMaterial
   public:
     struct PbrMaterialInstanceCreateInfo
     {
-        const GpuImage &color_image;
-        const GpuImage &metal_rough_image;
+        const GpuImage &albedo_texture;
+        const GpuImage &metal_rough_texture;
         const vk::Buffer &data_buffer;
         const uint32_t data_buffer_offset;
         const MaterialPass pass;
@@ -44,7 +44,7 @@ class PbrMaterial
       const PbrMaterialInstanceCreateInfo &info,
       const Device &device,
       DescriptorAllocator &desc_allocator
-    );
+    ) const;
 
   private:
     std::unique_ptr<Material> opaque_material;

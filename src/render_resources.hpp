@@ -11,6 +11,7 @@ class Device;
 class Material;
 class MeshAsset;
 class GpuImage;
+class PbrMaterial;
 
 class RenderResources
 {
@@ -32,6 +33,7 @@ class RenderResources
     void add_mesh_asset(std::unique_ptr<MeshAsset> &&mesh_asset);
     void
     add_texture(const std::string &&name, std::unique_ptr<GpuImage> &&texture);
+    void set_pbr_material(std::unique_ptr<PbrMaterial> &&material);
 
     [[nodiscard]] const Material &get_material(const std::string &name) const;
     [[nodiscard]] std::shared_ptr<Material> get_material_owned(
@@ -47,6 +49,7 @@ class RenderResources
         return { mesh_assets.data(), mesh_assets.size() };
     }
     [[nodiscard]] const GpuImage &get_texture(const std::string &name) const;
+    [[nodiscard]] const PbrMaterial &get_pbr_material() const;
 
   private:
     std::shared_ptr<Device> device;
@@ -55,5 +58,7 @@ class RenderResources
     std::unordered_map<std::string, vk::DescriptorSetLayout> desc_set_layouts;
     std::vector<std::unique_ptr<MeshAsset>> mesh_assets;
     std::unordered_map<std::string, std::unique_ptr<GpuImage>> textures;
+
+    std::unique_ptr<PbrMaterial> pbr_material;
 };
 } // namespace kovra

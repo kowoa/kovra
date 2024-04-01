@@ -38,7 +38,9 @@ class Frame
     vk::UniqueFence render_fence;
     std::unique_ptr<CommandEncoder> cmd_encoder;
     std::unique_ptr<DescriptorAllocator> desc_allocator;
+
     std::unique_ptr<GpuBuffer> scene_buffer;
+    std::unique_ptr<GpuBuffer> material_buffer;
 
     void draw_meshes(
       RenderPass &pass,

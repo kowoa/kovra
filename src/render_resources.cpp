@@ -4,6 +4,7 @@
 #include "image.hpp"
 #include "material.hpp"
 #include "mesh.hpp"
+#include "pbr_material.hpp"
 
 namespace kovra {
 RenderResources::RenderResources(std::shared_ptr<Device> device)
@@ -63,6 +64,11 @@ RenderResources::add_texture(
 {
     textures.emplace(std::move(name), std::move(texture));
 }
+void
+RenderResources::set_pbr_material(std::unique_ptr<PbrMaterial> &&material)
+{
+    pbr_material = std::move(material);
+}
 
 [[nodiscard]] const Material &
 RenderResources::get_material(const std::string &name) const
@@ -103,6 +109,14 @@ RenderResources::get_texture(const std::string &name) const
         throw std::runtime_error("Texture not found: " + name);
     }
     return *textures.at(name);
+}
+[[nodiscard]] const PbrMaterial &
+RenderResources::get_pbr_material() const
+{
+    if (!pbr_material) {
+        throw std::runtime_error("PBR material not found");
+    }
+    return *pbr_material;
 }
 
 } // namespace kovra

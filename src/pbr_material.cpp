@@ -82,7 +82,7 @@ PbrMaterial::create_material_instance(
   const PbrMaterialInstanceCreateInfo &info,
   const Device &device,
   DescriptorAllocator &desc_allocator
-)
+) const
 {
     auto desc_set =
       desc_allocator.allocate(material_layout.get(), device.get());
@@ -96,15 +96,15 @@ PbrMaterial::create_material_instance(
     );
     desc_writer->write_image(
       1,
-      info.color_image.get_view(),
-      info.color_image.get_sampler(),
+      info.albedo_texture.get_view(),
+      info.albedo_texture.get_sampler(),
       vk::ImageLayout::eShaderReadOnlyOptimal,
       vk::DescriptorType::eCombinedImageSampler
     );
     desc_writer->write_image(
       2,
-      info.metal_rough_image.get_view(),
-      info.metal_rough_image.get_sampler(),
+      info.metal_rough_texture.get_view(),
+      info.metal_rough_texture.get_sampler(),
       vk::ImageLayout::eShaderReadOnlyOptimal,
       vk::DescriptorType::eCombinedImageSampler
     );

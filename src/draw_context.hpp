@@ -14,7 +14,7 @@ struct DrawContext
     const Device &device;
     Swapchain &swapchain;
     const uint32_t frame_number;
-    Camera &camera;
+    const Camera &camera;
     const RenderResources &render_resources;
     GpuImage &draw_image;
     const float render_scale = 1.0f;

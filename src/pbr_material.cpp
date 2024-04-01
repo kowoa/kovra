@@ -1,13 +1,13 @@
-#include "render_object.hpp"
+#include "pbr_material.hpp"
 #include "descriptor.hpp"
+#include "image.hpp"
 #include "material.hpp"
 #include "render_resources.hpp"
 #include "renderer.hpp"
-#include "shader.hpp"
 
 namespace kovra {
-void
-GltfMetallicRoughness::build_materials(const Renderer &renderer)
+PbrMaterial::PbrMaterial(const Renderer &renderer)
+  : writer{ std::make_unique<DescriptorWriter>() }
 {
     const vk::Device &device = renderer.get_context().get_device().get();
 
@@ -32,9 +32,9 @@ GltfMetallicRoughness::build_materials(const Renderer &renderer)
         .add_binding(
           2, vk::DescriptorType::eCombinedImageSampler, vert_frag_stages
         )
-        .build(device);
+        .build_unique(device);
 
-    const auto layouts = std::array{ scene_layout, material_layout };
+    const auto layouts = std::array{ scene_layout, material_layout.get() };
 
     opaque_material = std::make_unique<Material>(
       GraphicsMaterialBuilder{}
@@ -71,5 +71,45 @@ GltfMetallicRoughness::build_materials(const Renderer &renderer)
         .enable_depth_test(false, vk::CompareOp::eGreaterOrEqual)
         .build(device)
     );
+}
+
+MaterialInstance
+PbrMaterial::create_material_instance(
+  const PbrMaterialInstanceCreateInfo &info,
+  const Device &device,
+  DescriptorAllocator &desc_allocator
+)
+{
+    auto desc_set =
+      desc_allocator.allocate(material_layout.get(), device.get());
+    writer->clear();
+    writer->write_buffer(
+      0,
+      info.data_buffer,
+      sizeof(GpuPbrMaterialData),
+      info.data_buffer_offset,
+      vk::DescriptorType::eUniformBuffer
+    );
+    writer->write_image(
+      1,
+      info.color_image.get_view(),
+      info.color_image.get_sampler(),
+      vk::ImageLayout::eShaderReadOnlyOptimal,
+      vk::DescriptorType::eCombinedImageSampler
+    );
+    writer->write_image(
+      2,
+      info.metal_rough_image.get_view(),
+      info.metal_rough_image.get_sampler(),
+      vk::ImageLayout::eShaderReadOnlyOptimal,
+      vk::DescriptorType::eCombinedImageSampler
+    );
+    writer->update_set(device.get(), desc_set);
+
+    if (info.pass == MaterialPass::Opaque) {
+        return MaterialInstance{ *opaque_material, desc_set, info.pass };
+    } else {
+        return MaterialInstance{ *transparent_material, desc_set, info.pass };
+    }
 }
 }

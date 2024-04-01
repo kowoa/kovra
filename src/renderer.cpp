@@ -60,7 +60,7 @@ Renderer::Renderer(SDL_Window *window)
     // Create draw image
     {
         auto swapchain_extent = context->get_swapchain().get_extent();
-        draw_image = context->get_device().create_image(GpuImageDescriptor{
+        draw_image = context->get_device().create_image(GpuImageCreateInfo{
           .format = vk::Format::eR16G16B16A16Sfloat,
           .extent =
             vk::Extent3D{ swapchain_extent.width, swapchain_extent.height, 1 },

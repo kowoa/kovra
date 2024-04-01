@@ -179,9 +179,9 @@ DeviceFeatures::is_compatible_with(const DeviceFeatures &other) const
 }
 
 [[nodiscard]] std::unique_ptr<GpuImage>
-Device::create_image(const GpuImageDescriptor &desc) const
+Device::create_image(const GpuImageCreateInfo &info) const
 {
-    return std::make_unique<GpuImage>(desc, device.get(), allocator);
+    return std::make_unique<GpuImage>(info, device.get(), allocator);
 }
 [[nodiscard]] std::unique_ptr<GpuImage>
 Device::create_color_image(

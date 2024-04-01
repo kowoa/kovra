@@ -7,7 +7,7 @@ layout (set = 0, binding = 0) uniform GpuSceneData {
     vec4 sunlight_color;
 } Scene;
 
-layout (set = 1, binding = 0) uniform GltfMaterialData {
+layout (set = 1, binding = 0) uniform GpuPbrMaterialData {
     vec4 color_factors;
     vec4 metal_rough_factors;
 } Material;

@@ -9,6 +9,21 @@
 namespace kovra {
 // Forward declarations
 class Device;
+class Material;
+
+enum class MaterialPass : uint8_t
+{
+    Opaque,
+    Transparent,
+    Other
+};
+
+struct MaterialInstance
+{
+    const Material &material;
+    const vk::DescriptorSet &desc_set;
+    const MaterialPass pass;
+};
 
 class Material
 {

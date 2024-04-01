@@ -34,4 +34,12 @@ struct GpuPushConstants
     VkDeviceAddress vertex_buffer;
     glm::mat4x4 object_transform = glm::identity<glm::mat4x4>();
 };
+
+struct GpuPbrMaterialData
+{
+    const glm::vec4 color_factors;
+    const glm::vec4 metal_rough_factors;
+    // Padding for uniform buffers
+    const glm::vec4 padding[14];
+};
 } // namespace kovra

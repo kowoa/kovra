@@ -5,25 +5,25 @@
 
 namespace kovra {
 GpuImage::GpuImage(
-  const GpuImageDescriptor &desc,
+  const GpuImageCreateInfo &info,
   const vk::Device &device,
   std::shared_ptr<VmaAllocator> allocator
 )
   : allocator{ allocator }
-  , format{ desc.format }
-  , extent{ desc.extent }
-  , aspect{ desc.aspect }
-  , sampler{ desc.sampler }
+  , format{ info.format }
+  , extent{ info.extent }
+  , aspect{ info.aspect }
+  , sampler{ info.sampler }
 {
     VkImageCreateInfo image_ci{};
     image_ci.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_ci.imageType = VK_IMAGE_TYPE_2D;
-    image_ci.format = static_cast<VkFormat>(desc.format);
-    image_ci.extent = desc.extent;
-    if (desc.mipmapped) {
+    image_ci.format = static_cast<VkFormat>(info.format);
+    image_ci.extent = info.extent;
+    if (info.mipmapped) {
         image_ci.mipLevels =
           static_cast<uint32_t>(std::floor(
-            std::log2(std::max(desc.extent.width, desc.extent.height))
+            std::log2(std::max(info.extent.width, info.extent.height))
           )) +
           1;
     } else {
@@ -32,7 +32,7 @@ GpuImage::GpuImage(
     image_ci.arrayLayers = 1;
     image_ci.samples = VK_SAMPLE_COUNT_1_BIT;
     image_ci.tiling = VK_IMAGE_TILING_OPTIMAL;
-    image_ci.usage = static_cast<VkImageUsageFlags>(desc.usage);
+    image_ci.usage = static_cast<VkImageUsageFlags>(info.usage);
 
     // Always allocate images on dedicated GPU memory
     VmaAllocationCreateInfo alloc_ci{};
@@ -95,12 +95,12 @@ GpuImage::GpuImage(
       vk::ImageViewCreateInfo{}
         .setImage(image)
         .setViewType(vk::ImageViewType::e2D)
-        .setFormat(desc.format)
+        .setFormat(info.format)
         .setSubresourceRange(
           vk::ImageSubresourceRange{}
-            .setAspectMask(desc.aspect)
+            .setAspectMask(info.aspect)
             .setBaseMipLevel(0)
-            .setLevelCount(desc.mipmapped ? image_ci.mipLevels : 1)
+            .setLevelCount(info.mipmapped ? image_ci.mipLevels : 1)
             .setBaseArrayLayer(0)
             .setLayerCount(1)
         )
@@ -130,7 +130,7 @@ GpuImage::new_color_image(
     }
 
     auto desc =
-      GpuImageDescriptor{ .format = format,
+      GpuImageCreateInfo{ .format = format,
                           .extent = vk::Extent3D{ width, height, 1 },
                           .usage = vk::ImageUsageFlagBits::eSampled |
                                    vk::ImageUsageFlagBits::eTransferDst,
@@ -153,7 +153,7 @@ GpuImage::new_depth_image(
 )
 {
     auto desc =
-      GpuImageDescriptor{ .format = vk::Format::eD32Sfloat,
+      GpuImageCreateInfo{ .format = vk::Format::eD32Sfloat,
                           .extent = vk::Extent3D{ width, height, 1 },
                           .usage =
                             vk::ImageUsageFlagBits::eDepthStencilAttachment,
@@ -174,7 +174,7 @@ GpuImage::new_storage_image(
 )
 {
     auto desc =
-      GpuImageDescriptor{ .format = vk::Format::eR16G16B16A16Sfloat,
+      GpuImageCreateInfo{ .format = vk::Format::eR16G16B16A16Sfloat,
                           .extent = vk::Extent3D{ width, height, 1 },
                           .usage = vk::ImageUsageFlagBits::eStorage |
                                    vk::ImageUsageFlagBits::eTransferSrc |

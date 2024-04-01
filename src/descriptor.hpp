@@ -13,6 +13,9 @@ class DescriptorSetLayoutBuilder
     );
 
     [[nodiscard]] vk::DescriptorSetLayout build(const vk::Device &device) const;
+    [[nodiscard]] vk::UniqueDescriptorSetLayout build_unique(
+      const vk::Device &device
+    ) const;
 
   private:
     std::vector<vk::DescriptorSetLayoutBinding> bindings;

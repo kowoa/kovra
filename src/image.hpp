@@ -8,7 +8,7 @@ namespace kovra {
 // Forward declarations
 class Device;
 
-struct GpuImageDescriptor
+struct GpuImageCreateInfo
 {
     vk::Format format;
     vk::Extent3D extent;
@@ -22,7 +22,7 @@ class GpuImage
 {
   public:
     GpuImage(
-      const GpuImageDescriptor &desc,
+      const GpuImageCreateInfo &info,
       const vk::Device &device,
       std::shared_ptr<VmaAllocator> allocator
     );

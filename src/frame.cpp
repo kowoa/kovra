@@ -1,5 +1,5 @@
 #include "frame.hpp"
-#include "asset-loader.hpp"
+#include "asset_loader.hpp"
 #include "buffer.hpp"
 #include "camera.hpp"
 #include "descriptor.hpp"
@@ -8,13 +8,13 @@
 #include "image.hpp"
 #include "mesh.hpp"
 #include "render_resources.hpp"
-#include "spdlog/spdlog.h"
 #include "swapchain.hpp"
 #include "utils.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_vulkan.h"
+#include "spdlog/spdlog.h"
 
 namespace kovra {
 Frame::Frame(const Device &device)
@@ -49,7 +49,7 @@ Frame::~Frame()
 void
 Frame::draw(const DrawContext &ctx)
 {
-    auto device = ctx.device.get()->get();
+    const vk::Device &device = ctx.device.get();
 
     // Wait until the GPU has finished rendering the last frame (1 sec timeout)
     std::vector<vk::Fence> fences = { render_fence.get() };
@@ -98,7 +98,7 @@ Frame::draw(const DrawContext &ctx)
 
     // Create a descriptor set for the scene buffer
     auto scene_desc_set_layout =
-      ctx.render_resources->get_desc_set_layout("scene");
+      ctx.render_resources.get_desc_set_layout("scene");
     auto scene_desc_set =
       desc_allocator.get()->allocate(scene_desc_set_layout, device);
 
@@ -247,7 +247,7 @@ Frame::draw(const DrawContext &ctx)
     auto wait_stages = std::array<vk::PipelineStageFlags, 1>{
         vk::PipelineStageFlagBits::eColorAttachmentOutput
     };
-    ctx.device->get_graphics_queue().submit(
+    ctx.device.get_graphics_queue().submit(
       vk::SubmitInfo{}
         .setPWaitDstStageMask(wait_stages.data())
         .setWaitSemaphores(present_semaphore.get())
@@ -299,23 +299,25 @@ Frame::draw_meshes(
 )
 {
     auto texture_desc_set = desc_allocator->allocate(
-      ctx.render_resources->get_desc_set_layout("texture"), ctx.device->get()
+      ctx.render_resources.get_desc_set_layout("texture"), ctx.device.get()
     );
-    const GpuImage &texture = ctx.render_resources->get_texture("checkerboard");
-    DescriptorWriter writer{};
-    writer.write_image(
-      0,
-      texture.get_view(),
-      texture.get_sampler(),
-      vk::ImageLayout::eShaderReadOnlyOptimal,
-      vk::DescriptorType::eCombinedImageSampler
-    );
-    writer.update_set(ctx.device->get(), texture_desc_set);
+    {
+        const GpuImage &texture =
+          ctx.render_resources.get_texture("checkerboard");
+        DescriptorWriter writer{};
+        writer.write_image(
+          0,
+          texture.get_view(),
+          texture.get_sampler(),
+          vk::ImageLayout::eShaderReadOnlyOptimal,
+          vk::DescriptorType::eCombinedImageSampler
+        );
+        writer.update_set(ctx.device.get(), texture_desc_set);
+    }
 
-    pass.set_material(ctx.render_resources->get_material_owned("textured mesh")
-    );
+    pass.set_material(ctx.render_resources.get_material_owned("textured mesh"));
     pass.set_desc_sets(0, { scene_desc_set, texture_desc_set }, {});
-    for (const auto &mesh_asset : ctx.render_resources->get_mesh_assets()) {
+    for (const auto &mesh_asset : ctx.render_resources.get_mesh_assets()) {
         if (mesh_asset->mesh->get_id() != 2) {
             continue;
         }
@@ -337,7 +339,7 @@ Frame::draw_grid(
   const vk::DescriptorSet &scene_desc_set
 )
 {
-    pass.set_material(ctx.render_resources->get_material_owned("grid"));
+    pass.set_material(ctx.render_resources.get_material_owned("grid"));
     pass.set_desc_sets(0, { scene_desc_set }, {});
     pass.draw(6, 1, 0, 0);
 }
@@ -347,7 +349,7 @@ Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx)
 {
     auto swapchains = std::array{ ctx.swapchain.get() };
     auto wait_semaphores = std::array{ render_semaphore.get() };
-    auto result = ctx.device->get_present_queue().presentKHR(
+    auto result = ctx.device.get_present_queue().presentKHR(
       vk::PresentInfoKHR{}
         .setSwapchains(swapchains)
         .setWaitSemaphores(wait_semaphores)

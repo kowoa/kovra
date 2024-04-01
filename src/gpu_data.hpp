@@ -1,5 +1,6 @@
 #pragma once
 
+#include "glm/ext/matrix_transform.hpp"
 #include "glm/glm.hpp"
 #include <vulkan/vulkan_core.h>
 
@@ -31,5 +32,6 @@ struct GpuSceneData
 struct GpuPushConstants
 {
     VkDeviceAddress vertex_buffer;
+    glm::mat4x4 object_transform = glm::identity<glm::mat4x4>();
 };
 } // namespace kovra

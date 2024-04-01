@@ -2,6 +2,7 @@
 
 #include "draw_context.hpp"
 #include <memory>
+#include <vulkan/vulkan.hpp>
 
 namespace kovra {
 // Forward declarations

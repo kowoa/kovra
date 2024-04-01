@@ -1,4 +1,4 @@
-#include "asset-loader.hpp"
+#include "asset_loader.hpp"
 
 #include "mesh.hpp"
 #include "renderer.hpp"

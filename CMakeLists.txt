@@ -17,8 +17,8 @@ add_subdirectory(external)
 
 # Compile shaders --------------------------------------------------------------
 find_program(
-  GLSL_VALIDATOR
-  NAMES glslangValidator
+  GLSL_COMPILER
+  NAMES glslc
   HINTS /usr/bin /usr/local/bin)
 file(GLOB_RECURSE GLSL_SOURCE_FILES "${PROJECT_SOURCE_DIR}/shaders/*.frag"
      "${PROJECT_SOURCE_DIR}/shaders/*.vert"
@@ -32,11 +32,12 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
   add_custom_command(
     OUTPUT ${SPIRV}
     # SPIR-V 1.4 is required for Vulkan ray tracing
-    COMMAND ${GLSL_VALIDATOR} -V --target-env spirv1.4 ${GLSL} -o ${SPIRV}
+    COMMAND ${GLSL_COMPILER} ${GLSL} -o ${SPIRV}
     DEPENDS ${GLSL})
   list(APPEND SPIRV_BINARY_FILES ${SPIRV})
 endforeach()
 # Before building the project, make sure the shaders are compiled
 add_custom_target(SHADERS DEPENDS ${SPIRV_BINARY_FILES})
 add_dependencies(${PROJECT_NAME} SHADERS)
+# COMMAND ${GLSL_COMPILER} -V --target-env spirv1.4 ${GLSL} -o ${SPIRV}
 # -------------------------------------------------------------------------------

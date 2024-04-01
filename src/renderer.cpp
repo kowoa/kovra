@@ -124,11 +124,11 @@ Renderer::~Renderer()
 void
 Renderer::draw_frame(Camera &camera)
 {
-    auto draw_ctx = DrawContext{ .device = context->get_device_owned(),
+    auto draw_ctx = DrawContext{ .device = context->get_device(),
                                  .swapchain = context->get_swapchain_mut(),
                                  .frame_number = frame_number,
                                  .camera = camera,
-                                 .render_resources = render_resources,
+                                 .render_resources = *render_resources,
                                  .draw_image = *draw_image,
                                  .render_scale = render_scale };
 

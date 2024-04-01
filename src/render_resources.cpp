@@ -1,5 +1,5 @@
 #include "render_resources.hpp"
-#include "asset-loader.hpp"
+#include "asset_loader.hpp"
 #include "device.hpp"
 #include "image.hpp"
 #include "material.hpp"

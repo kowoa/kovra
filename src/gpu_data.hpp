@@ -33,6 +33,8 @@ struct GpuPushConstants
 {
     VkDeviceAddress vertex_buffer;
     glm::mat4x4 object_transform = glm::identity<glm::mat4x4>();
+    // Padding
+    uint8_t padding[1];
 };
 
 struct GpuPbrMaterialData

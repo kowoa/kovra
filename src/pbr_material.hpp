@@ -26,7 +26,12 @@ class PbrMaterial
         const MaterialPass pass;
     };
 
-    explicit PbrMaterial(const Renderer &renderer);
+    explicit PbrMaterial(
+      const vk::Device &device,
+      const vk::DescriptorSetLayout &scene_desc_layout,
+      const vk::Format &color_attachment_format,
+      const vk::Format &depth_attachment_format
+    );
     ~PbrMaterial();
 
     PbrMaterial() = delete;
@@ -45,6 +50,6 @@ class PbrMaterial
     std::unique_ptr<Material> opaque_material;
     std::unique_ptr<Material> transparent_material;
     vk::UniqueDescriptorSetLayout material_layout;
-    std::unique_ptr<DescriptorWriter> writer;
+    std::unique_ptr<DescriptorWriter> desc_writer;
 };
 }

@@ -19,12 +19,12 @@ struct RenderObject
 {
     const uint32_t index_count;
     const uint32_t first_index;
-    const vk::Buffer &index_buffer;
+    const vk::Buffer index_buffer;
 
     const std::shared_ptr<MaterialInstance> material_instance;
 
     const glm::mat4 transform;
-    const vk::DeviceAddress &vertex_buffer_address;
+    const vk::DeviceAddress vertex_buffer_address;
 };
 
 // Base class for a renderable dynamic object

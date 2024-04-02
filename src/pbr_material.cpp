@@ -16,7 +16,9 @@ PbrMaterial::PbrMaterial(
 {
     auto push_constant_range =
       vk::PushConstantRange{}
-        .setStageFlags(vk::ShaderStageFlagBits::eVertex)
+        .setStageFlags(
+          vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
+        )
         .setOffset(0)
         .setSize(sizeof(GpuPushConstants));
 

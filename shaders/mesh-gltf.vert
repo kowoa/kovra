@@ -21,8 +21,8 @@ layout (buffer_reference, std430) readonly buffer VertexBuffer {
 };
 
 layout (push_constant) uniform GpuPushConstants {
-    VertexBuffer vertex_buffer;
     mat4 object_transform;
+    VertexBuffer vertex_buffer;
 } PushConstants;
 
 void main() {

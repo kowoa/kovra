@@ -173,7 +173,7 @@ Renderer::update_scene(const Camera &camera) -> DrawContext
 
                                  .scene_data = std::move(scene_data) };
 
-    render_resources->get_mesh_node("Cube").queue_draw(
+    render_resources->get_mesh_node("Suzanne").queue_draw(
       glm::identity<glm::mat4>(), draw_ctx
     );
 

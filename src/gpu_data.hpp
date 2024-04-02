@@ -31,8 +31,8 @@ struct GpuSceneData
 
 struct GpuPushConstants
 {
-    const VkDeviceAddress vertex_buffer;
     const glm::mat4x4 object_transform = glm::identity<glm::mat4x4>();
+    const VkDeviceAddress vertex_buffer;
     // Padding
     const std::byte padding[55];
 };

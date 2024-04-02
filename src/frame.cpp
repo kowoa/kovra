@@ -275,8 +275,8 @@ Frame::draw_render_objects(
         );
         pass.set_index_buffer(object.index_buffer);
         pass.set_push_constants(utils::cast_to_bytes(GpuPushConstants{
-          .vertex_buffer = object.vertex_buffer_address,
-          .object_transform = object.transform }));
+          .object_transform = object.transform,
+          .vertex_buffer = object.vertex_buffer_address }));
         pass.draw_indexed(object.index_count, 1, object.first_index, 0, 0);
     }
 }

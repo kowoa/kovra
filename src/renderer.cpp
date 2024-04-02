@@ -1,10 +1,11 @@
-#include "material.hpp"
-#include "mesh.hpp"
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
 #include "descriptor.hpp"
+#include "material.hpp"
+#include "mesh.hpp"
 #include "pbr_material.hpp"
+#include "render_object.hpp"
 #include "render_resources.hpp"
 #include "renderer.hpp"
 
@@ -32,6 +33,10 @@ init_default_textures(const Device &device, RenderResources &resources);
 Renderer::Renderer(SDL_Window *window)
   : context{ std::make_unique<Context>(window) }
   , asset_loader{ std::make_unique<AssetLoader>() }
+  , global_desc_allocator{ std::make_unique<DescriptorAllocator>(
+      context->get_device().get(),
+      100
+    ) }
   , frame_number{ 0 }
   , render_resources{
       std::make_shared<RenderResources>(context->get_device_owned())
@@ -131,19 +136,50 @@ Renderer::~Renderer()
     context.reset();
 }
 
+auto
+Renderer::update_scene(const Camera &camera) -> DrawContext
+{
+    auto swapchain_image_extent = context->get_swapchain().get_extent();
+    GpuSceneData scene_data{
+        .camera =
+          GpuCameraData{
+            .viewproj = camera.get_viewproj_mat(
+              swapchain_image_extent.width, swapchain_image_extent.height
+            ),
+            .near = camera.get_near(),
+            .far = camera.get_far(),
+          },
+        .ambient_color = glm::vec4(0.1f),
+        .sunlight_direction = glm::vec4(0.0f, 1.0f, 0.5f, 1.0f),
+        .sunlight_color = glm::vec4(1.0f),
+    };
+
+    auto draw_ctx = DrawContext{ .device = context->get_device(),
+                                 .render_resources = *render_resources,
+                                 .camera = camera,
+
+                                 .swapchain = context->get_swapchain_mut(),
+                                 .draw_image = *draw_image,
+
+                                 .opaque_objects = {},
+
+                                 .frame_number = frame_number,
+                                 .render_scale = render_scale,
+
+                                 .scene_data = std::move(scene_data) };
+
+    render_resources->get_mesh_node("Suzanne").draw(
+      glm::mat4{ 1.0f }, draw_ctx
+    );
+
+    return draw_ctx;
+}
+
 void
 Renderer::draw_frame(const Camera &camera)
 {
-    auto draw_ctx = DrawContext{ .device = context->get_device(),
-                                 .swapchain = context->get_swapchain_mut(),
-                                 .frame_number = frame_number,
-                                 .camera = camera,
-                                 .render_resources = *render_resources,
-                                 .draw_image = *draw_image,
-                                 .render_scale = render_scale };
-
-    get_current_frame().draw(draw_ctx);
-
+    auto draw_ctx = update_scene(camera);
+    get_current_frame().draw(std::move(draw_ctx));
     frame_number++;
 }
 void

@@ -9,6 +9,7 @@
 #include "material.hpp"
 #include "mesh.hpp"
 #include "pbr_material.hpp"
+#include "render_object.hpp"
 #include "render_resources.hpp"
 #include "swapchain.hpp"
 #include "utils.hpp"
@@ -105,27 +106,6 @@ Frame::draw(const DrawContext &ctx)
     // Clear descriptor pools
     desc_allocator.get()->clear_pools(device);
 
-    // Create a material instance from the PBR material
-    {
-        // Update the material buffer data
-        auto material_data = GpuPbrMaterialData{
-            .color_factors = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
-            .metal_rough_factors = glm::vec4(1.0f, 0.5f, 0.0f, 0.0f)
-        };
-        material_buffer->write(&material_data, sizeof(GpuPbrMaterialData));
-
-        auto mat_inst_ci = PbrMaterial::PbrMaterialInstanceCreateInfo{
-            .albedo_texture = ctx.render_resources.get_texture("white"),
-            .metal_rough_texture = ctx.render_resources.get_texture("white"),
-            .data_buffer = material_buffer->get(),
-            .data_buffer_offset = 0,
-        };
-        auto material_instance =
-          ctx.render_resources.get_pbr_material().create_material_instance(
-            mat_inst_ci, ctx.device, *desc_allocator
-          );
-    }
-
     // Create a descriptor set for the scene buffer
     auto scene_desc_set_layout =
       ctx.render_resources.get_desc_set_layout("scene");
@@ -133,20 +113,7 @@ Frame::draw(const DrawContext &ctx)
       desc_allocator.get()->allocate(scene_desc_set_layout, device);
 
     // Update the scene buffer
-    GpuSceneData scene_data{
-        .camera =
-          GpuCameraData{
-            .viewproj = ctx.camera.get_viewproj_mat(
-              swapchain_image_extent.width, swapchain_image_extent.height
-            ),
-            .near = ctx.camera.get_near(),
-            .far = ctx.camera.get_far(),
-          },
-        .ambient_color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
-        .sunlight_direction = glm::vec4(0.0f, -1.0f, 0.0f, 1.0f),
-        .sunlight_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
-    };
-    scene_buffer->write(&scene_data, sizeof(GpuSceneData));
+    scene_buffer->write(&ctx.scene_data, sizeof(GpuSceneData));
 
     // Update the scene descriptor set with the updated scene buffer
     auto writer = DescriptorWriter{};
@@ -289,38 +256,6 @@ Frame::draw(const DrawContext &ctx)
     present(swapchain_image_index.value, ctx);
 }
 
-/*
-void
-Frame::draw_background(ComputePass &pass, const DrawContext &ctx)
-{
-    // Create a descriptor set for the background image
-    auto desc_set = desc_allocator->allocate(
-      ctx.render_resources->get_desc_set_layout("background"), ctx.device->get()
-    );
-
-    // Write the background image to the descriptor set
-    auto writer = DescriptorWriter{};
-    writer.write_image(
-      0,
-      ctx.draw_image.get_view(),
-      ctx.draw_image.get_sampler(),
-      vk::ImageLayout::eGeneral,
-      vk::DescriptorType::eStorageImage
-    );
-    writer.update_set(ctx.device->get(), desc_set);
-
-    // Set pipeline and descriptor sets
-    pass.set_material(ctx.render_resources->get_material_owned("background"));
-    pass.set_desc_sets(0, { desc_set }, {});
-
-    // Dispatch compute shader
-    const auto extent = ctx.draw_image.get_extent2d();
-    pass.dispatch_workgroups(
-      std::ceil(extent.width / 16.0), std::ceil(extent.height / 16.0), 1
-    );
-}
-*/
-
 void
 Frame::draw_meshes(
   RenderPass &pass,
@@ -328,37 +263,52 @@ Frame::draw_meshes(
   const vk::DescriptorSet &scene_desc_set
 )
 {
-    auto texture_desc_set = desc_allocator->allocate(
-      ctx.render_resources.get_desc_set_layout("texture"), ctx.device.get()
-    );
-    {
-        const GpuImage &texture =
-          ctx.render_resources.get_texture("checkerboard");
-        DescriptorWriter writer{};
-        writer.write_image(
-          0,
-          texture.get_view(),
-          texture.get_sampler(),
-          vk::ImageLayout::eShaderReadOnlyOptimal,
-          vk::DescriptorType::eCombinedImageSampler
+    /*
+      auto texture_desc_set = desc_allocator->allocate(
+        ctx.render_resources.get_desc_set_layout("texture"), ctx.device.get()
+      );
+      {
+          const GpuImage &texture =
+            ctx.render_resources.get_texture("checkerboard");
+          DescriptorWriter writer{};
+          writer.write_image(
+            0,
+            texture.get_view(),
+            texture.get_sampler(),
+            vk::ImageLayout::eShaderReadOnlyOptimal,
+            vk::DescriptorType::eCombinedImageSampler
+          );
+          writer.update_set(ctx.device.get(), texture_desc_set);
+      }
+
+      pass.set_material(ctx.render_resources.get_material_owned("textured
+      mesh")); pass.set_desc_sets(0, { scene_desc_set, texture_desc_set }, {});
+      for (const auto &mesh_asset : ctx.render_resources.get_mesh_assets()) {
+          if (mesh_asset->mesh->get_id() != 2) {
+              continue;
+          }
+
+          const Mesh &mesh = *mesh_asset->mesh;
+          pass.set_push_constants(utils::cast_to_bytes(GpuPushConstants{
+            .vertex_buffer = mesh.get_vertex_buffer_address() }));
+          pass.set_index_buffer(mesh.get_index_buffer().get());
+          for (const auto &surface : mesh_asset->surfaces) {
+              pass.draw_indexed(surface.count, 1, surface.start_index, 0, 0);
+          }
+      }
+    */
+
+    // Draw all opaque render objects
+    for (const RenderObject &object : ctx.opaque_objects) {
+        pass.set_material(object.material_instance.material);
+        pass.set_desc_sets(
+          0, { scene_desc_set, object.material_instance.desc_set }, {}
         );
-        writer.update_set(ctx.device.get(), texture_desc_set);
-    }
-
-    pass.set_material(ctx.render_resources.get_material_owned("textured mesh"));
-    pass.set_desc_sets(0, { scene_desc_set, texture_desc_set }, {});
-    for (const auto &mesh_asset : ctx.render_resources.get_mesh_assets()) {
-        if (mesh_asset->mesh->get_id() != 2) {
-            continue;
-        }
-
-        const Mesh &mesh = *mesh_asset->mesh;
+        pass.set_index_buffer(object.index_buffer);
         pass.set_push_constants(utils::cast_to_bytes(GpuPushConstants{
-          .vertex_buffer = mesh.get_vertex_buffer_address() }));
-        pass.set_index_buffer(mesh.get_index_buffer().get());
-        for (const auto &surface : mesh_asset->surfaces) {
-            pass.draw_indexed(surface.count, 1, surface.start_index, 0, 0);
-        }
+          .vertex_buffer = object.vertex_buffer_address,
+          .object_transform = object.transform }));
+        pass.draw_indexed(object.index_count, 1, object.first_index, 0, 0);
     }
 }
 

@@ -47,8 +47,8 @@ class PbrMaterial
     ) const;
 
   private:
-    std::unique_ptr<Material> opaque_material;
-    std::unique_ptr<Material> transparent_material;
+    std::shared_ptr<Material> opaque_material;
+    std::shared_ptr<Material> transparent_material;
     vk::UniqueDescriptorSetLayout material_layout;
     std::unique_ptr<DescriptorWriter> desc_writer;
 };

@@ -11,6 +11,7 @@ namespace kovra {
 // Forward declarations
 class Mesh;
 class Renderer;
+class MaterialInstance;
 
 struct MeshAsset
 {
@@ -18,6 +19,7 @@ struct MeshAsset
     {
         uint32_t start_index;
         uint32_t count;
+        std::shared_ptr<MaterialInstance> material_instance;
     };
 
     std::string name;
@@ -28,7 +30,7 @@ struct MeshAsset
 class AssetLoader
 {
   public:
-    std::optional<std::vector<std::unique_ptr<MeshAsset>>> load_gltf_meshes(
+    std::optional<std::vector<MeshAsset>> load_gltf_meshes(
       const Renderer &renderer,
       std::filesystem::path filepath
     ) const;

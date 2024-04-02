@@ -5,6 +5,7 @@
 #include "material.hpp"
 #include "mesh.hpp"
 #include "pbr_material.hpp"
+#include "render_object.hpp"
 
 namespace kovra {
 RenderResources::RenderResources(std::shared_ptr<Device> device)
@@ -52,9 +53,26 @@ RenderResources::add_desc_set_layout(
     desc_set_layouts.emplace(std::move(name), std::move(desc_set_layout));
 }
 void
-RenderResources::add_mesh_asset(std::unique_ptr<MeshAsset> &&mesh_asset)
+RenderResources::add_mesh_asset(MeshAsset &&mesh_asset)
 {
-    mesh_assets.push_back(std::move(mesh_asset));
+    auto mesh_asset_owned = std::make_shared<MeshAsset>(std::move(mesh_asset));
+
+    // Update loaded_nodes
+    {
+        auto new_node = std::make_shared<MeshNode>();
+        new_node->mesh_asset = mesh_asset_owned;
+        new_node->local_transform = glm::mat4{ 1.0f };
+        new_node->world_transform = glm::mat4{ 1.0f };
+
+        for (auto &surface : new_node->mesh_asset->surfaces) {
+            surface.material_instance = default_material_instance;
+        }
+
+        loaded_nodes.emplace(mesh_asset_owned->name, std::move(new_node));
+    }
+
+    // Update mesh_assets
+    mesh_assets.push_back(mesh_asset_owned);
 }
 void
 RenderResources::add_texture(
@@ -117,6 +135,14 @@ RenderResources::get_pbr_material() const
         throw std::runtime_error("PBR material not found");
     }
     return *pbr_material;
+}
+[[nodiscard]] const MeshNode &
+RenderResources::get_mesh_node(const std::string &name) const
+{
+    if (loaded_nodes.find(name) == loaded_nodes.end()) {
+        throw std::runtime_error("Mesh node not found: " + name);
+    }
+    return *loaded_nodes.at(name);
 }
 
 } // namespace kovra

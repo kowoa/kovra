@@ -1,5 +1,6 @@
 #pragma once
 
+#include "render_object.hpp"
 #define VULKAN_HPP_EXCEPTIONS
 
 #include "asset_loader.hpp"
@@ -24,8 +25,8 @@ class Renderer
     Renderer &operator=(Renderer &&) = delete;
 
     void draw_frame(const Camera &camera);
-    void load_gltf(const std::filesystem::path &filepath) noexcept;
 
+    void load_gltf(const std::filesystem::path &filepath) noexcept;
     void set_render_scale(float scale) noexcept;
 
     [[nodiscard]] const Context &get_context() const noexcept
@@ -49,6 +50,7 @@ class Renderer
   private:
     std::unique_ptr<Context> context;
     std::unique_ptr<AssetLoader> asset_loader;
+    std::unique_ptr<DescriptorAllocator> global_desc_allocator;
 
     // Frames
     static constexpr const uint32_t FRAME_OVERLAP = 2;
@@ -70,5 +72,7 @@ class Renderer
     }
 
     void init_imgui(SDL_Window *window);
+
+    auto update_scene(const Camera &camera) -> DrawContext;
 };
 } // namespace kovra

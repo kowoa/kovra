@@ -20,8 +20,8 @@ enum class MaterialPass : uint8_t
 
 struct MaterialInstance
 {
-    const Material &material;
-    const vk::DescriptorSet &desc_set;
+    const std::shared_ptr<Material> material;
+    const vk::DescriptorSet desc_set;
     const MaterialPass pass;
 };
 

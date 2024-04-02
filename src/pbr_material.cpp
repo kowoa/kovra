@@ -36,7 +36,7 @@ PbrMaterial::PbrMaterial(
 
     const auto layouts = std::array{ scene_desc_layout, material_layout.get() };
 
-    opaque_material = std::make_unique<Material>(
+    opaque_material = std::make_shared<Material>(
       GraphicsMaterialBuilder{}
         .set_pipeline_layout(device.createPipelineLayoutUnique(
           vk::PipelineLayoutCreateInfo{}
@@ -52,7 +52,7 @@ PbrMaterial::PbrMaterial(
         .build(device)
     );
 
-    transparent_material = std::make_unique<Material>(
+    transparent_material = std::make_shared<Material>(
       GraphicsMaterialBuilder{}
         .set_pipeline_layout(device.createPipelineLayoutUnique(
           vk::PipelineLayoutCreateInfo{}
@@ -111,9 +111,9 @@ PbrMaterial::create_material_instance(
     desc_writer->update_set(device.get(), desc_set);
 
     if (info.pass == MaterialPass::Opaque) {
-        return MaterialInstance{ *opaque_material, desc_set, info.pass };
+        return MaterialInstance{ opaque_material, desc_set, info.pass };
     } else {
-        return MaterialInstance{ *transparent_material, desc_set, info.pass };
+        return MaterialInstance{ transparent_material, desc_set, info.pass };
     }
 }
 }

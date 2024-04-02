@@ -68,17 +68,14 @@ RenderResources::add_mesh_asset(MeshAsset &&mesh_asset)
 
     // Update loaded_nodes
     {
-        auto new_node = std::make_shared<MeshNode>();
-        new_node->mesh_asset = mesh_asset_owned;
-        new_node->local_transform = glm::mat4{ 1.0f };
-        new_node->world_transform = glm::mat4{ 1.0f };
+        auto new_node = std::make_shared<MeshNode>(mesh_asset_owned);
 
         if (!default_material_instance) {
             spdlog::error("Default material instance not found");
             throw std::runtime_error("Default material instance not found");
         }
 
-        for (auto &surface : new_node->mesh_asset->surfaces) {
+        for (auto &surface : new_node->get_mesh_asset_mut().surfaces) {
             surface.material_instance = default_material_instance;
         }
 

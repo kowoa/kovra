@@ -31,10 +31,10 @@ struct GpuSceneData
 
 struct GpuPushConstants
 {
-    VkDeviceAddress vertex_buffer;
-    glm::mat4x4 object_transform = glm::identity<glm::mat4x4>();
+    const VkDeviceAddress vertex_buffer;
+    const glm::mat4x4 object_transform = glm::identity<glm::mat4x4>();
     // Padding
-    uint8_t padding[1];
+    const std::byte padding[55];
 };
 
 struct GpuPbrMaterialData

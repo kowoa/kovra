@@ -57,7 +57,7 @@ Frame::~Frame()
 }
 
 void
-Frame::draw(const DrawContext &ctx)
+Frame::draw(const DrawContext &&ctx)
 {
     const vk::Device &device = ctx.device.get();
 
@@ -165,7 +165,7 @@ Frame::draw(const DrawContext &ctx)
 
         render_pass.set_viewport_scissor(draw_extent.width, draw_extent.height);
 
-        draw_meshes(render_pass, ctx, scene_desc_set);
+        draw_render_objects(render_pass, ctx, scene_desc_set);
         draw_grid(render_pass, ctx, scene_desc_set);
     }
 
@@ -257,7 +257,7 @@ Frame::draw(const DrawContext &ctx)
 }
 
 void
-Frame::draw_meshes(
+Frame::draw_render_objects(
   RenderPass &pass,
   const DrawContext &ctx,
   const vk::DescriptorSet &scene_desc_set
@@ -268,6 +268,7 @@ Frame::draw_meshes(
         if (!object.material_instance) {
             spdlog::error("Material Instance is null");
         }
+
         pass.set_material(object.material_instance->material);
         pass.set_desc_sets(
           0, { scene_desc_set, object.material_instance->desc_set }, {}

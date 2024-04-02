@@ -30,45 +30,90 @@ struct RenderObject
 // Base class for a renderable dynamic object
 class IRenderable
 {
-    virtual void draw(const glm::mat4 &parent_transform, DrawContext &ctx)
+    // Modify the DrawContext to add the object to the render queue
+    virtual void queue_draw(const glm::mat4 &parent_transform, DrawContext &ctx)
       const = 0;
 };
 
-struct SceneNode : public IRenderable
+class SceneNode
+  : public IRenderable
+  , public std::enable_shared_from_this<SceneNode>
 {
-    // Parent pointer must be a weak pointer to avoid circular dependencies
-    std::weak_ptr<SceneNode> parent;
-    std::vector<std::shared_ptr<SceneNode>> children;
-
-    glm::mat4 local_transform;
-    glm::mat4 world_transform;
-
-    void refresh_transform(const glm::mat4 &parent_transform)
+  public:
+    SceneNode()
+      : parent{}
+      , children{}
+      , local_transform{ glm::identity<glm::mat4>() }
+      , world_transform{ glm::identity<glm::mat4>() }
     {
-        world_transform = parent_transform * local_transform;
-        for (auto &child : children) {
-            child->refresh_transform(world_transform);
+    }
+
+    SceneNode(const SceneNode &) = delete;
+    SceneNode &operator=(const SceneNode &) = delete;
+    SceneNode(SceneNode &&) = delete;
+    SceneNode &operator=(SceneNode &&) = delete;
+
+    void add_child(std::shared_ptr<SceneNode> child)
+    {
+        children.push_back(child);
+        child->parent = shared_from_this();
+        child->refresh_world_transform(world_transform);
+    }
+
+    void set_local_transform(const glm::mat4 &transform)
+    {
+        local_transform = transform;
+
+        if (!parent.expired()) {
+            auto parent_owned = parent.lock();
+            refresh_world_transform(parent_owned->world_transform);
+        } else {
+            refresh_world_transform(glm::identity<glm::mat4>());
         }
     }
 
-    virtual void draw(const glm::mat4 &parent_transform, DrawContext &ctx)
+    virtual void queue_draw(const glm::mat4 &root_transform, DrawContext &ctx)
       const override
     {
-        // Draw all children recursively
         for (auto &child : children) {
-            child->draw(parent_transform, ctx);
+            child->queue_draw(root_transform, ctx);
+        }
+    }
+
+  protected:
+    // Parent pointer must be a weak pointer to avoid circular dependencies
+    std::weak_ptr<SceneNode> parent;
+    std::vector<std::shared_ptr<SceneNode>> children;
+    glm::mat4 local_transform;
+    glm::mat4 world_transform;
+
+    void refresh_world_transform(const glm::mat4 &parent_world_transform)
+    {
+        world_transform = parent_world_transform * local_transform;
+        for (auto &child : children) {
+            child->refresh_world_transform(world_transform);
         }
     }
 };
 
-struct MeshNode : public SceneNode
+class MeshNode : public SceneNode
 {
-    std::shared_ptr<MeshAsset> mesh_asset;
+  public:
+    MeshNode(std::shared_ptr<MeshAsset> mesh_asset)
+      : mesh_asset{ mesh_asset }
+    {
+    }
 
-    virtual void draw(const glm::mat4 &parent_transform, DrawContext &ctx)
+    [[nodiscard]] const MeshAsset &get_mesh_asset() const
+    {
+        return *mesh_asset;
+    }
+    [[nodiscard]] MeshAsset &get_mesh_asset_mut() const { return *mesh_asset; }
+
+    virtual void queue_draw(const glm::mat4 &root_transform, DrawContext &ctx)
       const override
     {
-        glm::mat4 node_transform = parent_transform * world_transform;
+        glm::mat4 node_transform = root_transform * world_transform;
 
         for (const auto &surface : mesh_asset->surfaces) {
             if (surface.material_instance == nullptr) {
@@ -95,7 +140,10 @@ struct MeshNode : public SceneNode
                 mesh_asset->mesh->get_vertex_buffer_address() });
         }
 
-        SceneNode::draw(parent_transform, ctx);
-    };
+        SceneNode::queue_draw(root_transform, ctx);
+    }
+
+  private:
+    std::shared_ptr<MeshAsset> mesh_asset;
 };
 } // namespace kovra

@@ -26,7 +26,7 @@ class Frame
         return render_fence.get();
     }
 
-    void draw(const DrawContext &ctx);
+    void draw(const DrawContext &&ctx);
 
   private:
     // Signals when the swapchain is ready to present
@@ -42,7 +42,7 @@ class Frame
     std::unique_ptr<GpuBuffer> scene_buffer;
     std::unique_ptr<GpuBuffer> material_buffer;
 
-    void draw_meshes(
+    void draw_render_objects(
       RenderPass &pass,
       const DrawContext &ctx,
       const vk::DescriptorSet &scene_desc_set

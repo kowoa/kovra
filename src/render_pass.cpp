@@ -1,6 +1,8 @@
 #include "render_pass.hpp"
 #include "material.hpp"
 
+#include "spdlog/spdlog.h"
+
 namespace kovra {
 
 RenderPass::RenderPass(

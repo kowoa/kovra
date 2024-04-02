@@ -14,6 +14,8 @@ class GpuImage;
 class PbrMaterial;
 class MaterialInstance;
 class MeshNode;
+class DescriptorAllocator;
+class GpuBuffer;
 
 class RenderResources
 {
@@ -35,7 +37,11 @@ class RenderResources
     void add_mesh_asset(MeshAsset &&mesh_asset);
     void
     add_texture(const std::string &&name, std::unique_ptr<GpuImage> &&texture);
-    void set_pbr_material(std::unique_ptr<PbrMaterial> &&material);
+    void set_pbr_material(
+      std::unique_ptr<PbrMaterial> &&material,
+      const Device &device,
+      DescriptorAllocator &global_desc_allocator
+    );
 
     [[nodiscard]] const Material &get_material(const std::string &name) const;
     [[nodiscard]] std::shared_ptr<Material> get_material_owned(
@@ -56,6 +62,8 @@ class RenderResources
 
   private:
     std::shared_ptr<Device> device;
+    std::unique_ptr<GpuBuffer> material_buffer;
+
     std::unordered_map<std::string, std::shared_ptr<Material>> materials;
     std::unordered_map<vk::Filter, vk::Sampler> samplers;
     std::unordered_map<std::string, vk::DescriptorSetLayout> desc_set_layouts;

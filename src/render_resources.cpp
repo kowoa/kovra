@@ -1,5 +1,7 @@
 #include "render_resources.hpp"
 #include "asset_loader.hpp"
+#include "buffer.hpp"
+#include "descriptor.hpp"
 #include "device.hpp"
 #include "image.hpp"
 #include "material.hpp"
@@ -9,7 +11,14 @@
 
 namespace kovra {
 RenderResources::RenderResources(std::shared_ptr<Device> device)
-  : device{ std::move(device) }
+  : device{ device }
+  , material_buffer{ std::make_unique<GpuBuffer>(
+      device->get_allocator_owned(),
+      sizeof(GpuPbrMaterialData),
+      vk::BufferUsageFlagBits::eUniformBuffer,
+      VMA_MEMORY_USAGE_CPU_TO_GPU,
+      VMA_ALLOCATION_CREATE_MAPPED_BIT
+    ) }
 {
 }
 RenderResources::~RenderResources()
@@ -64,6 +73,11 @@ RenderResources::add_mesh_asset(MeshAsset &&mesh_asset)
         new_node->local_transform = glm::mat4{ 1.0f };
         new_node->world_transform = glm::mat4{ 1.0f };
 
+        if (!default_material_instance) {
+            spdlog::error("Default material instance not found");
+            throw std::runtime_error("Default material instance not found");
+        }
+
         for (auto &surface : new_node->mesh_asset->surfaces) {
             surface.material_instance = default_material_instance;
         }
@@ -83,9 +97,23 @@ RenderResources::add_texture(
     textures.emplace(std::move(name), std::move(texture));
 }
 void
-RenderResources::set_pbr_material(std::unique_ptr<PbrMaterial> &&material)
+RenderResources::set_pbr_material(
+  std::unique_ptr<PbrMaterial> &&material,
+  const Device &device,
+  DescriptorAllocator &global_desc_allocator
+)
 {
     pbr_material = std::move(material);
+    default_material_instance =
+      std::make_shared<MaterialInstance>(pbr_material->create_material_instance(
+        { .albedo_texture = get_texture("white"),
+          .metal_rough_texture = get_texture("white"),
+          .material_buffer = material_buffer->get(),
+          .material_buffer_offset = 0,
+          .pass = MaterialPass::Opaque },
+        device,
+        global_desc_allocator
+      ));
 }
 
 [[nodiscard]] const Material &

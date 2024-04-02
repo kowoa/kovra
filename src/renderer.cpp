@@ -92,12 +92,16 @@ Renderer::Renderer(SDL_Window *window)
     init_default_textures(context->get_device(), *render_resources);
 
     // Create PBR material
-    render_resources->set_pbr_material(std::make_unique<PbrMaterial>(
-      context->get_device().get(),
-      render_resources->get_desc_set_layout("scene"),
-      draw_image->get_format(),
-      context->get_swapchain().get_depth_image().get_format()
-    ));
+    render_resources->set_pbr_material(
+      std::make_unique<PbrMaterial>(
+        context->get_device().get(),
+        render_resources->get_desc_set_layout("scene"),
+        draw_image->get_format(),
+        context->get_swapchain().get_depth_image().get_format()
+      ),
+      context->get_device(),
+      *global_desc_allocator
+    );
 
     init_imgui(window);
 }
@@ -133,6 +137,7 @@ Renderer::~Renderer()
     }
     frames.clear();
 
+    global_desc_allocator.reset();
     context.reset();
 }
 

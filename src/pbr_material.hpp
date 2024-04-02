@@ -21,8 +21,9 @@ class PbrMaterial
     {
         const GpuImage &albedo_texture;
         const GpuImage &metal_rough_texture;
-        const vk::Buffer &data_buffer;
-        const uint32_t data_buffer_offset;
+        const vk::Buffer
+          &material_buffer; // Buffer containing GpuPbrMaterialData
+        const uint32_t material_buffer_offset;
         const MaterialPass pass;
     };
 

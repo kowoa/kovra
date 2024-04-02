@@ -89,9 +89,9 @@ PbrMaterial::create_material_instance(
     desc_writer->clear();
     desc_writer->write_buffer(
       0,
-      info.data_buffer,
+      info.material_buffer,
       sizeof(GpuPbrMaterialData),
-      info.data_buffer_offset,
+      info.material_buffer_offset,
       vk::DescriptorType::eUniformBuffer
     );
     desc_writer->write_image(

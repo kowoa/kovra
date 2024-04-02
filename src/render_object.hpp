@@ -6,6 +6,7 @@
 #include "mesh.hpp"
 
 #include "glm/mat4x4.hpp"
+#include "spdlog/spdlog.h"
 #include <memory>
 #include <vulkan/vulkan.hpp>
 
@@ -20,7 +21,7 @@ struct RenderObject
     const uint32_t first_index;
     const vk::Buffer &index_buffer;
 
-    const MaterialInstance &material_instance;
+    const std::shared_ptr<MaterialInstance> material_instance;
 
     const glm::mat4 transform;
     const vk::DeviceAddress &vertex_buffer_address;
@@ -70,11 +71,25 @@ struct MeshNode : public SceneNode
         glm::mat4 node_transform = parent_transform * world_transform;
 
         for (const auto &surface : mesh_asset->surfaces) {
+            if (surface.material_instance == nullptr) {
+                spdlog::warn(
+                  "MeshNode::draw: {}'s GeometrySurface has no "
+                  "MaterialInstance",
+                  mesh_asset->name
+                );
+                continue;
+            }
+            if (mesh_asset->mesh == nullptr) {
+                spdlog::warn(
+                  "MeshNode::draw: {} has no Mesh", mesh_asset->name
+                );
+                continue;
+            }
             ctx.opaque_objects.emplace_back(RenderObject{
               .index_count = surface.count,
               .first_index = surface.start_index,
               .index_buffer = mesh_asset->mesh->get_index_buffer().get(),
-              .material_instance = *surface.material_instance,
+              .material_instance = surface.material_instance,
               .transform = node_transform,
               .vertex_buffer_address =
                 mesh_asset->mesh->get_vertex_buffer_address() });

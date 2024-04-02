@@ -50,6 +50,8 @@ class Renderer
   private:
     std::unique_ptr<Context> context;
     std::unique_ptr<AssetLoader> asset_loader;
+
+    // WARNING: Do NOT clear this DescriptorAllocator
     std::unique_ptr<DescriptorAllocator> global_desc_allocator;
 
     // Frames

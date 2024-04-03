@@ -32,5 +32,4 @@ void main() {
     out_normal = (PushConstants.object_transform * vec4(v.normal, 0.0f)).xyz;
     out_color = v.color.xyz * Material.color_factors.xyz;
     out_uv = vec2(v.uv_x, v.uv_y);
-    
 }

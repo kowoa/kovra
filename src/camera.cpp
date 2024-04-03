@@ -3,18 +3,28 @@
 
 namespace kovra {
 Camera::Camera()
-    : position{glm::vec3{0.0f, 0.0f, 5.0f}},
-      forward{glm::vec3{0.0f, 0.0f, -1.0f}}, up{glm::vec3{0.0f, 1.0f, 0.0f}},
-      right{glm::vec3{1.0f, 0.0f, 0.0f}}, world_up{glm::vec3{0.0f, 1.0f, 0.0f}},
-      fov_y_deg{45.0f}, near{0.1f}, far{100.0f},
-      pivot{glm::vec3{0.0f, 0.0f, 0.0f}} {}
+  : position{ glm::vec3{ 0.0f, 0.0f, 5.0f } }
+  , forward{ glm::vec3{ 0.0f, 0.0f, -1.0f } }
+  , up{ glm::vec3{ 0.0f, 1.0f, 0.0f } }
+  , right{ glm::vec3{ 1.0f, 0.0f, 0.0f } }
+  , world_up{ glm::vec3{ 0.0f, 1.0f, 0.0f } }
+  , fov_y_deg{ 45.0f }
+  , near{ 0.1f }
+  , far{ 100.0f }
+  , pivot{ glm::vec3{ 0.0f, 0.0f, 0.0f } }
+{
+}
 
-void Camera::set_position(const glm::vec3 &pos) noexcept {
+void
+Camera::set_position(const glm::vec3 &pos) noexcept
+{
     position = pos;
     look_at(pivot);
 }
 
-void Camera::look_at(const glm::vec3 &target) noexcept {
+void
+Camera::look_at(const glm::vec3 &target) noexcept
+{
     if (target == position) {
         return;
     }
@@ -24,16 +34,23 @@ void Camera::look_at(const glm::vec3 &target) noexcept {
     up = glm::normalize(glm::cross(right, forward));
 }
 
-void Camera::mouse_zoom(glm::f32 mouse_wheel_delta_y) noexcept {
+void
+Camera::mouse_zoom(glm::f32 mouse_wheel_delta_y) noexcept
+{
     auto new_pos = position + forward * mouse_wheel_delta_y;
     if (glm::distance(new_pos, pivot) > 0.1f) {
         set_position(new_pos);
     }
 }
 
-void Camera::mouse_rotate(
-    glm::vec2 prev_mouse_pos, glm::vec2 curr_mouse_pos, glm::f32 viewport_width,
-    glm::f32 viewport_height) noexcept {
+void
+Camera::mouse_rotate(
+  glm::vec2 prev_mouse_pos,
+  glm::vec2 curr_mouse_pos,
+  glm::f32 viewport_width,
+  glm::f32 viewport_height
+) noexcept
+{
     // Get the homogeneous positions of the camera eye and pivot
     auto pos = glm::vec4(position, 1.0f);
     auto piv = glm::vec4(pivot, 1.0f);
@@ -64,28 +81,28 @@ void Camera::mouse_rotate(
     set_position(glm::vec3(pos));
 }
 
-[[nodiscard]] glm::mat4x4 Camera::get_viewproj_mat(
-    glm::f32 viewport_width, glm::f32 viewport_height) const noexcept {
+[[nodiscard]] glm::mat4x4
+Camera::get_viewproj_mat(glm::f32 viewport_width, glm::f32 viewport_height)
+  const noexcept
+{
     return get_proj_mat(viewport_width, viewport_height) * get_view_mat();
 }
 
-[[nodiscard]] glm::mat4x4 Camera::get_view_mat() const noexcept {
+[[nodiscard]] glm::mat4x4
+Camera::get_view_mat() const noexcept
+{
     return glm::lookAtRH(position, pivot, up);
 }
 
-[[nodiscard]] glm::mat4x4 Camera::get_proj_mat(
-    glm::f32 viewport_width, glm::f32 viewport_height) const noexcept {
+[[nodiscard]] glm::mat4x4
+Camera::get_proj_mat(glm::f32 viewport_width, glm::f32 viewport_height)
+  const noexcept
+{
     auto proj = glm::perspectiveRH(
-        glm::radians(fov_y_deg), viewport_width / viewport_height, near, far);
+      glm::radians(fov_y_deg), viewport_width / viewport_height, near, far
+    );
     proj[1][1] *= -1.0f; // Flip the Y axis
     return proj;
 }
 
-[[nodiscard]] GpuCameraData Camera::as_gpu_data() const noexcept {
-    return GpuCameraData{
-        .viewproj = get_viewproj_mat(1.0f, 1.0f),
-        .near = near,
-        .far = far,
-    };
-}
 } // namespace kovra

@@ -1,7 +1,10 @@
 layout (set = 0, binding = 0) uniform GpuSceneData {
+    // Camera
     mat4 viewproj;
     float near;
     float far;
+
+    // Lighting
     vec4 ambient_color;
     vec4 sunlight_direction; // w for sun power
     vec4 sunlight_color;

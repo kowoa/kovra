@@ -125,13 +125,17 @@ AssetLoader::load_gltf_meshes(
                       vertices[initial_vertex_count + idx].color = color;
                   }
                 );
+            } else {
+                spdlog::warn(
+                  "No vertex colors found in mesh: {}", mesh_asset.name
+                );
             }
 
             mesh_asset.surfaces.push_back(std::move(surface));
         }
 
         // Display the vertex normals
-        constexpr bool override_colors = true;
+        constexpr bool override_colors = false;
         if (override_colors) {
             for (Vertex &v : vertices) {
                 v.color = glm::vec4(v.normal, 1.0f);

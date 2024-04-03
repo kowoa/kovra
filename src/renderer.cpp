@@ -146,16 +146,14 @@ Renderer::update_scene(const Camera &camera) -> DrawContext
 {
     auto swapchain_image_extent = context->get_swapchain().get_extent();
     GpuSceneData scene_data{
-        .camera =
-          GpuCameraData{
-            .viewproj = camera.get_viewproj_mat(
-              swapchain_image_extent.width, swapchain_image_extent.height
-            ),
-            .near = camera.get_near(),
-            .far = camera.get_far(),
-          },
-        .ambient_color = glm::vec4(0.1f),
-        .sunlight_direction = glm::vec4(0.0f, 1.0f, 0.5f, 1.0f),
+        .viewproj = camera.get_viewproj_mat(
+          swapchain_image_extent.width, swapchain_image_extent.height
+        ),
+        .near = camera.get_near(),
+        .far = camera.get_far(),
+
+        .ambient_color = glm::vec4{ 0.1f, 0.1f, 0.1f, 0.1f },
+        .sunlight_direction = glm::vec4(0.0f, -1.0f, 0.0f, 1.0f),
         .sunlight_color = glm::vec4(1.0f),
     };
 

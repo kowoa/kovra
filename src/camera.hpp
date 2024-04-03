@@ -1,10 +1,10 @@
 #pragma once
 
 #include "glm/glm.hpp"
-#include "gpu_data.hpp"
 
 namespace kovra {
-class Camera {
+class Camera
+{
   public:
     Camera();
 
@@ -14,15 +14,21 @@ class Camera {
     // Mouse processing
     void mouse_zoom(glm::f32 mouse_wheel_delta_y) noexcept;
     void mouse_rotate(
-        glm::vec2 prev_mouse_pos, glm::vec2 curr_mouse_pos,
-        glm::f32 viewport_width, glm::f32 viewport_height) noexcept;
+      glm::vec2 prev_mouse_pos,
+      glm::vec2 curr_mouse_pos,
+      glm::f32 viewport_width,
+      glm::f32 viewport_height
+    ) noexcept;
 
     [[nodiscard]] glm::mat4x4 get_viewproj_mat(
-        glm::f32 viewport_width, glm::f32 viewport_height) const noexcept;
+      glm::f32 viewport_width,
+      glm::f32 viewport_height
+    ) const noexcept;
     [[nodiscard]] glm::mat4x4 get_view_mat() const noexcept;
     [[nodiscard]] glm::mat4x4 get_proj_mat(
-        glm::f32 viewport_width, glm::f32 viewport_height) const noexcept;
-    [[nodiscard]] GpuCameraData as_gpu_data() const noexcept;
+      glm::f32 viewport_width,
+      glm::f32 viewport_height
+    ) const noexcept;
     [[nodiscard]] glm::f32 get_near() const noexcept { return near; }
     [[nodiscard]] glm::f32 get_far() const noexcept { return far; }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "camera.hpp"
+#include "gpu_data.hpp"
 
 namespace kovra {
 // Forward declarations

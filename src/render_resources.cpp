@@ -20,6 +20,12 @@ RenderResources::RenderResources(std::shared_ptr<Device> device)
       VMA_ALLOCATION_CREATE_MAPPED_BIT
     ) }
 {
+    auto default_material_data =
+      GpuPbrMaterialData{ .color_factors = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+                          .metal_rough_factors =
+                            glm::vec4(1.0f, 0.5f, 0.0f, 0.0f),
+                          ._padding = {} };
+    material_buffer->write(&default_material_data, sizeof(GpuPbrMaterialData));
 }
 RenderResources::~RenderResources()
 {

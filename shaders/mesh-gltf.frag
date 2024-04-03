@@ -11,7 +11,7 @@ layout (location = 0) out vec4 out_color;
 
 void main()
 {
-    float light_value = max(dot(in_normal, Scene.sunlight_direction.xyz), 0.1f);
+    float light_value = max(dot(in_normal, -Scene.sunlight_direction.xyz), 0.1f);
 
     vec3 color = in_color * texture(albedo_tex, in_uv).xyz;
     vec3 ambient = color * Scene.ambient_color.xyz;

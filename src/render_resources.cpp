@@ -110,7 +110,9 @@ RenderResources::set_pbr_material(
     default_material_instance =
       std::make_shared<MaterialInstance>(pbr_material->create_material_instance(
         { .albedo_texture = get_texture("white"),
+          .albedo_sampler = get_sampler(vk::Filter::eLinear),
           .metal_rough_texture = get_texture("white"),
+          .metal_rough_sampler = get_sampler(vk::Filter::eLinear),
           .material_buffer = material_buffer->get(),
           .material_buffer_offset = 0,
           .pass = MaterialPass::Opaque },

@@ -14,19 +14,20 @@ class DescriptorWriter;
 class DescriptorAllocator;
 class Device;
 
+struct PbrMaterialInstanceCreateInfo
+{
+    const GpuImage &albedo_texture;
+    const vk::Sampler &albedo_sampler;
+    const GpuImage &metal_rough_texture;
+    const vk::Sampler &metal_rough_sampler;
+    const vk::Buffer &material_buffer; // Buffer containing GpuPbrMaterialData
+    const uint32_t material_buffer_offset;
+    const MaterialPass pass;
+};
+
 class PbrMaterial
 {
   public:
-    struct PbrMaterialInstanceCreateInfo
-    {
-        const GpuImage &albedo_texture;
-        const GpuImage &metal_rough_texture;
-        const vk::Buffer
-          &material_buffer; // Buffer containing GpuPbrMaterialData
-        const uint32_t material_buffer_offset;
-        const MaterialPass pass;
-    };
-
     explicit PbrMaterial(
       const vk::Device &device,
       const vk::DescriptorSetLayout &scene_desc_layout,

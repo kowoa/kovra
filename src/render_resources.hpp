@@ -57,6 +57,9 @@ class RenderResources
         return { mesh_assets.data(), mesh_assets.size() };
     }
     [[nodiscard]] const GpuImage &get_texture(const std::string &name) const;
+    [[nodiscard]] std::shared_ptr<GpuImage> get_texture_owned(
+      const std::string &name
+    ) const;
     [[nodiscard]] const PbrMaterial &get_pbr_material() const;
     [[nodiscard]] const MeshNode &get_mesh_node(const std::string &name) const;
 
@@ -68,7 +71,7 @@ class RenderResources
     std::unordered_map<vk::Filter, vk::Sampler> samplers;
     std::unordered_map<std::string, vk::DescriptorSetLayout> desc_set_layouts;
     std::vector<std::shared_ptr<MeshAsset>> mesh_assets;
-    std::unordered_map<std::string, std::unique_ptr<GpuImage>> textures;
+    std::unordered_map<std::string, std::shared_ptr<GpuImage>> textures;
 
     std::unique_ptr<PbrMaterial> pbr_material;
     std::shared_ptr<MaterialInstance> default_material_instance;

@@ -2,8 +2,6 @@
 #include <algorithm>
 
 namespace kovra {
-std::vector<DescriptorPoolSizeRatio>
-create_pool_size_ratios();
 vk::UniqueDescriptorPool
 create_pool(
   const vk::Device &device,
@@ -44,11 +42,12 @@ DescriptorSetLayoutBuilder::build_unique(const vk::Device &device) const
 
 DescriptorAllocator::DescriptorAllocator(
   const vk::Device &device,
-  uint32_t max_sets
+  uint32_t max_sets,
+  std::vector<DescriptorPoolSizeRatio> pool_ratios
 )
-  : pool_ratios{ create_pool_size_ratios() }
+  : pool_ratios{ pool_ratios }
 {
-    ready_pools.push_back(create_pool(device, max_sets, pool_ratios));
+    ready_pools.push_back(create_pool(device, max_sets, this->pool_ratios));
     sets_per_pool = static_cast<uint32_t>(max_sets * 1.5);
 }
 
@@ -216,18 +215,6 @@ DescriptorWriter::update_set(
         writes.push_back(write);
     }
     device.updateDescriptorSets(writes, nullptr);
-}
-
-std::vector<DescriptorPoolSizeRatio>
-create_pool_size_ratios()
-{
-    return {
-        DescriptorPoolSizeRatio{ vk::DescriptorType::eUniformBuffer, 3.0f },
-        DescriptorPoolSizeRatio{ vk::DescriptorType::eStorageBuffer, 3.0f },
-        DescriptorPoolSizeRatio{ vk::DescriptorType::eCombinedImageSampler,
-                                 4.0f },
-        DescriptorPoolSizeRatio{ vk::DescriptorType::eStorageImage, 3.0f },
-    };
 }
 
 vk::UniqueDescriptorPool

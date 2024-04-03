@@ -30,10 +30,22 @@ struct DescriptorPoolSizeRatio
 class DescriptorAllocator
 {
   public:
-    DescriptorAllocator(const vk::Device &device, uint32_t max_sets);
+    explicit DescriptorAllocator(
+      const vk::Device &device,
+      uint32_t max_sets,
+      std::vector<DescriptorPoolSizeRatio> pool_ratios = {
+        DescriptorPoolSizeRatio{ vk::DescriptorType::eUniformBuffer, 3.0f },
+        DescriptorPoolSizeRatio{ vk::DescriptorType::eStorageBuffer, 3.0f },
+        DescriptorPoolSizeRatio{ vk::DescriptorType::eCombinedImageSampler,
+                                 4.0f },
+        DescriptorPoolSizeRatio{ vk::DescriptorType::eStorageImage, 3.0f },
+    }
+    );
     ~DescriptorAllocator();
     DescriptorAllocator(const DescriptorAllocator &) = delete;
     DescriptorAllocator &operator=(const DescriptorAllocator &) = delete;
+    DescriptorAllocator(DescriptorAllocator &&) = delete;
+    DescriptorAllocator &operator=(DescriptorAllocator &&) = delete;
 
     [[nodiscard]] vk::DescriptorSet
     allocate(vk::DescriptorSetLayout layout, const vk::Device &device);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "descriptor.hpp"
 #include "render_object.hpp"
 
 #include <cstdint>
@@ -9,11 +10,13 @@
 #include <string>
 #include <vector>
 
+#include "fastgltf/types.hpp"
+
 namespace kovra {
 // Forward declarations
 class Mesh;
 class Renderer;
-class DescriptorAllocator;
+class LoadedGltfNode;
 
 struct MeshAsset
 {
@@ -32,14 +35,26 @@ struct MeshAsset
 class AssetLoader
 {
   public:
-    std::optional<std::vector<MeshAsset>> load_gltf_meshes(
-      const Renderer &renderer,
-      std::filesystem::path filepath
+    std::optional<LoadedGltfNode> load_gltf(
+      std::filesystem::path filepath,
+      const Device &device,
+      const RenderResources &resources
     ) const;
 };
 
 class LoadedGltfNode : public IRenderable
 {
+  public:
+    explicit LoadedGltfNode(
+      fastgltf::Asset gltf,
+      const Device &device,
+      const RenderResources &resources
+    );
+    virtual ~LoadedGltfNode() = default;
+
+    virtual void queue_draw(const glm::mat4 &root_transform, DrawContext &ctx)
+      const override;
+
   private:
     // Storage for all the data on a given GLTF file
     std::unordered_map<std::string, std::shared_ptr<MeshAsset>> mesh_assets;
@@ -52,8 +67,8 @@ class LoadedGltfNode : public IRenderable
     // tree order
     std::vector<std::shared_ptr<SceneNode>> root_nodes;
 
-    std::vector<vk::Sampler> samplers;
-    std::unique_ptr<DescriptorAllocator> desc_alloc;
+    std::vector<vk::UniqueSampler> samplers;
+    DescriptorAllocator desc_alloc;
     // Stores GpuPbrMaterialData
     std::unique_ptr<GpuBuffer> material_buffer;
 };

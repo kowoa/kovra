@@ -30,6 +30,8 @@ void main() {
     gl_Position = Scene.viewproj * PushConstants.object_transform * vec4(v.position, 1.0);
 
     out_normal = (PushConstants.object_transform * vec4(v.normal, 0.0f)).xyz;
+    out_normal = normalize(out_normal);
+
     out_color = v.color.xyz * Material.color_factors.xyz;
     out_uv = vec2(v.uv_x, v.uv_y);
 }

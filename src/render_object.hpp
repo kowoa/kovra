@@ -1,6 +1,5 @@
 #pragma once
 
-#include "asset_loader.hpp"
 #include "draw_context.hpp"
 #include "material.hpp"
 #include "mesh.hpp"
@@ -11,10 +10,9 @@
 #include <vulkan/vulkan.hpp>
 
 namespace kovra {
+// Forward declarations
+struct MeshAsset;
 
-// WARNING: Do not store this struct as a member of a class.
-// It contains references to Vulkan objects that may be destroyed.
-// Instead, create this struct dynamically each frame.
 struct RenderObject
 {
     const uint32_t index_count;
@@ -111,37 +109,7 @@ class MeshNode : public SceneNode
     [[nodiscard]] MeshAsset &get_mesh_asset_mut() const { return *mesh_asset; }
 
     virtual void queue_draw(const glm::mat4 &root_transform, DrawContext &ctx)
-      const override
-    {
-        glm::mat4 node_transform = root_transform * world_transform;
-
-        for (const auto &surface : mesh_asset->surfaces) {
-            if (surface.material_instance == nullptr) {
-                spdlog::warn(
-                  "MeshNode::draw: {}'s GeometrySurface has no "
-                  "MaterialInstance",
-                  mesh_asset->name
-                );
-                continue;
-            }
-            if (mesh_asset->mesh == nullptr) {
-                spdlog::warn(
-                  "MeshNode::draw: {} has no Mesh", mesh_asset->name
-                );
-                continue;
-            }
-            ctx.opaque_objects.emplace_back(RenderObject{
-              .index_count = surface.count,
-              .first_index = surface.start_index,
-              .index_buffer = mesh_asset->mesh->get_index_buffer().get(),
-              .material_instance = surface.material_instance,
-              .transform = node_transform,
-              .vertex_buffer_address =
-                mesh_asset->mesh->get_vertex_buffer_address() });
-        }
-
-        SceneNode::queue_draw(root_transform, ctx);
-    }
+      const override;
 
   private:
     std::shared_ptr<MeshAsset> mesh_asset;

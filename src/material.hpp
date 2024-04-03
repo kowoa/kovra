@@ -18,6 +18,7 @@ enum class MaterialPass : uint8_t
     Other
 };
 
+// This struct bundles a Material with a DescriptorSet
 struct MaterialInstance
 {
     const std::shared_ptr<Material> material;

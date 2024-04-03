@@ -101,6 +101,10 @@ AssetLoader::load_gltf_meshes(
                       vertices[initial_vertex_count + idx].normal = normal;
                   }
                 );
+            } else {
+                spdlog::warn(
+                  "No vertex normals found in mesh: {}", mesh_asset.name
+                );
             }
 
             // Load UVs
@@ -113,6 +117,8 @@ AssetLoader::load_gltf_meshes(
                       vertices[initial_vertex_count + idx].uv = uv;
                   }
                 );
+            } else {
+                spdlog::warn("No UVs found in mesh: {}", mesh_asset.name);
             }
 
             // Load vertex colors

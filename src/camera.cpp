@@ -10,7 +10,7 @@ Camera::Camera()
   , world_up{ glm::vec3{ 0.0f, 1.0f, 0.0f } }
   , fov_y_deg{ 45.0f }
   , near{ 0.1f }
-  , far{ 100.0f }
+  , far{ 200.0f }
   , pivot{ glm::vec3{ 0.0f, 0.0f, 0.0f } }
 {
 }

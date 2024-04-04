@@ -9,13 +9,13 @@
 #include "renderer.hpp"
 #include "vertex.hpp"
 
-#define STB_IMAGE_IMPLEMENTATION
-
 #include "fastgltf/core.hpp"
 #include "fastgltf/glm_element_traits.hpp"
 #include "fastgltf/tools.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "spdlog/spdlog.h"
+
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 namespace kovra {
@@ -109,8 +109,10 @@ LoadedGltfScene::load_image(
 
     std::visit(
       fastgltf::visitor{
-        [](auto &arg) {},
-        [&](fastgltf::sources::URI &filepath) {
+        [](auto &arg) {
+            spdlog::error("Unknown image data type: {}", typeid(arg).name());
+        },
+        [&](const fastgltf::sources::URI &filepath) {
             assert(
               filepath.fileByteOffset == 0
             ); // We don't support offsets with stbi
@@ -132,7 +134,7 @@ LoadedGltfScene::load_image(
                 stbi_image_free(data);
             }
         },
-        [&](fastgltf::sources::Vector &vector) {
+        [&](const fastgltf::sources::Vector &vector) {
             unsigned char *data = stbi_load_from_memory(
               vector.bytes.data(),
               static_cast<int>(vector.bytes.size()),
@@ -152,14 +154,18 @@ LoadedGltfScene::load_image(
                 stbi_image_free(data);
             }
         },
-        [&](fastgltf::sources::BufferView &view) {
+        [&](const fastgltf::sources::BufferView &view) {
             const auto &buffer_view = asset.bufferViews[view.bufferViewIndex];
             const auto &buffer = asset.buffers[buffer_view.bufferIndex];
 
             std::visit(
               fastgltf::visitor{
-                [](auto &arg) {},
-                [&](fastgltf::sources::Vector &vector) {
+                [](auto &arg) {
+                    spdlog::error(
+                      "Unknown buffer data type: {}", typeid(arg).name()
+                    );
+                },
+                [&](const fastgltf::sources::Array &vector) {
                     unsigned char *data = stbi_load_from_memory(
                       vector.bytes.data() + buffer_view.byteOffset,
                       static_cast<int>(buffer_view.byteLength),

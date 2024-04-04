@@ -16,7 +16,7 @@ namespace kovra {
 // Forward declarations
 class Mesh;
 class Renderer;
-class LoadedGltfNode;
+class LoadedGltfScene;
 
 struct MeshAsset
 {
@@ -35,31 +35,33 @@ struct MeshAsset
 class AssetLoader
 {
   public:
-    std::optional<LoadedGltfNode> load_gltf(
+    std::optional<LoadedGltfScene> load_gltf(
       std::filesystem::path filepath,
       const Device &device,
       const RenderResources &resources
     ) const;
 };
 
-class LoadedGltfNode : public IRenderable
+class LoadedGltfScene : public IRenderable
 {
   public:
-    explicit LoadedGltfNode(
+    explicit LoadedGltfScene(
       fastgltf::Asset gltf,
       const Device &device,
       const RenderResources &resources
     );
-    virtual ~LoadedGltfNode() = default;
+    virtual ~LoadedGltfScene() = default;
 
     virtual void queue_draw(const glm::mat4 &root_transform, DrawContext &ctx)
       const override;
 
   private:
+    constexpr const static bool USE_NORMALS_AS_COLORS = false;
+
     // Storage for all the data on a given GLTF file
     std::unordered_map<std::string, std::shared_ptr<MeshAsset>> mesh_assets;
     std::unordered_map<std::string, std::shared_ptr<SceneNode>> scene_nodes;
-    std::unordered_map<std::string, GpuImage> textures;
+    std::unordered_map<std::string, std::shared_ptr<GpuImage>> textures;
     std::unordered_map<std::string, std::shared_ptr<MaterialInstance>>
       material_instances;
 
@@ -68,7 +70,7 @@ class LoadedGltfNode : public IRenderable
     std::vector<std::shared_ptr<SceneNode>> root_nodes;
 
     std::vector<vk::UniqueSampler> samplers;
-    DescriptorAllocator desc_alloc;
+    std::unique_ptr<DescriptorAllocator> desc_alloc;
     // Stores GpuPbrMaterialData
     std::unique_ptr<GpuBuffer> material_buffer;
 };

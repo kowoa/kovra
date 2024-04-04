@@ -4,6 +4,7 @@
 #include "descriptor.hpp"
 #include "mesh.hpp"
 #include "pbr_material.hpp"
+#include "render_object.hpp"
 #include "render_resources.hpp"
 #include "renderer.hpp"
 #include "vertex.hpp"
@@ -11,6 +12,7 @@
 #include "fastgltf/core.hpp"
 #include "fastgltf/glm_element_traits.hpp"
 #include "fastgltf/tools.hpp"
+#include "glm/gtc/quaternion.hpp"
 #include "spdlog/spdlog.h"
 #include "stb_image.h"
 
@@ -54,7 +56,7 @@ extract_mipmap_mode(fastgltf::Filter filter)
     }
 }
 
-std::optional<LoadedGltfNode>
+std::optional<LoadedGltfScene>
 AssetLoader::load_gltf(
   std::filesystem::path filepath,
   const Device &device,
@@ -87,25 +89,25 @@ AssetLoader::load_gltf(
     fastgltf::Asset gltf;
     gltf = std::move(parse_result.get());
 
-    return std::make_optional<LoadedGltfNode>(
+    return std::make_optional<LoadedGltfScene>(
       std::move(gltf), device, resources
     );
 }
 
-LoadedGltfNode::LoadedGltfNode(
+LoadedGltfScene::LoadedGltfScene(
   fastgltf::Asset gltf,
   const Device &device,
   const RenderResources &resources
 )
-  : desc_alloc{ device.get(),
-                static_cast<uint32_t>(gltf.materials.size()),
-                { DescriptorPoolSizeRatio{ vk::DescriptorType::eUniformBuffer,
-                                           3.0f },
-                  DescriptorPoolSizeRatio{ vk::DescriptorType::eStorageBuffer,
-                                           1.0f },
-                  DescriptorPoolSizeRatio{
-                    vk::DescriptorType::eCombinedImageSampler,
-                    3.0f } } }
+  : desc_alloc{ std::make_unique<DescriptorAllocator>(
+      device.get(),
+      static_cast<uint32_t>(gltf.materials.size()),
+      std::vector<DescriptorPoolSizeRatio>{
+        DescriptorPoolSizeRatio{ vk::DescriptorType::eUniformBuffer, 3.0f },
+        DescriptorPoolSizeRatio{ vk::DescriptorType::eStorageBuffer, 1.0f },
+        DescriptorPoolSizeRatio{ vk::DescriptorType::eCombinedImageSampler,
+                                 3.0f } }
+    ) }
   , material_buffer{ device.create_buffer(
       sizeof(GpuPbrMaterialData) * gltf.materials.size(),
       vk::BufferUsageFlagBits::eUniformBuffer,
@@ -113,6 +115,7 @@ LoadedGltfNode::LoadedGltfNode(
       VMA_ALLOCATION_CREATE_MAPPED_BIT
     ) }
 {
+    // Load samplers
     for (const fastgltf::Sampler &sampler : gltf.samplers) {
         auto vk_sampler_ci =
           vk::SamplerCreateInfo{}
@@ -130,7 +133,9 @@ LoadedGltfNode::LoadedGltfNode(
     // Load textures
     std::vector<std::shared_ptr<GpuImage>> textures;
     for (const fastgltf::Image &img : gltf.images) {
-        textures.push_back(resources.get_texture_owned("checkboard"));
+        auto texture = resources.get_texture_owned("checkboard");
+        textures.push_back(texture);
+        this->textures[img.name.c_str()] = texture;
     }
 
     // Load materials
@@ -189,49 +194,22 @@ LoadedGltfNode::LoadedGltfNode(
               static_cast<uint32_t>(i * sizeof(GpuPbrMaterialData)),
             .pass = pass,
         };
-        auto material_instance =
+        auto material_instance = std::make_shared<MaterialInstance>(
           resources.get_pbr_material().create_material_instance(
-            mat_inst_ci, device, desc_alloc
-          );
+            mat_inst_ci, device, *desc_alloc
+          )
+        );
+        material_instances.push_back(material_instance);
+        this->material_instances[mat.name.c_str()] = material_instance;
     }
 
     // Load meshes
-}
-
-/*
-std::optional<std::vector<MeshAsset>>
-AssetLoader::load_gltf_meshes(
-  const Renderer &renderer,
-  std::filesystem::path filepath
-) const
-{
-    spdlog::debug("Loading GLTF file: {}", filepath.string());
-
-    // Load the GLTF file data into buffer
-    fastgltf::GltfDataBuffer data;
-    data.loadFromFile(filepath);
-
-    // Parse the GLTF file
-    fastgltf::Parser parser{};
-    constexpr auto parse_opts = fastgltf::Options::LoadGLBBuffers |
-                                fastgltf::Options::LoadExternalBuffers;
-    auto result =
-      parser.loadGltfBinary(&data, filepath.parent_path(), parse_opts);
-    if (auto error = result.error(); error != fastgltf::Error::None) {
-        spdlog::error("Failed to load GLTF file: {}", filepath.string());
-        return std::nullopt;
-    }
-
-    fastgltf::Asset gltf;
-    gltf = std::move(result.get());
-
-    std::vector<MeshAsset> mesh_assets;
-
+    std::vector<std::shared_ptr<MeshAsset>> mesh_assets;
     std::vector<uint32_t> indices;
     std::vector<Vertex> vertices;
     for (fastgltf::Mesh &mesh : gltf.meshes) {
-        MeshAsset mesh_asset;
-        mesh_asset.name = mesh.name;
+        auto mesh_asset = std::make_shared<MeshAsset>();
+        mesh_asset->name = mesh.name;
 
         vertices.clear();
         indices.clear();
@@ -274,8 +252,7 @@ AssetLoader::load_gltf_meshes(
                           .color = glm::vec3(1.0f),
                           .uv = glm::vec2(0.0f),
                       };
-                      vertices[initial_vertex_count + idx] =
-std::move(vertex);
+                      vertices[initial_vertex_count + idx] = std::move(vertex);
                   }
                 );
             }
@@ -292,7 +269,7 @@ std::move(vertex);
                 );
             } else {
                 spdlog::warn(
-                  "No vertex normals found in mesh: {}", mesh_asset.name
+                  "No vertex normals found in mesh: {}", mesh_asset->name
                 );
             }
 
@@ -307,7 +284,7 @@ std::move(vertex);
                   }
                 );
             } else {
-                spdlog::warn("No UVs found in mesh: {}", mesh_asset.name);
+                spdlog::warn("No UVs found in mesh: {}", mesh_asset->name);
             }
 
             // Load vertex colors
@@ -322,29 +299,100 @@ std::move(vertex);
                 );
             } else {
                 spdlog::warn(
-                  "No vertex colors found in mesh: {}", mesh_asset.name
+                  "No vertex colors found in mesh: {}", mesh_asset->name
                 );
             }
 
-            mesh_asset.surfaces.push_back(std::move(surface));
+            // Load material
+            if (p.materialIndex.has_value()) {
+                surface.material_instance =
+                  material_instances[p.materialIndex.value()];
+            } else {
+                surface.material_instance = material_instances[0];
+            }
+
+            mesh_asset->surfaces.push_back(std::move(surface));
         }
 
-        // Display the vertex normals
-        constexpr bool override_colors = false;
-        if (override_colors) {
+        // Override vertex colors with normals
+        if (USE_NORMALS_AS_COLORS) {
             for (Vertex &v : vertices) {
                 v.color = glm::vec4(v.normal, 1.0f);
             }
         }
 
-        mesh_asset.mesh = std::make_unique<Mesh>(
-          vertices, indices, renderer.get_context().get_device()
-        );
+        mesh_asset->mesh = std::make_unique<Mesh>(vertices, indices, device);
 
-        mesh_assets.emplace_back(std::move(mesh_asset));
+        mesh_assets.push_back(mesh_asset);
+        this->mesh_assets[mesh.name.c_str()] = mesh_asset;
     }
 
-    return mesh_assets;
+    // Load scene nodes
+    std::vector<std::shared_ptr<SceneNode>> scene_nodes;
+    for (const fastgltf::Node &node : gltf.nodes) {
+        std::shared_ptr<SceneNode> scene_node = nullptr;
+        if (node.meshIndex.has_value()) {
+            scene_node =
+              std::make_shared<MeshNode>(mesh_assets[node.meshIndex.value()]);
+        } else {
+            scene_node = std::make_shared<SceneNode>();
+        }
+
+        std::visit(
+          fastgltf::visitor{
+            [&](fastgltf::Node::TransformMatrix loc_tf) {
+                glm::mat4 local_transform;
+                memcpy(&local_transform, loc_tf.data(), sizeof(loc_tf));
+                scene_node->set_local_transform(local_transform);
+            },
+            [&](fastgltf::TRS loc_tf) {
+                glm::vec3 t{ loc_tf.translation[0],
+                             loc_tf.translation[1],
+                             loc_tf.translation[2] };
+                glm::quat r{ loc_tf.rotation[3],
+                             loc_tf.rotation[0],
+                             loc_tf.rotation[1],
+                             loc_tf.rotation[2] };
+                glm::vec3 s{ loc_tf.scale[0],
+                             loc_tf.scale[1],
+                             loc_tf.scale[2] };
+                glm::mat4 tm = glm::translate(glm::identity<glm::mat4>(), t);
+                glm::mat4 rm = glm::mat4_cast(r);
+                glm::mat4 sm = glm::scale(glm::identity<glm::mat4>(), s);
+                scene_node->set_local_transform(tm * rm * sm);
+            } },
+          node.transform
+        );
+
+        scene_nodes.push_back(scene_node);
+        this->scene_nodes[node.name.c_str()] = scene_node;
+    }
+
+    // Run loop again to set up parent-child relationships
+    for (size_t i = 0; i < gltf.nodes.size(); i++) {
+        const fastgltf::Node &node = gltf.nodes[i];
+        std::shared_ptr<SceneNode> scene_node = scene_nodes[i];
+        for (const auto &child : node.children) {
+            scene_node->add_child(scene_nodes[child]);
+        }
+    }
+
+    // Find the root nodes
+    for (const auto &scene_node : scene_nodes) {
+        if (!scene_node->has_parent()) {
+            root_nodes.push_back(scene_node);
+            scene_node->refresh_world_transform(glm::identity<glm::mat4>());
+        }
+    }
 }
-*/
+
+void
+LoadedGltfScene::queue_draw(const glm::mat4 &root_transform, DrawContext &ctx)
+  const
+{
+    for (const auto &node : root_nodes) {
+        node->queue_draw(root_transform, ctx);
+    }
+}
+
 } // namespace kovra

@@ -26,7 +26,10 @@ class Renderer
 
     void draw_frame(const Camera &camera);
 
-    void load_gltf(const std::filesystem::path &filepath) noexcept;
+    void load_gltf(
+      const std::filesystem::path &filepath,
+      const std::string &name
+    ) noexcept;
     void set_render_scale(float scale) noexcept;
 
     [[nodiscard]] const Context &get_context() const noexcept

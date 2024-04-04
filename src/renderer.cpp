@@ -172,19 +172,23 @@ Renderer::update_scene(const Camera &camera) -> DrawContext
                                  .scene_data = std::move(scene_data) };
 
     // Add render objects to be drawn
-    render_resources->get_mesh_node("Suzanne").queue_draw(
-      glm::identity<glm::mat4>(), draw_ctx
-    );
-    for (int x = -3; x < 3; x++) {
+    render_resources->get_renderable("structure")
+      .queue_draw(glm::identity<glm::mat4>(), draw_ctx);
+    /*
+      render_resources->get_mesh_node("Suzanne").queue_draw(
+        glm::identity<glm::mat4>(), draw_ctx
+      );
+      for (int x = -3; x < 3; x++) {
 
-        glm::mat4 scale = glm::scale(glm::mat4{ 1.0f }, glm::vec3{ 0.2f });
-        glm::mat4 translation =
-          glm::translate(glm::mat4{ 1.0f }, glm::vec3{ x, 1.0f, 0.0f });
+          glm::mat4 scale = glm::scale(glm::mat4{ 1.0f }, glm::vec3{ 0.2f });
+          glm::mat4 translation =
+            glm::translate(glm::mat4{ 1.0f }, glm::vec3{ x, 1.0f, 0.0f });
 
-        render_resources->get_mesh_node("Cube").queue_draw(
-          translation * scale, draw_ctx
-        );
-    }
+          render_resources->get_mesh_node("Cube").queue_draw(
+            translation * scale, draw_ctx
+          );
+      }
+    */
 
     return draw_ctx;
 }
@@ -197,16 +201,21 @@ Renderer::draw_frame(const Camera &camera)
     frame_number++;
 }
 void
-Renderer::load_gltf(const std::filesystem::path &filepath) noexcept
+Renderer::load_gltf(
+  const std::filesystem::path &filepath,
+  const std::string &name
+) noexcept
 {
-    auto mesh_assets = asset_loader->load_gltf_meshes(*this, filepath);
-    if (!mesh_assets.has_value()) {
+    auto result = asset_loader->load_gltf(
+      filepath, context->get_device(), *render_resources
+    );
+    if (!result.has_value()) {
+        spdlog::error("Failed to load GLTF file: {}", filepath.string());
         return;
     }
-
-    for (auto &&asset : mesh_assets.value()) {
-        render_resources->add_mesh_asset(std::move(asset));
-    }
+    render_resources->add_scene(
+      name, std::make_shared<LoadedGltfScene>(std::move(result.value()))
+    );
 }
 
 void

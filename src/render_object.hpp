@@ -28,6 +28,7 @@ struct RenderObject
 // Base class for a renderable dynamic object
 class IRenderable
 {
+  public:
     // Modify the DrawContext to add the object to the render queue
     virtual void queue_draw(const glm::mat4 &parent_transform, DrawContext &ctx)
       const = 0;
@@ -51,22 +52,44 @@ class SceneNode
     SceneNode(SceneNode &&) = delete;
     SceneNode &operator=(SceneNode &&) = delete;
 
-    void add_child(std::shared_ptr<SceneNode> child)
+    [[nodiscard]] bool has_parent() const noexcept { return !parent.expired(); }
+
+    void add_child(
+      std::shared_ptr<SceneNode> child,
+      bool refresh_world_transforms = false
+    )
     {
         children.push_back(child);
         child->parent = shared_from_this();
-        child->refresh_world_transform(world_transform);
+        if (refresh_world_transforms) {
+            child->refresh_world_transform(world_transform);
+        }
     }
 
-    void set_local_transform(const glm::mat4 &transform)
+    void set_local_transform(
+      const glm::mat4 &transform,
+      bool refresh_world_transforms = false
+    )
     {
         local_transform = transform;
 
-        if (!parent.expired()) {
+        if (!refresh_world_transforms) {
+            return;
+        }
+        if (has_parent()) {
             auto parent_owned = parent.lock();
             refresh_world_transform(parent_owned->world_transform);
         } else {
             refresh_world_transform(glm::identity<glm::mat4>());
+        }
+    }
+
+    // Refresh the world transform of this node and all its children
+    void refresh_world_transform(const glm::mat4 &parent_world_transform)
+    {
+        world_transform = parent_world_transform * local_transform;
+        for (auto &child : children) {
+            child->refresh_world_transform(world_transform);
         }
     }
 
@@ -84,14 +107,6 @@ class SceneNode
     std::vector<std::shared_ptr<SceneNode>> children;
     glm::mat4 local_transform;
     glm::mat4 world_transform;
-
-    void refresh_world_transform(const glm::mat4 &parent_world_transform)
-    {
-        world_transform = parent_world_transform * local_transform;
-        for (auto &child : children) {
-            child->refresh_world_transform(world_transform);
-        }
-    }
 };
 
 class MeshNode : public SceneNode
@@ -101,6 +116,11 @@ class MeshNode : public SceneNode
       : mesh_asset{ mesh_asset }
     {
     }
+    MeshNode() = delete;
+    MeshNode(const MeshNode &) = delete;
+    MeshNode &operator=(const MeshNode &) = delete;
+    MeshNode(MeshNode &&) = delete;
+    MeshNode &operator=(MeshNode &&) = delete;
 
     [[nodiscard]] const MeshAsset &get_mesh_asset() const
     {

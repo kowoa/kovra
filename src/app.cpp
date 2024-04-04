@@ -19,7 +19,8 @@ App::App()
 {
     spdlog::debug("App::App()");
 
-    renderer->load_gltf("./assets/basicmesh.glb");
+    renderer->load_gltf("./assets/basicmesh.glb", "basicmesh");
+    renderer->load_gltf("./assets/structure.glb", "structure");
 }
 App::~App()
 {

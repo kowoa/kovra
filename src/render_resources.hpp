@@ -13,9 +13,10 @@ class MeshAsset;
 class GpuImage;
 class PbrMaterial;
 class MaterialInstance;
-class MeshNode;
 class DescriptorAllocator;
 class GpuBuffer;
+class LoadedGltfScene;
+class IRenderable;
 
 class RenderResources
 {
@@ -42,6 +43,10 @@ class RenderResources
       const Device &device,
       DescriptorAllocator &global_desc_allocator
     );
+    void add_scene(
+      const std::string &name,
+      std::shared_ptr<LoadedGltfScene> &&scene
+    );
 
     [[nodiscard]] const Material &get_material(const std::string &name) const;
     [[nodiscard]] std::shared_ptr<Material> get_material_owned(
@@ -61,7 +66,8 @@ class RenderResources
       const std::string &name
     ) const;
     [[nodiscard]] const PbrMaterial &get_pbr_material() const;
-    [[nodiscard]] const MeshNode &get_mesh_node(const std::string &name) const;
+    [[nodiscard]] const IRenderable &get_renderable(const std::string &name
+    ) const;
 
   private:
     std::shared_ptr<Device> device;
@@ -75,6 +81,6 @@ class RenderResources
 
     std::unique_ptr<PbrMaterial> pbr_material;
     std::shared_ptr<MaterialInstance> default_material_instance;
-    std::unordered_map<std::string, std::shared_ptr<MeshNode>> loaded_nodes;
+    std::unordered_map<std::string, std::shared_ptr<IRenderable>> renderables;
 };
 } // namespace kovra

@@ -85,7 +85,7 @@ RenderResources::add_mesh_asset(MeshAsset &&mesh_asset)
             surface.material_instance = default_material_instance;
         }
 
-        loaded_nodes.emplace(mesh_asset_owned->name, std::move(new_node));
+        renderables.emplace(mesh_asset_owned->name, std::move(new_node));
     }
 
     // Update mesh_assets
@@ -119,6 +119,14 @@ RenderResources::set_pbr_material(
         device,
         global_desc_allocator
       ));
+}
+void
+RenderResources::add_scene(
+  const std::string &name,
+  std::shared_ptr<LoadedGltfScene> &&scene
+)
+{
+    renderables.emplace(std::move(name), std::move(scene));
 }
 
 [[nodiscard]] const Material &
@@ -169,13 +177,13 @@ RenderResources::get_pbr_material() const
     }
     return *pbr_material;
 }
-[[nodiscard]] const MeshNode &
-RenderResources::get_mesh_node(const std::string &name) const
+[[nodiscard]] const IRenderable &
+RenderResources::get_renderable(const std::string &name) const
 {
-    if (loaded_nodes.find(name) == loaded_nodes.end()) {
-        throw std::runtime_error("Mesh node not found: " + name);
+    if (renderables.find(name) == renderables.end()) {
+        throw std::runtime_error("Renderable not found: " + name);
     }
-    return *loaded_nodes.at(name);
+    return *renderables.at(name);
 }
 
 } // namespace kovra

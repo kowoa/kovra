@@ -1,6 +1,7 @@
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
+#include "asset_loader.hpp"
 #include "descriptor.hpp"
 #include "material.hpp"
 #include "mesh.hpp"
@@ -213,9 +214,7 @@ Renderer::load_gltf(
         spdlog::error("Failed to load GLTF file: {}", filepath.string());
         return;
     }
-    render_resources->add_scene(
-      name, std::make_shared<LoadedGltfScene>(std::move(result.value()))
-    );
+    render_resources->add_scene(name, result.value());
 }
 
 void

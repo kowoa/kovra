@@ -56,7 +56,7 @@ extract_mipmap_mode(fastgltf::Filter filter)
     }
 }
 
-std::optional<LoadedGltfScene>
+std::optional<std::shared_ptr<LoadedGltfScene>>
 AssetLoader::load_gltf(
   std::filesystem::path filepath,
   const Device &device,
@@ -89,7 +89,7 @@ AssetLoader::load_gltf(
     fastgltf::Asset gltf;
     gltf = std::move(parse_result.get());
 
-    return std::make_optional<LoadedGltfScene>(
+    return std::make_shared<LoadedGltfScene>(
       std::move(gltf), device, resources
     );
 }

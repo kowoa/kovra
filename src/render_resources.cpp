@@ -123,7 +123,7 @@ RenderResources::set_pbr_material(
 void
 RenderResources::add_scene(
   const std::string &name,
-  std::shared_ptr<LoadedGltfScene> &&scene
+  std::shared_ptr<LoadedGltfScene> &scene
 )
 {
     renderables.emplace(std::move(name), std::move(scene));
@@ -168,6 +168,11 @@ RenderResources::get_texture(const std::string &name) const
         throw std::runtime_error("Texture not found: " + name);
     }
     return *textures.at(name);
+}
+[[nodiscard]] std::shared_ptr<GpuImage>
+RenderResources::get_texture_owned(const std::string &name) const
+{
+    return textures.at(name);
 }
 [[nodiscard]] const PbrMaterial &
 RenderResources::get_pbr_material() const

@@ -43,10 +43,8 @@ class RenderResources
       const Device &device,
       DescriptorAllocator &global_desc_allocator
     );
-    void add_scene(
-      const std::string &name,
-      std::shared_ptr<LoadedGltfScene> &&scene
-    );
+    void
+    add_scene(const std::string &name, std::shared_ptr<LoadedGltfScene> &scene);
 
     [[nodiscard]] const Material &get_material(const std::string &name) const;
     [[nodiscard]] std::shared_ptr<Material> get_material_owned(

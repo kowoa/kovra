@@ -133,7 +133,7 @@ LoadedGltfScene::LoadedGltfScene(
     // Load textures
     std::vector<std::shared_ptr<GpuImage>> textures;
     for (const fastgltf::Image &img : gltf.images) {
-        auto texture = resources.get_texture_owned("checkboard");
+        auto texture = resources.get_texture_owned("checkerboard");
         textures.push_back(texture);
         this->textures[img.name.c_str()] = texture;
     }

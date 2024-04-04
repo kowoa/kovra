@@ -172,6 +172,9 @@ RenderResources::get_texture(const std::string &name) const
 [[nodiscard]] std::shared_ptr<GpuImage>
 RenderResources::get_texture_owned(const std::string &name) const
 {
+    if (textures.find(name) == textures.end()) {
+        throw std::runtime_error("Texture not found: " + name);
+    }
     return textures.at(name);
 }
 [[nodiscard]] const PbrMaterial &

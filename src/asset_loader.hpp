@@ -35,8 +35,14 @@ struct MeshAsset
 class AssetLoader
 {
   public:
-    std::optional<std::shared_ptr<LoadedGltfScene>> load_gltf(
+    std::optional<std::unique_ptr<LoadedGltfScene>> load_gltf(
       std::filesystem::path filepath,
+      const Device &device,
+      const RenderResources &resources
+    ) const;
+    std::optional<std::unique_ptr<GpuImage>> load_gltf_texture(
+      const fastgltf::Asset &asset,
+      const fastgltf::Image &image,
       const Device &device,
       const RenderResources &resources
     ) const;

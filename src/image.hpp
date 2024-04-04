@@ -28,6 +28,7 @@ class GpuImage
     );
     ~GpuImage();
 
+    GpuImage() = delete;
     GpuImage(const GpuImage &) = delete;
     GpuImage &operator=(const GpuImage &) = delete;
     GpuImage(GpuImage &&) noexcept = delete;

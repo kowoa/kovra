@@ -129,14 +129,12 @@ GpuImage::new_color_image(
         throw std::runtime_error("Invalid image size");
     }
 
-    auto desc =
-      GpuImageCreateInfo{ .format = format,
-                          .extent = vk::Extent3D{ width, height, 1 },
-                          .usage = vk::ImageUsageFlagBits::eSampled |
-                                   vk::ImageUsageFlagBits::eTransferDst,
-                          .aspect = vk::ImageAspectFlagBits::eColor,
-                          .mipmapped = false,
-                          .sampler = sampler };
+    auto desc = GpuImageCreateInfo{ .format = format,
+                                    .extent = vk::Extent3D{ width, height, 1 },
+                                    .usage = vk::ImageUsageFlagBits::eSampled,
+                                    .aspect = vk::ImageAspectFlagBits::eColor,
+                                    .mipmapped = false,
+                                    .sampler = sampler };
     auto image = std::make_unique<GpuImage>(
       desc, device.get(), device.get_allocator_owned()
     );

@@ -201,7 +201,8 @@ Renderer::load_gltf(
         spdlog::error("Failed to load GLTF file: {}", filepath.string());
         return;
     }
-    render_resources->add_scene(name, result.value());
+    std::shared_ptr<LoadedGltfScene> scene = std::move(result.value());
+    render_resources->add_scene(name, scene);
 }
 
 void

@@ -9,6 +9,8 @@
 #include "renderer.hpp"
 #include "vertex.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+
 #include "fastgltf/core.hpp"
 #include "fastgltf/glm_element_traits.hpp"
 #include "fastgltf/tools.hpp"
@@ -56,7 +58,7 @@ extract_mipmap_mode(fastgltf::Filter filter)
     }
 }
 
-std::optional<std::shared_ptr<LoadedGltfScene>>
+std::optional<std::unique_ptr<LoadedGltfScene>>
 AssetLoader::load_gltf(
   std::filesystem::path filepath,
   const Device &device,
@@ -89,9 +91,104 @@ AssetLoader::load_gltf(
     fastgltf::Asset gltf;
     gltf = std::move(parse_result.get());
 
-    return std::make_shared<LoadedGltfScene>(
+    return std::make_unique<LoadedGltfScene>(
       std::move(gltf), device, resources
     );
+}
+
+std::optional<std::unique_ptr<GpuImage>>
+AssetLoader::load_gltf_texture(
+  const fastgltf::Asset &asset,
+  const fastgltf::Image &image,
+  const Device &device,
+  const RenderResources &resources
+) const
+{
+    std::unique_ptr<GpuImage> img = nullptr;
+    int width, height, channels;
+
+    std::visit(
+      fastgltf::visitor{
+        [](auto &arg) {},
+        [&](fastgltf::sources::URI &filepath) {
+            assert(
+              filepath.fileByteOffset == 0
+            ); // We don't support offsets with stbi
+            assert(filepath.uri.isLocalPath()); // We only support local paths
+
+            const std::string filepath_str{ filepath.uri.path().begin(),
+                                            filepath.uri.path().end() };
+            unsigned char *data =
+              stbi_load(filepath_str.c_str(), &width, &height, &channels, 4);
+            if (data) {
+                img = device.create_color_image(
+                  data,
+                  width,
+                  height,
+                  resources.get_sampler(vk::Filter::eLinear),
+                  vk::Format::eR8G8B8A8Unorm
+                );
+                stbi_image_free(data);
+            }
+        },
+        [&](fastgltf::sources::Vector &vector) {
+            unsigned char *data = stbi_load_from_memory(
+              vector.bytes.data(),
+              static_cast<int>(vector.bytes.size()),
+              &width,
+              &height,
+              &channels,
+              4
+            );
+            if (data) {
+                img = device.create_color_image(
+                  data,
+                  width,
+                  height,
+                  resources.get_sampler(vk::Filter::eLinear),
+                  vk::Format::eR8G8B8A8Unorm
+                );
+                stbi_image_free(data);
+            }
+        },
+        [&](fastgltf::sources::BufferView &view) {
+            const auto &buffer_view = asset.bufferViews[view.bufferViewIndex];
+            const auto &buffer = asset.buffers[buffer_view.bufferIndex];
+
+            std::visit(
+              fastgltf::visitor{
+                [](auto &arg) {},
+                [&](fastgltf::sources::Vector &vector) {
+                    unsigned char *data = stbi_load_from_memory(
+                      vector.bytes.data() + buffer_view.byteOffset,
+                      static_cast<int>(buffer_view.byteLength),
+                      &width,
+                      &height,
+                      &channels,
+                      4
+                    );
+                    if (data) {
+                        img = device.create_color_image(
+                          data,
+                          width,
+                          height,
+                          resources.get_sampler(vk::Filter::eLinear),
+                          vk::Format::eR8G8B8A8Unorm
+                        );
+                        stbi_image_free(data);
+                    }
+                } },
+              buffer.data
+            );
+        } },
+      image.data
+    );
+
+    if (!img) {
+        return std::nullopt;
+    } else {
+        return img;
+    }
 }
 
 LoadedGltfScene::LoadedGltfScene(

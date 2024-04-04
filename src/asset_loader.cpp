@@ -97,12 +97,12 @@ AssetLoader::load_gltf(
 }
 
 std::optional<std::unique_ptr<GpuImage>>
-AssetLoader::load_gltf_texture(
+LoadedGltfScene::load_image(
   const fastgltf::Asset &asset,
   const fastgltf::Image &image,
   const Device &device,
   const RenderResources &resources
-) const
+)
 {
     std::unique_ptr<GpuImage> img = nullptr;
     int width, height, channels;
@@ -118,6 +118,7 @@ AssetLoader::load_gltf_texture(
 
             const std::string filepath_str{ filepath.uri.path().begin(),
                                             filepath.uri.path().end() };
+            spdlog::debug("Loading image: {}", filepath_str);
             unsigned char *data =
               stbi_load(filepath_str.c_str(), &width, &height, &channels, 4);
             if (data) {
@@ -230,7 +231,16 @@ LoadedGltfScene::LoadedGltfScene(
     // Load textures
     std::vector<std::shared_ptr<GpuImage>> textures;
     for (const fastgltf::Image &img : gltf.images) {
-        auto texture = resources.get_texture_owned("checkerboard");
+        auto result = load_image(gltf, img, device, resources);
+
+        std::shared_ptr<GpuImage> texture = nullptr;
+        if (result.has_value()) {
+            texture = std::move(result.value());
+        } else {
+            texture = resources.get_texture_owned("checkerboard");
+            spdlog::error("Failed to load image: {}", img.name.c_str());
+        }
+
         textures.push_back(texture);
         this->textures[img.name.c_str()] = texture;
     }

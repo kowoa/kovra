@@ -40,12 +40,6 @@ class AssetLoader
       const Device &device,
       const RenderResources &resources
     ) const;
-    std::optional<std::unique_ptr<GpuImage>> load_gltf_texture(
-      const fastgltf::Asset &asset,
-      const fastgltf::Image &image,
-      const Device &device,
-      const RenderResources &resources
-    ) const;
 };
 
 class LoadedGltfScene : public IRenderable
@@ -79,5 +73,12 @@ class LoadedGltfScene : public IRenderable
     std::unique_ptr<DescriptorAllocator> desc_alloc;
     // Stores GpuPbrMaterialData
     std::unique_ptr<GpuBuffer> material_buffer;
+
+    static std::optional<std::unique_ptr<GpuImage>> load_image(
+      const fastgltf::Asset &asset,
+      const fastgltf::Image &image,
+      const Device &device,
+      const RenderResources &resources
+    );
 };
 }

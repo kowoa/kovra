@@ -11,8 +11,6 @@ GpuBuffer::GpuBuffer(
   VmaAllocationCreateFlags alloc_flags
 )
 {
-    spdlog::debug("GpuBuffer::GpuBuffer()");
-
     if (size == 0) {
         throw std::runtime_error("Buffer size must be greater than zero");
         return;
@@ -79,7 +77,6 @@ GpuBuffer::GpuBuffer(
 
 GpuBuffer::~GpuBuffer()
 {
-    spdlog::debug("GpuBuffer::~GpuBuffer()");
     vmaDestroyBuffer(*allocator, buffer, allocation);
     allocator.reset();
 }

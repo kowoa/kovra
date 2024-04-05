@@ -12,7 +12,8 @@ class RenderResources;
 struct RenderObject;
 struct MaterialInstance;
 
-// WARNING: Do not store this struct in any class as a member
+// WARNING: Do not store this struct in any class as a member.
+// It contains references to objects that may be destroyed.
 struct DrawContext
 {
     const Device &device;
@@ -24,6 +25,8 @@ struct DrawContext
 
     // This vector will be filled each frame with opaque render objects
     std::vector<RenderObject> opaque_objects;
+    // This vector will be filled each frame with transparent render objects
+    std::vector<RenderObject> transparent_objects;
 
     const uint32_t frame_number;
     const float render_scale = 1.0f;

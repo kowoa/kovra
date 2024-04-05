@@ -263,8 +263,7 @@ Frame::draw_render_objects(
   const vk::DescriptorSet &scene_desc_set
 )
 {
-    // Draw all opaque render objects
-    for (const RenderObject &object : ctx.opaque_objects) {
+    auto draw_render_object = [&](const RenderObject &object) {
         if (!object.material_instance) {
             spdlog::error("Material Instance is null");
         }
@@ -278,6 +277,14 @@ Frame::draw_render_objects(
           .object_transform = object.transform,
           .vertex_buffer = object.vertex_buffer_address }));
         pass.draw_indexed(object.index_count, 1, object.first_index, 0, 0);
+    };
+
+    for (const auto &object : ctx.opaque_objects) {
+        draw_render_object(object);
+    }
+
+    for (const auto &object : ctx.transparent_objects) {
+        draw_render_object(object);
     }
 }
 

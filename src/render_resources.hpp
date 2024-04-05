@@ -64,8 +64,8 @@ class RenderResources
       const std::string &name
     ) const;
     [[nodiscard]] const PbrMaterial &get_pbr_material() const;
-    [[nodiscard]] const IRenderable &get_renderable(const std::string &name
-    ) const;
+    [[nodiscard]] std::optional<std::reference_wrapper<const IRenderable>>
+    get_renderable(const std::string &name) const noexcept;
 
   private:
     std::shared_ptr<Device> device;

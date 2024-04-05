@@ -185,13 +185,15 @@ RenderResources::get_pbr_material() const
     }
     return *pbr_material;
 }
-[[nodiscard]] const IRenderable &
-RenderResources::get_renderable(const std::string &name) const
+[[nodiscard]] std::optional<std::reference_wrapper<const IRenderable>>
+RenderResources::get_renderable(const std::string &name) const noexcept
 {
     if (renderables.find(name) == renderables.end()) {
-        throw std::runtime_error("Renderable not found: " + name);
+        return std::nullopt;
     }
-    return *renderables.at(name);
+    return std::make_optional<const std::reference_wrapper<const IRenderable>>(
+      *renderables.at(name)
+    );
 }
 
 } // namespace kovra

@@ -24,7 +24,10 @@ class Renderer
     Renderer(Renderer &&) = delete;
     Renderer &operator=(Renderer &&) = delete;
 
-    void draw_frame(const Camera &camera);
+    void draw_frame(
+      const Camera &camera,
+      const std::span<std::string> &objects_to_render
+    );
 
     void load_gltf(
       const std::filesystem::path &filepath,
@@ -78,6 +81,9 @@ class Renderer
 
     void init_imgui(SDL_Window *window);
 
-    auto update_scene(const Camera &camera) -> DrawContext;
+    auto update_scene(
+      const Camera &camera,
+      const std::span<std::string> &objects_to_render
+    ) -> DrawContext;
 };
 } // namespace kovra

@@ -143,7 +143,10 @@ Renderer::~Renderer()
 }
 
 auto
-Renderer::update_scene(const Camera &camera) -> DrawContext
+Renderer::update_scene(
+  const Camera &camera,
+  const std::span<std::string> &objects_to_render
+) -> DrawContext
 {
     auto swapchain_image_extent = context->get_swapchain().get_extent();
     GpuSceneData scene_data{
@@ -173,18 +176,28 @@ Renderer::update_scene(const Camera &camera) -> DrawContext
                                  .scene_data = std::move(scene_data) };
 
     // Add render objects to be drawn
-    render_resources->get_renderable("structure")
-      .queue_draw(glm::identity<glm::mat4>(), draw_ctx);
-    render_resources->get_renderable("basicmesh")
-      .queue_draw(glm::identity<glm::mat4>(), draw_ctx);
+    for (const auto &name : objects_to_render) {
+        auto renderable = render_resources->get_renderable(name);
+        if (renderable.has_value()) {
+            renderable.value().get().queue_draw(
+              glm::identity<glm::mat4>(), draw_ctx
+            );
+
+        } else {
+            spdlog::warn("Could not find renderable: {}", name);
+        }
+    }
 
     return draw_ctx;
 }
 
 void
-Renderer::draw_frame(const Camera &camera)
+Renderer::draw_frame(
+  const Camera &camera,
+  const std::span<std::string> &objects_to_render
+)
 {
-    auto draw_ctx = update_scene(camera);
+    auto draw_ctx = update_scene(camera, objects_to_render);
     get_current_frame().draw(std::move(draw_ctx));
     frame_number++;
 }

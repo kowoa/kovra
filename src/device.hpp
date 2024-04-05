@@ -93,7 +93,8 @@ class Device
       uint32_t width,
       uint32_t height,
       vk::Sampler sampler,
-      vk::Format format = vk::Format::eR8G8B8A8Unorm
+      vk::Format format = vk::Format::eR8G8B8A8Unorm,
+      bool mipmapped = false
     ) const;
     [[nodiscard]] std::unique_ptr<GpuImage> create_depth_image(
       uint32_t width,

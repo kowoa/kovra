@@ -149,7 +149,8 @@ LoadedGltfScene::load_image(
                   width,
                   height,
                   resources.get_sampler(vk::Filter::eLinear),
-                  vk::Format::eR8G8B8A8Unorm
+                  vk::Format::eR8G8B8A8Unorm,
+                  true
                 );
                 stbi_image_free(data);
             }
@@ -229,6 +230,9 @@ LoadedGltfScene::LoadedGltfScene(
               sampler.magFilter.value_or(fastgltf::Filter::Nearest)
             ))
             .setMinFilter(extract_filter(
+              sampler.minFilter.value_or(fastgltf::Filter::Nearest)
+            ))
+            .setMipmapMode(extract_mipmap_mode(
               sampler.minFilter.value_or(fastgltf::Filter::Nearest)
             ));
         samplers.emplace_back(device.get().createSamplerUnique(vk_sampler_ci));

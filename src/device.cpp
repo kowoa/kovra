@@ -189,11 +189,12 @@ Device::create_color_image(
   uint32_t width,
   uint32_t height,
   vk::Sampler sampler,
-  vk::Format format
+  vk::Format format,
+  bool mipmapped
 ) const
 {
     return GpuImage::new_color_image(
-      data, width, height, *this, sampler, format
+      data, width, height, *this, sampler, format, mipmapped
     );
 }
 [[nodiscard]] std::unique_ptr<GpuImage>

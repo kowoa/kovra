@@ -41,7 +41,8 @@ class GpuImage
       uint32_t height,
       const Device &device,
       vk::Sampler sampler,
-      vk::Format format = vk::Format::eR8G8B8A8Unorm
+      vk::Format format = vk::Format::eR8G8B8A8Unorm,
+      bool mipmapped = false
     );
     // Create an image used for the depth buffer
     [[nodiscard]] static std::unique_ptr<GpuImage> new_depth_image(
@@ -98,6 +99,6 @@ class GpuImage
     vk::ImageAspectFlags aspect;
     std::optional<vk::Sampler> sampler;
 
-    void upload(const void *data, const Device &device);
+    void upload(const void *data, const Device &device, bool mipmapped);
 };
 } // namespace kovra

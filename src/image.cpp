@@ -4,6 +4,93 @@
 #include "utils.hpp"
 
 namespace kovra {
+// TODO: Generate mipmaps using compute shader instead of using a chain of
+// vkCmdBlitImage calls
+void
+generate_mipmaps(
+  const vk::CommandBuffer &cmd,
+  const vk::Image &image,
+  vk::Extent2D extent
+)
+{
+    int mip_levels =
+      static_cast<int>(
+        std::floor(std::log2(std::max(extent.width, extent.height)))
+      ) +
+      1;
+    for (int mip = 0; mip < mip_levels; mip++) {
+        vk::Extent2D half_extent = extent;
+        half_extent.width /= 2;
+        half_extent.height /= 2;
+
+        auto subresource_range =
+          vk::ImageSubresourceRange{}
+            .setAspectMask(vk::ImageAspectFlagBits::eColor)
+            .setBaseMipLevel(mip)
+            .setLevelCount(1)
+            .setBaseArrayLayer(0)
+            .setLayerCount(vk::RemainingArrayLayers);
+        auto image_barrier =
+          vk::ImageMemoryBarrier2{}
+            .setSrcStageMask(vk::PipelineStageFlagBits2::eAllCommands)
+            .setSrcAccessMask(vk::AccessFlagBits2::eMemoryWrite)
+            .setDstStageMask(vk::PipelineStageFlagBits2::eAllCommands)
+            .setDstAccessMask(
+              vk::AccessFlagBits2::eMemoryWrite |
+              vk::AccessFlagBits2::eMemoryRead
+            )
+            .setOldLayout(vk::ImageLayout::eTransferDstOptimal)
+            .setNewLayout(vk::ImageLayout::eTransferSrcOptimal)
+            .setSubresourceRange(subresource_range)
+            .setImage(image);
+        auto dep_info =
+          vk::DependencyInfo{}.setImageMemoryBarriers(image_barrier);
+
+        cmd.pipelineBarrier2(&dep_info);
+
+        if (mip < mip_levels - 1) {
+            auto blit_region =
+              vk::ImageBlit2{}
+                .setSrcOffsets({ vk::Offset3D{ 0, 0, 0 },
+                                 vk::Offset3D{
+                                   static_cast<int32_t>(extent.width),
+                                   static_cast<int32_t>(extent.height),
+                                   1 } })
+                .setDstOffsets({ vk::Offset3D{ 0, 0, 0 },
+                                 vk::Offset3D{
+                                   static_cast<int32_t>(half_extent.width),
+                                   static_cast<int32_t>(half_extent.height),
+                                   1 } })
+                .setSrcSubresource(
+                  vk::ImageSubresourceLayers{}
+                    .setAspectMask(vk::ImageAspectFlagBits::eColor)
+                    .setBaseArrayLayer(0)
+                    .setLayerCount(1)
+                    .setMipLevel(mip)
+                )
+                .setDstSubresource(
+                  vk::ImageSubresourceLayers{}
+                    .setAspectMask(vk::ImageAspectFlagBits::eColor)
+                    .setBaseArrayLayer(0)
+                    .setLayerCount(1)
+                    .setMipLevel(mip + 1)
+                );
+            auto blit_info =
+              vk::BlitImageInfo2{}
+                .setDstImage(image)
+                .setDstImageLayout(vk::ImageLayout::eTransferDstOptimal)
+                .setSrcImage(image)
+                .setSrcImageLayout(vk::ImageLayout::eTransferSrcOptimal)
+                .setFilter(vk::Filter::eLinear)
+                .setRegions(blit_region);
+
+            cmd.blitImage2(&blit_info);
+
+            extent = half_extent;
+        }
+    }
+}
+
 GpuImage::GpuImage(
   const GpuImageCreateInfo &info,
   const vk::Device &device,
@@ -121,7 +208,8 @@ GpuImage::new_color_image(
   uint32_t height,
   const Device &device,
   vk::Sampler sampler,
-  vk::Format format
+  vk::Format format,
+  bool mipmapped
 )
 {
     if (width == 0 || height == 0) {
@@ -135,12 +223,12 @@ GpuImage::new_color_image(
                           .usage = vk::ImageUsageFlagBits::eSampled |
                                    vk::ImageUsageFlagBits::eTransferDst,
                           .aspect = vk::ImageAspectFlagBits::eColor,
-                          .mipmapped = false,
+                          .mipmapped = mipmapped,
                           .sampler = sampler };
     auto image = std::make_unique<GpuImage>(
       desc, device.get(), device.get_allocator_owned()
     );
-    image->upload(data, device);
+    image->upload(data, device, mipmapped);
     return image;
 }
 // Create an image used for the depth buffer
@@ -219,7 +307,7 @@ GpuImage::copy_to_vkimage(
     );
 }
 void
-GpuImage::upload(const void *data, const Device &device)
+GpuImage::upload(const void *data, const Device &device, bool mipmapped)
 {
     vk::DeviceSize data_size = extent.depth * extent.width * extent.height * 4;
     auto staging_buffer = device.create_buffer(
@@ -254,6 +342,14 @@ GpuImage::upload(const void *data, const Device &device)
           1,
           &region
         );
+
+        if (mipmapped) {
+            generate_mipmaps(
+              cmd,
+              static_cast<vk::Image>(image),
+              vk::Extent2D{}.setWidth(extent.width).setHeight(extent.height)
+            );
+        }
 
         transition_layout(
           cmd,

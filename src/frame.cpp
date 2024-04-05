@@ -333,12 +333,18 @@ Frame::draw_render_objects(
       }
     );
 
+    const auto &viewproj = ctx.scene_data.viewproj;
     for (const auto &object_index : opaque_draws) {
-        draw_render_object(ctx.opaque_objects[object_index]);
+        const auto &object = ctx.opaque_objects[object_index];
+        if (object.is_visible(viewproj)) {
+            draw_render_object(object);
+        }
     }
 
     for (const auto &object : ctx.transparent_objects) {
-        draw_render_object(object);
+        if (object.is_visible(viewproj)) {
+            draw_render_object(object);
+        }
     }
 
     //--------------------------------------------------------------------------

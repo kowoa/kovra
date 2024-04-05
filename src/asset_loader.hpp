@@ -18,15 +18,16 @@ class Mesh;
 class Renderer;
 class LoadedGltfScene;
 
+struct GeometrySurface
+{
+    uint32_t start_index;
+    uint32_t count;
+    Bounds bounds;
+    std::shared_ptr<MaterialInstance> material_instance;
+};
+
 struct MeshAsset
 {
-    struct GeometrySurface
-    {
-        uint32_t start_index;
-        uint32_t count;
-        std::shared_ptr<MaterialInstance> material_instance;
-    };
-
     std::string name;
     std::vector<GeometrySurface> surfaces;
     std::unique_ptr<Mesh> mesh;

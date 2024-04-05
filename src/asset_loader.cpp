@@ -328,11 +328,12 @@ LoadedGltfScene::LoadedGltfScene(
         indices.clear();
 
         for (auto &&p : mesh.primitives) {
-            auto surface = MeshAsset::GeometrySurface{
+            auto surface = GeometrySurface{
                 .start_index = static_cast<uint32_t>(indices.size()),
                 .count = static_cast<uint32_t>(
                   gltf.accessors[p.indicesAccessor.value()].count
-                )
+                ),
+                .bounds = {},
             };
             size_t initial_vertex_count = vertices.size();
 
@@ -422,6 +423,25 @@ LoadedGltfScene::LoadedGltfScene(
                   material_instances[p.materialIndex.value()];
             } else {
                 surface.material_instance = material_instances[0];
+            }
+
+            // Set bounds
+            {
+                glm::vec3 min_pos = vertices[initial_vertex_count].position;
+                glm::vec3 max_pos = vertices[initial_vertex_count].position;
+                // Loop through vertices of surface to find the min and max
+                // bounds
+                for (size_t i = initial_vertex_count; i < vertices.size();
+                     i++) {
+                    min_pos = glm::min(min_pos, vertices[i].position);
+                    max_pos = glm::max(max_pos, vertices[i].position);
+                }
+                // Calculate the origin and extents from the min/max
+                surface.bounds.origin = (min_pos + max_pos) / 2.0f;
+                surface.bounds.extents = (max_pos - min_pos) / 2.0f;
+                // Use entents length as sphere radius
+                surface.bounds.sphere_radius =
+                  glm::length(surface.bounds.extents);
             }
 
             mesh_asset->surfaces.push_back(std::move(surface));

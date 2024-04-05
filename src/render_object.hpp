@@ -13,6 +13,14 @@ namespace kovra {
 // Forward declarations
 struct MeshAsset;
 
+struct Bounds
+{
+    glm::vec3 origin;
+    float sphere_radius;
+    glm::vec3 extents;
+};
+
+// Struct containing all the information needed to render a single object
 struct RenderObject
 {
     const uint32_t index_count;
@@ -20,9 +28,12 @@ struct RenderObject
     const vk::Buffer index_buffer;
 
     const std::shared_ptr<MaterialInstance> material_instance;
+    const Bounds bounds;
 
     const glm::mat4 transform;
     const vk::DeviceAddress vertex_buffer_address;
+
+    [[nodiscard]] bool is_visible(const glm::mat4 &viewproj) const noexcept;
 };
 
 // Base class for a renderable dynamic object

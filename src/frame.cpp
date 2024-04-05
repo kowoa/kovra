@@ -263,24 +263,47 @@ Frame::draw_render_objects(
   const vk::DescriptorSet &scene_desc_set
 )
 {
+    //--------------------------------------------------------------------------
     ctx.stats.draw_call_count = 0;
     ctx.stats.triangle_count = 0;
-
     const auto start = std::chrono::system_clock::now();
+    //--------------------------------------------------------------------------
+
+    Material *last_material = nullptr;
+    MaterialInstance *last_material_instance = nullptr;
+    vk::Buffer last_index_buffer = nullptr;
 
     auto draw_render_object = [&](const RenderObject &object) {
         if (!object.material_instance) {
             spdlog::error("Material Instance is null");
+            return;
         }
 
-        pass.set_material(object.material_instance->material);
-        pass.set_desc_sets(
-          0, { scene_desc_set, object.material_instance->desc_set }, {}
-        );
-        pass.set_index_buffer(object.index_buffer);
+        // Update material only if different from last material
+        if (object.material_instance.get() != last_material_instance) {
+            last_material_instance = object.material_instance.get();
+
+            if (object.material_instance->material.get() != last_material) {
+                last_material = object.material_instance->material.get();
+                pass.set_material(object.material_instance->material);
+                pass.set_desc_sets(0, { scene_desc_set }, {});
+            }
+
+            pass.set_desc_sets(1, { object.material_instance->desc_set }, {});
+        }
+
+        // Update index buffer only if different from last index buffer
+        if (object.index_buffer != last_index_buffer) {
+            last_index_buffer = object.index_buffer;
+            pass.set_index_buffer(object.index_buffer);
+        }
+
+        // Update push constants
         pass.set_push_constants(utils::cast_to_bytes(GpuPushConstants{
           .object_transform = object.transform,
           .vertex_buffer = object.vertex_buffer_address }));
+
+        // Draw
         pass.draw_indexed(object.index_count, 1, object.first_index, 0, 0);
 
         ctx.stats.draw_call_count++;
@@ -295,10 +318,12 @@ Frame::draw_render_objects(
         draw_render_object(object);
     }
 
+    //--------------------------------------------------------------------------
     const auto end = std::chrono::system_clock::now();
     const auto elapsed =
       std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     ctx.stats.render_objects_draw_time = elapsed.count() / 1000.0f;
+    //--------------------------------------------------------------------------
 }
 
 void

@@ -310,8 +310,31 @@ Frame::draw_render_objects(
         ctx.stats.triangle_count += object.index_count / 3;
     };
 
-    for (const auto &object : ctx.opaque_objects) {
-        draw_render_object(object);
+    std::vector<uint32_t> opaque_draws;
+    opaque_draws.reserve(ctx.opaque_objects.size());
+    for (size_t i = 0; i < ctx.opaque_objects.size(); i++) {
+        opaque_draws.push_back(i);
+    }
+    // Sort opaque objects by material and mesh.
+    // We do this to reduce the number of times the material has to be updated.
+    std::sort(
+      opaque_draws.begin(),
+      opaque_draws.end(),
+      [&](const auto &a_idx, const auto &b_idx) {
+          const RenderObject &a = ctx.opaque_objects[a_idx];
+          const RenderObject &b = ctx.opaque_objects[b_idx];
+          // If the material instance is the same, sort by index_buffer
+          if (a.material_instance == b.material_instance) {
+              return a.index_buffer < b.index_buffer;
+          } else {
+              // Else compare the material_instance pointer
+              return a.material_instance < b.material_instance;
+          }
+      }
+    );
+
+    for (const auto &object_index : opaque_draws) {
+        draw_render_object(ctx.opaque_objects[object_index]);
     }
 
     for (const auto &object : ctx.transparent_objects) {

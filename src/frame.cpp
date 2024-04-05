@@ -263,6 +263,11 @@ Frame::draw_render_objects(
   const vk::DescriptorSet &scene_desc_set
 )
 {
+    ctx.stats.draw_call_count = 0;
+    ctx.stats.triangle_count = 0;
+
+    const auto start = std::chrono::system_clock::now();
+
     auto draw_render_object = [&](const RenderObject &object) {
         if (!object.material_instance) {
             spdlog::error("Material Instance is null");
@@ -277,6 +282,9 @@ Frame::draw_render_objects(
           .object_transform = object.transform,
           .vertex_buffer = object.vertex_buffer_address }));
         pass.draw_indexed(object.index_count, 1, object.first_index, 0, 0);
+
+        ctx.stats.draw_call_count++;
+        ctx.stats.triangle_count += object.index_count / 3;
     };
 
     for (const auto &object : ctx.opaque_objects) {
@@ -286,6 +294,11 @@ Frame::draw_render_objects(
     for (const auto &object : ctx.transparent_objects) {
         draw_render_object(object);
     }
+
+    const auto end = std::chrono::system_clock::now();
+    const auto elapsed =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    ctx.stats.render_objects_draw_time = elapsed.count() / 1000.0f;
 }
 
 void

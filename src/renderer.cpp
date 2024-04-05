@@ -148,6 +148,9 @@ Renderer::update_scene(
   const std::span<std::string> &objects_to_render
 ) -> DrawContext
 {
+    stats.scene_update_time = 0;
+    const auto start = std::chrono::system_clock::now();
+
     auto swapchain_image_extent = context->get_swapchain().get_extent();
     GpuSceneData scene_data{
         .viewproj = camera.get_viewproj_mat(
@@ -173,7 +176,9 @@ Renderer::update_scene(
                                  .frame_number = frame_number,
                                  .render_scale = render_scale,
 
-                                 .scene_data = std::move(scene_data) };
+                                 .scene_data = std::move(scene_data),
+
+                                 .stats = stats };
 
     // Add render objects to be drawn
     for (const auto &name : objects_to_render) {
@@ -188,6 +193,12 @@ Renderer::update_scene(
         }
     }
 
+    const auto end = std::chrono::system_clock::now();
+    stats.scene_update_time =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start)
+        .count() /
+      1000.0f;
+
     return draw_ctx;
 }
 
@@ -198,9 +209,20 @@ Renderer::draw_frame(
 )
 {
     auto draw_ctx = update_scene(camera, objects_to_render);
+
+    //--------------------------------------------------------------------------
+    const auto start = std::chrono::system_clock::now();
+
     get_current_frame().draw(std::move(draw_ctx));
     frame_number++;
+
+    const auto end = std::chrono::system_clock::now();
+    const auto elapsed =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    stats.frame_time = elapsed.count() / 1000.0f;
+    //--------------------------------------------------------------------------
 }
+
 void
 Renderer::load_gltf(
   const std::filesystem::path &filepath,

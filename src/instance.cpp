@@ -55,19 +55,21 @@ Instance::Instance(SDL_Window *window)
 
     VULKAN_HPP_DEFAULT_DISPATCHER.init(instance.get());
 
-    debug_messenger = instance->createDebugUtilsMessengerEXTUnique(
-      vk::DebugUtilsMessengerCreateInfoEXT{
-        {},
-        vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
-          vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-          vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
-          vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo,
-        vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-          vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
-          vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
-        debugUtilsMessageCallback },
-      nullptr
-    );
+    if (ENABLE_VALIDATION_LAYERS) {
+        debug_messenger = instance->createDebugUtilsMessengerEXTUnique(
+          vk::DebugUtilsMessengerCreateInfoEXT{
+            {},
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+              vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+              vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+              vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo,
+            vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+              vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+              vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
+            debugUtilsMessageCallback },
+          nullptr
+        );
+    }
 }
 
 Instance::~Instance()
@@ -132,7 +134,9 @@ get_required_instance_extensions(SDL_Window *window)
     }
 
     // For validation layers
-    exts.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    if (Instance::ENABLE_VALIDATION_LAYERS) {
+        exts.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
 
     return exts;
 }

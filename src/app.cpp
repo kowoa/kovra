@@ -145,6 +145,18 @@ App::draw_imgui()
         renderer->set_render_scale(render_scale);
     }
 
+    // Renderer profiling stats
+    const auto &stats = renderer->get_stats();
+    ImGui::Begin("Profiling Stats");
+    ImGui::Text("Frame time: %.2f ms", stats.frame_time);
+    ImGui::Text("Triangle count: %d", stats.triangle_count);
+    ImGui::Text("Draw call count: %d", stats.draw_call_count);
+    ImGui::Text("Scene update time: %.2f ms", stats.scene_update_time);
+    ImGui::Text(
+      "Render objects draw time: %.2f ms", stats.render_objects_draw_time
+    );
+    ImGui::End();
+
     ImGui::Render();
 }
 

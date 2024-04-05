@@ -1,12 +1,13 @@
 #pragma once
 
-#include "render_object.hpp"
 #define VULKAN_HPP_EXCEPTIONS
 
 #include "asset_loader.hpp"
 #include "context.hpp"
 #include "frame.hpp"
 #include "image.hpp"
+#include "profiling.hpp"
+#include "render_object.hpp"
 
 namespace kovra {
 // Forward declarations
@@ -52,6 +53,10 @@ class Renderer
     {
         return *draw_image;
     }
+    [[nodiscard]] const RendererStats &get_stats() const noexcept
+    {
+        return stats;
+    }
 
   private:
     std::unique_ptr<Context> context;
@@ -73,6 +78,9 @@ class Renderer
     VkDescriptorPool imgui_pool;
 
     float render_scale = 1.0f;
+
+    // Profiling
+    RendererStats stats;
 
     [[nodiscard]] Frame &get_current_frame() const noexcept
     {

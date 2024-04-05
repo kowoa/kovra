@@ -11,12 +11,16 @@ namespace kovra {
 class Surface;
 class PhysicalDevice;
 
-class Instance {
+class Instance
+{
   public:
+    static constexpr const bool ENABLE_VALIDATION_LAYERS = true;
+
     explicit Instance(SDL_Window *window);
     ~Instance();
 
-    [[nodiscard]] const vk::Instance &get() const noexcept {
+    [[nodiscard]] const vk::Instance &get() const noexcept
+    {
         return instance.get();
     }
 

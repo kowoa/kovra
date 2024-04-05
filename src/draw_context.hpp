@@ -2,6 +2,7 @@
 
 #include "camera.hpp"
 #include "gpu_data.hpp"
+#include "profiling.hpp"
 
 namespace kovra {
 // Forward declarations
@@ -32,5 +33,8 @@ struct DrawContext
     const float render_scale = 1.0f;
 
     const GpuSceneData scene_data;
+
+    // Profiling
+    RendererStats &stats;
 };
 } // namespace kovra

@@ -63,7 +63,7 @@ AssetLoader::load_gltf(
   std::filesystem::path filepath,
   const Device &device,
   const RenderResources &resources
-) const
+)
 {
     spdlog::debug("Loading GLTF file: {}", filepath.string());
 
@@ -96,6 +96,37 @@ AssetLoader::load_gltf(
     );
 }
 
+std::optional<std::unique_ptr<unsigned char[], AssetLoader::STBImageDeleter>>
+AssetLoader::load_image_raw(
+  const std::filesystem::path &filepath,
+  int *width,
+  int *height,
+  int *channels
+)
+{
+    int img_width, img_height, img_channels;
+    unsigned char *data = stbi_load(
+      filepath.c_str(), &img_width, &img_height, &img_channels, STBI_rgb_alpha
+    );
+
+    if (width != nullptr) {
+        *width = img_width;
+    }
+    if (height != nullptr) {
+        *height = img_height;
+    }
+    if (channels != nullptr) {
+        *channels = img_channels;
+    }
+
+    if (data) {
+        return std::unique_ptr<unsigned char[], AssetLoader::STBImageDeleter>(
+          data
+        );
+    }
+    return std::nullopt;
+}
+
 std::optional<std::unique_ptr<GpuImage>>
 LoadedGltfScene::load_image(
   const fastgltf::Asset &asset,
@@ -121,9 +152,11 @@ LoadedGltfScene::load_image(
             const std::string filepath_str{ filepath.uri.path().begin(),
                                             filepath.uri.path().end() };
             spdlog::debug("Loading image: {}", filepath_str);
-            unsigned char *data =
-              stbi_load(filepath_str.c_str(), &width, &height, &channels, 4);
-            if (data) {
+            auto result = AssetLoader::load_image_raw(
+              filepath_str, &width, &height, &channels
+            );
+            if (result.has_value()) {
+                unsigned char *data = result.value().get();
                 img = device.create_color_image(
                   data,
                   width,
@@ -131,7 +164,7 @@ LoadedGltfScene::load_image(
                   resources.get_sampler(vk::Filter::eLinear),
                   vk::Format::eR8G8B8A8Unorm
                 );
-                stbi_image_free(data);
+                result.reset();
             }
         },
         [&](const fastgltf::sources::Vector &vector) {

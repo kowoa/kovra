@@ -11,12 +11,41 @@
 #include <vector>
 
 #include "fastgltf/types.hpp"
+#include "stb_image.h"
 
 namespace kovra {
 // Forward declarations
 class Mesh;
 class Renderer;
 class LoadedGltfScene;
+
+class AssetLoader
+{
+  private:
+    struct STBImageDeleter
+    {
+        void operator()(unsigned char *ptr) const
+        {
+            spdlog::error("DELETING IMAGE");
+            stbi_image_free(ptr);
+        }
+    };
+
+  public:
+    static std::optional<std::unique_ptr<LoadedGltfScene>> load_gltf(
+      std::filesystem::path filepath,
+      const Device &device,
+      const RenderResources &resources
+    );
+    static std::optional<
+      std::unique_ptr<unsigned char[], AssetLoader::STBImageDeleter>>
+    load_image_raw(
+      const std::filesystem::path &filepath,
+      int *width = nullptr,
+      int *height = nullptr,
+      int *channels = nullptr
+    );
+};
 
 struct GeometrySurface
 {
@@ -31,16 +60,6 @@ struct MeshAsset
     std::string name;
     std::vector<GeometrySurface> surfaces;
     std::unique_ptr<Mesh> mesh;
-};
-
-class AssetLoader
-{
-  public:
-    std::optional<std::unique_ptr<LoadedGltfScene>> load_gltf(
-      std::filesystem::path filepath,
-      const Device &device,
-      const RenderResources &resources
-    ) const;
 };
 
 class LoadedGltfScene : public IRenderable

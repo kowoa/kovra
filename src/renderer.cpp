@@ -33,7 +33,6 @@ init_default_textures(const Device &device, RenderResources &resources);
 
 Renderer::Renderer(SDL_Window *window)
   : context{ std::make_unique<Context>(window) }
-  , asset_loader{ std::make_unique<AssetLoader>() }
   , global_desc_allocator{ std::make_unique<DescriptorAllocator>(
       context->get_device().get(),
       100
@@ -229,7 +228,7 @@ Renderer::load_gltf(
   const std::string &name
 ) noexcept
 {
-    auto result = asset_loader->load_gltf(
+    auto result = AssetLoader::load_gltf(
       filepath, context->get_device(), *render_resources
     );
     if (!result.has_value()) {

@@ -4,7 +4,9 @@
 namespace kovra {
 
 // TODO: Instead of performing frustum culling here, we should do it in the GPU
-// with a compute shader
+// with a compute shader.
+// Right now, frustum culling actually decreases performance if there are a
+// large number of objects in the scene.
 [[nodiscard]] bool
 RenderObject::is_visible(const glm::mat4 &viewproj) const noexcept
 {

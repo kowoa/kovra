@@ -14,9 +14,10 @@ Requirements:
 - CMake 3.28 or later
 - C++20 compiler
 - Vulkan 1.3 or later
+- Make for building and running the project
 
 ```shell
 git clone --recurse-submodules https://github.com/kowoa/kovra.git
 cd kovra
-./run
+make run
 ```

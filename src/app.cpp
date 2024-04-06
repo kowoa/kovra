@@ -104,8 +104,8 @@ App::run()
 
         draw_imgui();
 
-        std::vector<std::string> objects_to_render{ "structure" };
-        renderer->draw_frame(camera, objects_to_render);
+        // std::vector<std::string> objects_to_render{ "structure" };
+        renderer->draw_frame(camera, {});
     }
 }
 

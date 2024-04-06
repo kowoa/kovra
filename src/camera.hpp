@@ -29,6 +29,7 @@ class Camera
       glm::f32 viewport_width,
       glm::f32 viewport_height
     ) const noexcept;
+    [[nodiscard]] glm::vec3 get_position() const noexcept { return position; }
     [[nodiscard]] glm::f32 get_near() const noexcept { return near; }
     [[nodiscard]] glm::f32 get_far() const noexcept { return far; }
 

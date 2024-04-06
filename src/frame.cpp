@@ -290,7 +290,11 @@ Frame::draw_skybox(RenderPass &pass, const DrawContext &ctx) const
     writer.update_set(ctx.device.get(), skybox_desc_set);
 
     pass.set_material(ctx.render_resources.get_material_owned("skybox"));
-    pass.set_push_constants(utils::cast_to_bytes(ctx.scene_data.viewproj));
+    std::array<glm::mat4, 2> push_constants = {
+        ctx.scene_data.viewproj,
+        glm::translate(glm::mat4(1.0f), ctx.camera.get_position())
+    };
+    pass.set_push_constants(utils::cast_to_bytes(push_constants));
     pass.set_desc_sets(0, { skybox_desc_set }, {});
     pass.draw(36, 1, 0, 0);
 }

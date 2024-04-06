@@ -407,7 +407,9 @@ init_materials(
                           vk::ShaderStageFlagBits::eFragment
                         )
                         .setOffset(0)
-                        .setSize(sizeof(glm::mat4)) };
+                        // One mat4 for the viewproj matrix
+                        // Another mat4 for the camera translation matrix
+                        .setSize(sizeof(glm::mat4) * 2) };
         auto pipeline_layout = device.createPipelineLayoutUnique(
           vk::PipelineLayoutCreateInfo{}
             .setSetLayouts(desc_set_layouts)

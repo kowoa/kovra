@@ -8,14 +8,14 @@ layout (push_constant) uniform GpuPushConstants {
 } PushConstants;
 
 const vec3 vertices[8] = vec3[](
-    vec3(-1.0,  1.0, -1.0), // Top front left
-    vec3(-1.0, -1.0, -1.0), // Bottom front left
-    vec3( 1.0, -1.0, -1.0), // Bottom front right
-    vec3( 1.0,  1.0, -1.0), // Top front right
-    vec3(-1.0,  1.0,  1.0), // Top back left
-    vec3(-1.0, -1.0,  1.0), // Bottom back left
-    vec3( 1.0, -1.0,  1.0), // Bottom back right
-    vec3( 1.0,  1.0,  1.0)  // Top back right
+    vec3(-1.0,  1.0, -1.0), // 0: Top    front left
+    vec3(-1.0, -1.0, -1.0), // 1: Bottom front left
+    vec3( 1.0, -1.0, -1.0), // 2: Bottom front right
+    vec3( 1.0,  1.0, -1.0), // 3: Top    front right
+    vec3(-1.0,  1.0,  1.0), // 4: Top    back  left
+    vec3(-1.0, -1.0,  1.0), // 5: Bottom back  left
+    vec3( 1.0, -1.0,  1.0), // 6: Bottom back  right
+    vec3( 1.0,  1.0,  1.0)  // 7: Top    back  right
 );
 
 const int indices[36] = int[](

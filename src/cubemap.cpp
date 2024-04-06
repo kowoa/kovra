@@ -31,10 +31,10 @@ Cubemap::Cubemap(CubemapCreateInfo &&ci, const Device &device)
       ci.down.get(), single_image_size, single_image_size * 3
     );
     staging_buffer->write(
-      ci.right.get(), single_image_size, single_image_size * 4
+      ci.left.get(), single_image_size, single_image_size * 4
     );
     staging_buffer->write(
-      ci.left.get(), single_image_size, single_image_size * 5
+      ci.right.get(), single_image_size, single_image_size * 5
     );
 
     // Create the cubemap image

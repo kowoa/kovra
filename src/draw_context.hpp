@@ -12,6 +12,7 @@ class GpuImage;
 class RenderResources;
 struct RenderObject;
 struct MaterialInstance;
+class Cubemap;
 
 // WARNING: Do not store this struct in any class as a member.
 // It contains references to objects that may be destroyed.
@@ -23,6 +24,7 @@ struct DrawContext
 
     Swapchain &swapchain;
     GpuImage &draw_image;
+    Cubemap &skybox;
 
     // This vector will be filled each frame with opaque render objects
     std::vector<RenderObject> opaque_objects;

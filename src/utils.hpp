@@ -20,7 +20,8 @@ transition_image_layout(
   vk::Image image,
   vk::ImageAspectFlags aspect,
   vk::ImageLayout old_layout,
-  vk::ImageLayout new_layout
+  vk::ImageLayout new_layout,
+  int layer_count = 1
 );
 
 void

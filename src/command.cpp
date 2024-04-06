@@ -95,11 +95,12 @@ CommandEncoder::transition_image_layout(
   const vk::Image &image,
   vk::ImageAspectFlagBits aspect,
   vk::ImageLayout old_layout,
-  vk::ImageLayout new_layout
+  vk::ImageLayout new_layout,
+  int layer_count
 ) const
 {
     utils::transition_image_layout(
-      get_current_cmd(), image, aspect, old_layout, new_layout
+      get_current_cmd(), image, aspect, old_layout, new_layout, layer_count
     );
 }
 void

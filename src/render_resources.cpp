@@ -157,6 +157,7 @@ RenderResources::get_sampler(vk::Filter filter) const
 RenderResources::get_desc_set_layout(const std::string &name) const
 {
     if (desc_set_layouts.find(name) == desc_set_layouts.end()) {
+        spdlog::error("Descriptor set layout not found: {}", name);
         throw std::runtime_error("Descriptor set layout not found: " + name);
     }
     return desc_set_layouts.at(name);

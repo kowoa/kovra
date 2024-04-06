@@ -42,16 +42,17 @@ class Frame
     std::unique_ptr<GpuBuffer> scene_buffer;
     std::unique_ptr<GpuBuffer> material_buffer;
 
+    void draw_skybox(RenderPass &pass, const DrawContext &ctx) const;
     void draw_render_objects(
       RenderPass &pass,
       const DrawContext &ctx,
       const vk::DescriptorSet &scene_desc_set
-    );
+    ) const;
     void draw_grid(
       RenderPass &pass,
       const DrawContext &ctx,
       const vk::DescriptorSet &scene_desc_set
-    );
-    void present(uint32_t swapchain_image_index, const DrawContext &ctx);
+    ) const;
+    void present(uint32_t swapchain_image_index, const DrawContext &ctx) const;
 };
 } // namespace kovra

@@ -101,6 +101,7 @@ GpuImage::GpuImage(
   , extent{ info.extent }
   , aspect{ info.aspect }
   , sampler{ info.sampler }
+  , layer_count{ info.array_layers }
 {
     VkImageCreateInfo image_ci{};
     image_ci.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -162,7 +163,7 @@ GpuImage::GpuImage(
             .setBaseMipLevel(0)
             .setLevelCount(info.mipmapped ? image_ci.mipLevels : 1)
             .setBaseArrayLayer(0)
-            .setLayerCount(info.array_layers)
+            .setLayerCount(layer_count)
         )
     );
 }
@@ -255,7 +256,9 @@ GpuImage::transition_layout(
   vk::ImageLayout new_layout
 ) noexcept
 {
-    utils::transition_image_layout(cmd, image, aspect, old_layout, new_layout);
+    utils::transition_image_layout(
+      cmd, image, aspect, old_layout, new_layout, layer_count
+    );
 }
 void
 GpuImage::copy_to(vk::CommandBuffer cmd, const GpuImage &dst) const noexcept
@@ -299,8 +302,7 @@ void
 GpuImage::upload(
   const vk::Buffer &staging_buffer,
   const Device &device,
-  bool mipmapped,
-  int layer_count
+  bool mipmapped
 )
 {
     device.immediate_submit([&](vk::CommandBuffer cmd) {

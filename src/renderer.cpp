@@ -200,6 +200,7 @@ Renderer::update_scene(
 
                                  .swapchain = context->get_swapchain_mut(),
                                  .draw_image = *draw_image,
+                                 .skybox = *skybox,
 
                                  .opaque_objects = {},
 
@@ -393,6 +394,35 @@ init_materials(
             ))
             .build(device);
         resources.add_material("colored mesh", std::move(mesh));
+    }
+
+    // Skybox
+    {
+        auto desc_set_layouts =
+          std::array{ resources.get_desc_set_layout("texture") };
+        auto push_constant_ranges =
+          std::array{ vk::PushConstantRange{}
+                        .setStageFlags(
+                          vk::ShaderStageFlagBits::eVertex |
+                          vk::ShaderStageFlagBits::eFragment
+                        )
+                        .setOffset(0)
+                        .setSize(sizeof(glm::mat4)) };
+        auto pipeline_layout = device.createPipelineLayoutUnique(
+          vk::PipelineLayoutCreateInfo{}
+            .setSetLayouts(desc_set_layouts)
+            .setPushConstantRanges(push_constant_ranges)
+        );
+        auto skybox =
+          GraphicsMaterialBuilder{}
+            .set_pipeline_layout(std::move(pipeline_layout))
+            .set_shader(std::make_unique<GraphicsShader>(GraphicsShader{
+              "skybox", device }))
+            .set_color_attachment_format(draw_image.get_format())
+            .set_depth_attachment_format(swapchain.get_depth_image().get_format(
+            ))
+            .build(device);
+        resources.add_material("skybox", std::move(skybox));
     }
 
     // Textured mesh

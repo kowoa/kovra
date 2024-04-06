@@ -32,7 +32,8 @@ class CommandEncoder
       const vk::Image &image,
       vk::ImageAspectFlagBits aspect,
       vk::ImageLayout old_layout,
-      vk::ImageLayout new_layout
+      vk::ImageLayout new_layout,
+      int layer_count = 1
     ) const;
     void copy_image_to_image(
       vk::Image src,

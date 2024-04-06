@@ -90,13 +90,13 @@ class GpuImage
     {
         return sampler.value();
     }
+    [[nodiscard]] int get_layer_count() const noexcept { return layer_count; }
 
     void upload(const void *data, const Device &device, bool mipmapped = false);
     void upload(
       const vk::Buffer &staging_buffer,
       const Device &device,
-      bool mipmapped = false,
-      int layer_count = 1
+      bool mipmapped = false
     );
 
   private:
@@ -109,5 +109,6 @@ class GpuImage
     vk::Extent3D extent;
     vk::ImageAspectFlags aspect;
     std::optional<vk::Sampler> sampler;
+    int layer_count;
 };
 } // namespace kovra

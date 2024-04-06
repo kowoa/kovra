@@ -51,6 +51,6 @@ Cubemap::Cubemap(CubemapCreateInfo &&ci, const Device &device)
         .flags = vk::ImageCreateFlagBits::eCubeCompatible,
     };
     cubemap = device.create_image(img_ci);
-    cubemap->upload(staging_buffer->get(), device, false, 6);
+    cubemap->upload(staging_buffer->get(), device, false);
 }
 }

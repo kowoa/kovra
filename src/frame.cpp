@@ -2,6 +2,7 @@
 #include "asset_loader.hpp"
 #include "buffer.hpp"
 #include "camera.hpp"
+#include "cubemap.hpp"
 #include "descriptor.hpp"
 #include "device.hpp"
 #include "gpu_data.hpp"
@@ -137,9 +138,17 @@ Frame::draw(const DrawContext &&ctx)
       vk::ImageLayout::eColorAttachmentOptimal
     );
 
-    // Render commands (draw to draw image)
+    const auto depth_attachment =
+      vk::RenderingAttachmentInfo{}
+        .setImageView(ctx.swapchain.get_depth_image().get_view())
+        .setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
+        .setLoadOp(vk::AttachmentLoadOp::eClear)
+        .setStoreOp(vk::AttachmentStoreOp::eStore)
+        .setClearValue(vk::ClearValue{}.setDepthStencil({ 1.0f, 0 }));
+
+    // Draw skybox
     {
-        auto color_attachment =
+        const auto color_attachment =
           vk::RenderingAttachmentInfo{}
             .setImageView(ctx.draw_image.get_view())
             .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
@@ -147,14 +156,7 @@ Frame::draw(const DrawContext &&ctx)
             .setStoreOp(vk::AttachmentStoreOp::eStore)
             .setClearValue(vk::ClearValue{}.setColor({ 0.1f, 0.1f, 0.1f, 1.0f })
             );
-        auto depth_attachment =
-          vk::RenderingAttachmentInfo{}
-            .setImageView(ctx.swapchain.get_depth_image().get_view())
-            .setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
-            .setLoadOp(vk::AttachmentLoadOp::eClear)
-            .setStoreOp(vk::AttachmentStoreOp::eStore)
-            .setClearValue(vk::ClearValue{}.setDepthStencil({ 1.0f, 0 }));
-        auto render_area =
+        const auto render_area =
           vk::Rect2D{}.setOffset({ 0, 0 }).setExtent(draw_extent);
         RenderPass render_pass =
           cmd_encoder->begin_render_pass(RenderPassDescriptor{
@@ -162,7 +164,29 @@ Frame::draw(const DrawContext &&ctx)
             .depth_attachment = depth_attachment,
             .render_area = render_area,
           });
+        render_pass.set_viewport_scissor(draw_extent.width, draw_extent.height);
 
+        draw_skybox(render_pass, ctx);
+    }
+
+    // Draw render objects and grid
+    {
+        const auto color_attachment =
+          vk::RenderingAttachmentInfo{}
+            .setImageView(ctx.draw_image.get_view())
+            .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
+            .setLoadOp(vk::AttachmentLoadOp::eLoad)
+            .setStoreOp(vk::AttachmentStoreOp::eStore)
+            .setClearValue(vk::ClearValue{}.setColor({ 0.1f, 0.1f, 0.1f, 1.0f })
+            );
+        const auto render_area =
+          vk::Rect2D{}.setOffset({ 0, 0 }).setExtent(draw_extent);
+        RenderPass render_pass =
+          cmd_encoder->begin_render_pass(RenderPassDescriptor{
+            .color_attachments = { color_attachment },
+            .depth_attachment = depth_attachment,
+            .render_area = render_area,
+          });
         render_pass.set_viewport_scissor(draw_extent.width, draw_extent.height);
 
         draw_render_objects(render_pass, ctx, scene_desc_set);
@@ -203,13 +227,6 @@ Frame::draw(const DrawContext &&ctx)
             .setStoreOp(vk::AttachmentStoreOp::eStore)
             .setClearValue(vk::ClearValue{}.setColor({ 0.0f, 0.0f, 0.0f, 1.0f })
             );
-        auto depth_attachment =
-          vk::RenderingAttachmentInfo{}
-            .setImageView(ctx.swapchain.get_depth_image().get_view())
-            .setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
-            .setLoadOp(vk::AttachmentLoadOp::eClear)
-            .setStoreOp(vk::AttachmentStoreOp::eStore)
-            .setClearValue(vk::ClearValue{}.setDepthStencil({ 1.0f, 0 }));
         auto render_area =
           vk::Rect2D{}.setOffset({ 0, 0 }).setExtent(swapchain_image_extent);
         RenderPass render_pass =
@@ -257,11 +274,33 @@ Frame::draw(const DrawContext &&ctx)
 }
 
 void
+Frame::draw_skybox(RenderPass &pass, const DrawContext &ctx) const
+{
+    auto skybox_desc_set = desc_allocator->allocate(
+      ctx.render_resources.get_desc_set_layout("texture"), ctx.device.get()
+    );
+    DescriptorWriter writer{};
+    writer.write_image(
+      0,
+      ctx.skybox.get_image().get_view(),
+      ctx.render_resources.get_sampler(vk::Filter::eNearest),
+      vk::ImageLayout::eShaderReadOnlyOptimal,
+      vk::DescriptorType::eCombinedImageSampler
+    );
+    writer.update_set(ctx.device.get(), skybox_desc_set);
+
+    pass.set_material(ctx.render_resources.get_material_owned("skybox"));
+    pass.set_push_constants(utils::cast_to_bytes(ctx.scene_data.viewproj));
+    pass.set_desc_sets(0, { skybox_desc_set }, {});
+    pass.draw(36, 1, 0, 0);
+}
+
+void
 Frame::draw_render_objects(
   RenderPass &pass,
   const DrawContext &ctx,
   const vk::DescriptorSet &scene_desc_set
-)
+) const
 {
     //--------------------------------------------------------------------------
     ctx.stats.draw_call_count = 0;
@@ -360,7 +399,7 @@ Frame::draw_grid(
   RenderPass &pass,
   const DrawContext &ctx,
   const vk::DescriptorSet &scene_desc_set
-)
+) const
 {
     pass.set_material(ctx.render_resources.get_material_owned("grid"));
     pass.set_desc_sets(0, { scene_desc_set }, {});
@@ -368,11 +407,11 @@ Frame::draw_grid(
 }
 
 void
-Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx)
+Frame::present(uint32_t swapchain_image_index, const DrawContext &ctx) const
 {
-    auto swapchains = std::array{ ctx.swapchain.get() };
-    auto wait_semaphores = std::array{ render_semaphore.get() };
-    auto result = ctx.device.get_present_queue().presentKHR(
+    const auto swapchains = std::array{ ctx.swapchain.get() };
+    const auto wait_semaphores = std::array{ render_semaphore.get() };
+    const auto result = ctx.device.get_present_queue().presentKHR(
       vk::PresentInfoKHR{}
         .setSwapchains(swapchains)
         .setWaitSemaphores(wait_semaphores)

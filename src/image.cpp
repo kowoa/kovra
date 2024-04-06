@@ -116,7 +116,8 @@ GpuImage::GpuImage(
     } else {
         image_ci.mipLevels = 1;
     }
-    image_ci.arrayLayers = 1;
+    image_ci.flags = static_cast<VkImageCreateFlags>(info.flags);
+    image_ci.arrayLayers = info.array_layers;
     image_ci.samples = VK_SAMPLE_COUNT_1_BIT;
     image_ci.tiling = VK_IMAGE_TILING_OPTIMAL;
     image_ci.usage = static_cast<VkImageUsageFlags>(info.usage);
@@ -138,37 +139,9 @@ GpuImage::GpuImage(
         );
         result != VK_SUCCESS) {
         switch (result) {
-            case VK_ERROR_OUT_OF_DEVICE_MEMORY:
-                spdlog::error("Failed to allocate image: out of device memory");
-                break;
-            case VK_ERROR_OUT_OF_HOST_MEMORY:
-                spdlog::error("Failed to allocate image: out of host memory");
-                break;
-            case VK_ERROR_INVALID_EXTERNAL_HANDLE:
-                spdlog::error(
-                  "Failed to allocate image: invalid external handle"
-                );
-                break;
-            case VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS:
-                spdlog::error(
-                  "Failed to allocate image: invalid opaque capture address"
-                );
-                break;
-            case VK_ERROR_FORMAT_NOT_SUPPORTED:
-                spdlog::error("Failed to allocate image: format not supported");
-                break;
-            case VK_ERROR_FRAGMENTED_POOL:
-                spdlog::error("Failed to allocate image: fragmented pool");
-                break;
             case VK_ERROR_INITIALIZATION_FAILED:
                 spdlog::error("Failed to allocate image: initialization failed"
                 );
-                break;
-            case VK_ERROR_DEVICE_LOST:
-                spdlog::error("Failed to allocate image: device lost");
-                break;
-            case VK_ERROR_SURFACE_LOST_KHR:
-                spdlog::error("Failed to allocate image: surface lost");
                 break;
             default:
                 spdlog::error("Failed to allocate image: unknown error");
@@ -181,7 +154,7 @@ GpuImage::GpuImage(
     view = device.createImageViewUnique(
       vk::ImageViewCreateInfo{}
         .setImage(image)
-        .setViewType(vk::ImageViewType::e2D)
+        .setViewType(info.view_type)
         .setFormat(info.format)
         .setSubresourceRange(
           vk::ImageSubresourceRange{}
@@ -189,7 +162,7 @@ GpuImage::GpuImage(
             .setBaseMipLevel(0)
             .setLevelCount(info.mipmapped ? image_ci.mipLevels : 1)
             .setBaseArrayLayer(0)
-            .setLayerCount(1)
+            .setLayerCount(info.array_layers)
         )
     );
 }
@@ -306,6 +279,7 @@ GpuImage::copy_to_vkimage(
       cmd, image, dst, vk::Extent2D{ extent.width, extent.height }, dst_extent
     );
 }
+
 void
 GpuImage::upload(const void *data, const Device &device, bool mipmapped)
 {
@@ -318,6 +292,17 @@ GpuImage::upload(const void *data, const Device &device, bool mipmapped)
     );
     staging_buffer->write(data, data_size);
 
+    upload(staging_buffer->get(), device, mipmapped);
+}
+
+void
+GpuImage::upload(
+  const vk::Buffer &staging_buffer,
+  const Device &device,
+  bool mipmapped,
+  int layer_count
+)
+{
     device.immediate_submit([&](vk::CommandBuffer cmd) {
         transition_layout(
           cmd, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal
@@ -332,11 +317,11 @@ GpuImage::upload(const void *data, const Device &device, bool mipmapped)
                             .setAspectMask(vk::ImageAspectFlagBits::eColor)
                             .setMipLevel(0)
                             .setBaseArrayLayer(0)
-                            .setLayerCount(1)
+                            .setLayerCount(layer_count)
                         )
                         .setImageExtent(extent);
         cmd.copyBufferToImage(
-          staging_buffer->get(),
+          staging_buffer,
           image,
           vk::ImageLayout::eTransferDstOptimal,
           1,

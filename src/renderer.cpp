@@ -2,6 +2,7 @@
 #include "vk_mem_alloc.h"
 
 #include "asset_loader.hpp"
+#include "cubemap.hpp"
 #include "descriptor.hpp"
 #include "material.hpp"
 #include "mesh.hpp"
@@ -104,6 +105,36 @@ Renderer::Renderer(SDL_Window *window)
     );
 
     init_imgui(window);
+
+    // Create skybox
+    {
+        int width, height, channels;
+
+        auto top = AssetLoader::load_image_raw(
+          "./assets/skybox/top.jpg", &width, &height, &channels
+        );
+        auto bottom = AssetLoader::load_image_raw("./assets/skybox/bottom.jpg");
+        auto left = AssetLoader::load_image_raw("./assets/skybox/left.jpg");
+        auto right = AssetLoader::load_image_raw("./assets/skybox/right.jpg");
+        auto front = AssetLoader::load_image_raw("./assets/skybox/front.jpg");
+        auto back = AssetLoader::load_image_raw("./assets/skybox/back.jpg");
+
+        auto cubemap_ci = CubemapCreateInfo{
+            .front = std::move(*front),
+            .back = std::move(*back),
+            .up = std::move(*top),
+            .down = std::move(*bottom),
+            .right = std::move(*right),
+            .left = std::move(*left),
+            .width = width,
+            .height = width,
+            .channels = channels,
+        };
+
+        skybox = std::make_unique<Cubemap>(
+          std::move(cubemap_ci), context->get_device()
+        );
+    }
 }
 
 Renderer::~Renderer()

@@ -96,7 +96,7 @@ AssetLoader::load_gltf(
     );
 }
 
-std::optional<std::unique_ptr<unsigned char[], AssetLoader::STBImageDeleter>>
+std::optional<std::unique_ptr<unsigned char[], StbImageDeleter>>
 AssetLoader::load_image_raw(
   const std::filesystem::path &filepath,
   int *width,
@@ -120,9 +120,7 @@ AssetLoader::load_image_raw(
     }
 
     if (data) {
-        return std::unique_ptr<unsigned char[], AssetLoader::STBImageDeleter>(
-          data
-        );
+        return std::unique_ptr<unsigned char[], StbImageDeleter>(data);
     }
     return std::nullopt;
 }

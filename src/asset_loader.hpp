@@ -19,26 +19,21 @@ class Mesh;
 class Renderer;
 class LoadedGltfScene;
 
+struct StbImageDeleter
+{
+    void operator()(unsigned char *ptr) const { stbi_image_free(ptr); }
+};
+
 class AssetLoader
 {
-  private:
-    struct STBImageDeleter
-    {
-        void operator()(unsigned char *ptr) const
-        {
-            spdlog::error("DELETING IMAGE");
-            stbi_image_free(ptr);
-        }
-    };
-
   public:
     static std::optional<std::unique_ptr<LoadedGltfScene>> load_gltf(
       std::filesystem::path filepath,
       const Device &device,
       const RenderResources &resources
     );
-    static std::optional<
-      std::unique_ptr<unsigned char[], AssetLoader::STBImageDeleter>>
+
+    static std::optional<std::unique_ptr<unsigned char[], StbImageDeleter>>
     load_image_raw(
       const std::filesystem::path &filepath,
       int *width = nullptr,

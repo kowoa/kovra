@@ -14,8 +14,11 @@ struct GpuImageCreateInfo
     vk::Extent3D extent;
     vk::ImageUsageFlags usage;
     vk::ImageAspectFlags aspect;
+    vk::ImageViewType view_type = vk::ImageViewType::e2D;
     bool mipmapped;
     std::optional<vk::Sampler> sampler;
+    int array_layers = 1;
+    vk::ImageCreateFlags flags = {};
 };
 
 class GpuImage
@@ -88,6 +91,14 @@ class GpuImage
         return sampler.value();
     }
 
+    void upload(const void *data, const Device &device, bool mipmapped = false);
+    void upload(
+      const vk::Buffer &staging_buffer,
+      const Device &device,
+      bool mipmapped = false,
+      int layer_count = 1
+    );
+
   private:
     std::shared_ptr<VmaAllocator> allocator;
     VkImage image;
@@ -98,7 +109,5 @@ class GpuImage
     vk::Extent3D extent;
     vk::ImageAspectFlags aspect;
     std::optional<vk::Sampler> sampler;
-
-    void upload(const void *data, const Device &device, bool mipmapped);
 };
 } // namespace kovra

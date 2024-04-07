@@ -159,6 +159,7 @@ Renderer::~Renderer()
       get_context().get_device().get(), imgui_pool, nullptr
     );
 
+    skybox.reset();
     draw_image.reset();
     render_resources.reset();
 

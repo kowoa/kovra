@@ -71,7 +71,8 @@ class LoadedGltfScene : public IRenderable
       const override;
 
   private:
-    constexpr const static bool USE_NORMALS_AS_COLORS = false;
+    constexpr static bool USE_NORMALS_AS_COLORS = false;
+    constexpr static std::string_view ASSETS_DIR = "./assets";
 
     // Storage for all the data on a given GLTF file
     std::unordered_map<std::string, std::shared_ptr<MeshAsset>> mesh_assets;

@@ -147,11 +147,13 @@ LoadedGltfScene::load_image(
             ); // We don't support offsets with stbi
             assert(filepath.uri.isLocalPath()); // We only support local paths
 
-            const std::string filepath_str{ filepath.uri.path().begin(),
-                                            filepath.uri.path().end() };
-            spdlog::debug("Loading image: {}", filepath_str);
+            std::filesystem::path asset_filepath{ ASSETS_DIR };
+            asset_filepath /= filepath.uri.path();
+            spdlog::debug(
+              "Loading image from filepath: {}", asset_filepath.string()
+            );
             auto result = AssetLoader::load_image_raw(
-              filepath_str, &width, &height, &channels
+              asset_filepath, &width, &height, &channels
             );
             if (result.has_value()) {
                 unsigned char *data = result.value().get();
@@ -187,6 +189,8 @@ LoadedGltfScene::load_image(
             }
         },
         [&](const fastgltf::sources::BufferView &view) {
+            spdlog::debug("Loading image from buffer view");
+
             const auto &buffer_view = asset.bufferViews[view.bufferViewIndex];
             const auto &buffer = asset.buffers[buffer_view.bufferIndex];
 

@@ -20,12 +20,10 @@ App::App()
     spdlog::debug("App::App()");
 
     // renderer->load_gltf("./assets/basicmesh.glb", "basicmesh");
-    renderer->load_gltf("./assets/structure.glb", "structure");
-    /*
-      renderer->load_gltf(
-        "./assets/damaged-helmet/DamagedHelmet.gltf", "DamagedHelmet"
-      );
-    */
+    // renderer->load_gltf("./assets/structure.glb", "structure");
+    renderer->load_gltf(
+      "./assets/damaged-helmet/DamagedHelmet.glb", "DamagedHelmet"
+    );
 }
 App::~App()
 {
@@ -104,7 +102,7 @@ App::run()
 
         draw_imgui();
 
-        std::vector<std::string> objects_to_render{ "structure" };
+        std::vector<std::string> objects_to_render{ "DamagedHelmet" };
         renderer->draw_frame(camera, objects_to_render);
     }
 }

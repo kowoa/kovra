@@ -75,11 +75,10 @@ class LoadedGltfScene : public IRenderable
     constexpr static std::string_view ASSETS_DIR = "./assets";
 
     // Storage for all the data on a given GLTF file
-    std::unordered_map<std::string, std::shared_ptr<MeshAsset>> mesh_assets;
-    std::unordered_map<std::string, std::shared_ptr<SceneNode>> scene_nodes;
-    std::unordered_map<std::string, std::shared_ptr<GpuImage>> textures;
-    std::unordered_map<std::string, std::shared_ptr<MaterialInstance>>
-      material_instances;
+    std::vector<std::shared_ptr<MeshAsset>> mesh_assets;
+    std::vector<std::shared_ptr<SceneNode>> scene_nodes;
+    std::vector<std::shared_ptr<GpuImage>> textures;
+    std::vector<std::shared_ptr<MaterialInstance>> material_instances;
 
     // Nodes that don't have a parent, used for iterating through the file in
     // tree order

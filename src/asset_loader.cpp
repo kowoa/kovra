@@ -152,6 +152,7 @@ LoadedGltfScene::load_image(
             spdlog::debug(
               "Loading image from filepath: {}", asset_filepath.string()
             );
+
             auto result = AssetLoader::load_image_raw(
               asset_filepath, &width, &height, &channels
             );
@@ -168,6 +169,8 @@ LoadedGltfScene::load_image(
             }
         },
         [&](const fastgltf::sources::Vector &vector) {
+            spdlog::debug("Loading image from vector");
+
             unsigned char *data = stbi_load_from_memory(
               vector.bytes.data(),
               static_cast<int>(vector.bytes.size()),
@@ -274,7 +277,6 @@ LoadedGltfScene::LoadedGltfScene(
     }
 
     // Load textures
-    std::vector<std::shared_ptr<GpuImage>> textures;
     for (const fastgltf::Image &img : gltf.images) {
         auto result = load_image(gltf, img, device, resources);
 
@@ -287,11 +289,9 @@ LoadedGltfScene::LoadedGltfScene(
         }
 
         textures.push_back(texture);
-        this->textures[img.name.c_str()] = texture;
     }
 
     // Load materials
-    std::vector<std::shared_ptr<MaterialInstance>> material_instances;
     for (size_t i = 0; i < gltf.materials.size(); i++) {
         const fastgltf::Material &mat = gltf.materials[i];
         const auto material_data =
@@ -319,26 +319,54 @@ LoadedGltfScene::LoadedGltfScene(
                               : MaterialPass::Opaque;
 
         // Grab textures from glTF file
-        const GpuImage *albedo_texture;
-        const vk::Sampler *albedo_sampler;
+        std::shared_ptr<GpuImage> albedo_texture =
+          resources.get_texture_owned("white");
+        vk::Sampler albedo_sampler = resources.get_sampler(vk::Filter::eLinear);
         if (mat.pbrData.baseColorTexture.has_value()) {
-            size_t img_idx =
-              gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex]
-                .imageIndex.value();
-            size_t sampler_idx =
-              gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex]
-                .samplerIndex.value();
+            if (mat.pbrData.baseColorTexture.value().textureIndex >=
+                gltf.textures.size()) {
+                spdlog::error(
+                  "Texture index out of range: {}",
+                  mat.pbrData.baseColorTexture.value().textureIndex
+                );
+                throw std::runtime_error("Texture index out of range");
+            }
+            const auto &tex =
+              gltf.textures.at(mat.pbrData.baseColorTexture.value().textureIndex
+              );
 
-            albedo_texture = &*textures[img_idx];
-            albedo_sampler = &samplers[sampler_idx].get();
-        } else {
-            albedo_texture = &resources.get_texture("white");
-            albedo_sampler = &resources.get_sampler(vk::Filter::eLinear);
+            // Assign albedo texture
+            if (auto img_idx = tex.imageIndex; img_idx.has_value()) {
+                if (img_idx.value() < textures.size()) {
+                    albedo_texture = textures.at(img_idx.value());
+                } else {
+                    spdlog::error(
+                      "Image index out of range: {}", img_idx.value()
+                    );
+                }
+            } else {
+                spdlog::warn("Image index not found in texture: {}", tex.name);
+            }
+
+            // Assign albedo sampler
+            if (auto sampler_idx = tex.samplerIndex; sampler_idx.has_value()) {
+                if (sampler_idx.value() < samplers.size()) {
+                    albedo_sampler = samplers.at(sampler_idx.value()).get();
+                } else {
+                    spdlog::error(
+                      "Sampler index out of range: {}", sampler_idx.value()
+                    );
+                }
+            } else {
+                spdlog::warn(
+                  "Sampler index not found in texture: {}", tex.name
+                );
+            }
         }
 
         auto mat_inst_ci = PbrMaterialInstanceCreateInfo{
             .albedo_texture = *albedo_texture,
-            .albedo_sampler = *albedo_sampler,
+            .albedo_sampler = albedo_sampler,
             .metal_rough_texture = resources.get_texture("white"),
             .metal_rough_sampler = resources.get_sampler(vk::Filter::eLinear),
             .material_buffer = material_buffer->get(),
@@ -352,11 +380,9 @@ LoadedGltfScene::LoadedGltfScene(
           )
         );
         material_instances.push_back(material_instance);
-        this->material_instances[mat.name.c_str()] = material_instance;
     }
 
     // Load meshes
-    std::vector<std::shared_ptr<MeshAsset>> mesh_assets;
     std::vector<uint32_t> indices;
     std::vector<Vertex> vertices;
     for (fastgltf::Mesh &mesh : gltf.meshes) {
@@ -496,11 +522,9 @@ LoadedGltfScene::LoadedGltfScene(
         mesh_asset->mesh = std::make_unique<Mesh>(vertices, indices, device);
 
         mesh_assets.push_back(mesh_asset);
-        this->mesh_assets[mesh.name.c_str()] = mesh_asset;
     }
 
     // Load scene nodes
-    std::vector<std::shared_ptr<SceneNode>> scene_nodes;
     for (const fastgltf::Node &node : gltf.nodes) {
         std::shared_ptr<SceneNode> scene_node = nullptr;
         if (node.meshIndex.has_value()) {
@@ -537,7 +561,6 @@ LoadedGltfScene::LoadedGltfScene(
         );
 
         scene_nodes.push_back(scene_node);
-        this->scene_nodes[node.name.c_str()] = scene_node;
     }
 
     // Run loop again to set up parent-child relationships

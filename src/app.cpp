@@ -24,6 +24,7 @@ App::App()
     renderer->load_gltf(
       "./assets/damaged-helmet/DamagedHelmet.glb", "DamagedHelmet"
     );
+    renderer->load_gltf("./assets/boom-box/BoomBox.glb", "BoomBox");
 }
 App::~App()
 {

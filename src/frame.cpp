@@ -307,10 +307,10 @@ Frame::draw_render_objects(
             if (object.material_instance->material.get() != last_material) {
                 last_material = object.material_instance->material.get();
                 pass.set_material(object.material_instance->material);
-                pass.set_desc_sets(0, { scene_desc_set }, {});
+                pass.set_desc_sets(0, { scene_desc_set });
             }
 
-            pass.set_desc_sets(1, { object.material_instance->desc_set }, {});
+            pass.set_desc_sets(1, { object.material_instance->desc_set });
         }
 
         // Update index buffer only if different from last index buffer

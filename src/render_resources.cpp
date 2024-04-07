@@ -166,6 +166,7 @@ RenderResources::get_desc_set_layout(const std::string &name) const
 RenderResources::get_texture(const std::string &name) const
 {
     if (textures.find(name) == textures.end()) {
+        spdlog::error("Texture not found: {}", name);
         throw std::runtime_error("Texture not found: " + name);
     }
     return *textures.at(name);

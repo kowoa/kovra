@@ -1,5 +1,6 @@
 #pragma once
 
+#include "spdlog/spdlog.h"
 #include "vk_mem_alloc.h"
 #include <memory>
 #include <vulkan/vulkan.hpp>
@@ -75,7 +76,13 @@ class GpuImage
     ) const noexcept;
 
     [[nodiscard]] vk::Image get() const noexcept { return image; }
-    [[nodiscard]] vk::ImageView get_view() const noexcept { return view.get(); }
+    [[nodiscard]] vk::ImageView get_view() const noexcept
+    {
+        if (!view) {
+            spdlog::error("GpuImage::get_view: view is null");
+        }
+        return view.get();
+    }
     [[nodiscard]] vk::Format get_format() const noexcept { return format; }
     [[nodiscard]] vk::Extent3D get_extent() const noexcept { return extent; }
     [[nodiscard]] vk::Extent2D get_extent2d() const noexcept

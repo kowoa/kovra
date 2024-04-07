@@ -26,7 +26,7 @@ class RenderPass
     void set_desc_sets(
       uint32_t first_set,
       const std::vector<vk::DescriptorSet> &desc_sets,
-      const std::vector<uint32_t> &dynamic_offsets
+      const std::vector<uint32_t> &dynamic_offsets = {}
     ) const;
     void set_viewport_scissor(uint32_t width, uint32_t height) const noexcept;
     void set_index_buffer(const vk::Buffer &index_buffer) noexcept;

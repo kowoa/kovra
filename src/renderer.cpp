@@ -424,6 +424,9 @@ init_materials(
             .set_color_attachment_format(draw_image.get_format())
             .set_depth_attachment_format(swapchain.get_depth_image().get_format(
             ))
+            .set_cull_mode(
+              vk::CullModeFlagBits::eBack, vk::FrontFace::eCounterClockwise
+            )
             .build(device);
         resources.add_material("skybox", std::move(skybox));
     }

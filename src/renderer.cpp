@@ -427,6 +427,7 @@ init_materials(
             .set_cull_mode(
               vk::CullModeFlagBits::eBack, vk::FrontFace::eCounterClockwise
             )
+            .set_depth_test(true, vk::CompareOp::eLessOrEqual)
             .build(device);
         resources.add_material("skybox", std::move(skybox));
     }

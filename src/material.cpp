@@ -274,13 +274,11 @@ GraphicsMaterialBuilder::set_depth_attachment_format(vk::Format format)
     return *this;
 }
 GraphicsMaterialBuilder &
-GraphicsMaterialBuilder::enable_depth_test(bool enable, vk::CompareOp op)
+GraphicsMaterialBuilder::set_depth_test(bool enable, vk::CompareOp op)
 {
     depth_stencil_ci.setDepthTestEnable(enable);
     depth_stencil_ci.setDepthWriteEnable(enable);
-    depth_stencil_ci.setDepthCompareOp(
-      enable ? vk::CompareOp::eLessOrEqual : op
-    );
+    depth_stencil_ci.setDepthCompareOp(op);
     depth_stencil_ci.setMinDepthBounds(0.0f);
     depth_stencil_ci.setMaxDepthBounds(1.0f);
     return *this;

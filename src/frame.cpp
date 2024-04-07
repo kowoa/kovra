@@ -146,7 +146,7 @@ Frame::draw(const DrawContext &&ctx)
         .setStoreOp(vk::AttachmentStoreOp::eStore)
         .setClearValue(vk::ClearValue{}.setDepthStencil({ 1.0f, 0 }));
 
-    // Draw skybox
+    // Render to the draw image
     {
         const auto color_attachment =
           vk::RenderingAttachmentInfo{}
@@ -166,30 +166,8 @@ Frame::draw(const DrawContext &&ctx)
           });
         render_pass.set_viewport_scissor(draw_extent.width, draw_extent.height);
 
-        draw_skybox(render_pass, ctx);
-    }
-
-    // Draw render objects and grid
-    {
-        const auto color_attachment =
-          vk::RenderingAttachmentInfo{}
-            .setImageView(ctx.draw_image.get_view())
-            .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
-            .setLoadOp(vk::AttachmentLoadOp::eLoad)
-            .setStoreOp(vk::AttachmentStoreOp::eStore)
-            .setClearValue(vk::ClearValue{}.setColor({ 0.1f, 0.1f, 0.1f, 1.0f })
-            );
-        const auto render_area =
-          vk::Rect2D{}.setOffset({ 0, 0 }).setExtent(draw_extent);
-        RenderPass render_pass =
-          cmd_encoder->begin_render_pass(RenderPassDescriptor{
-            .color_attachments = { color_attachment },
-            .depth_attachment = depth_attachment,
-            .render_area = render_area,
-          });
-        render_pass.set_viewport_scissor(draw_extent.width, draw_extent.height);
-
         draw_render_objects(render_pass, ctx, scene_desc_set);
+        draw_skybox(render_pass, ctx);
         draw_grid(render_pass, ctx, scene_desc_set);
     }
 

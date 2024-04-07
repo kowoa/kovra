@@ -97,7 +97,7 @@ class GraphicsMaterialBuilder
     GraphicsMaterialBuilder &set_color_attachment_format(vk::Format format);
     GraphicsMaterialBuilder &set_depth_attachment_format(vk::Format format);
     GraphicsMaterialBuilder &
-    enable_depth_test(bool enable, vk::CompareOp op = vk::CompareOp::eAlways);
+    set_depth_test(bool enable, vk::CompareOp op = vk::CompareOp::eLess);
     GraphicsMaterialBuilder &set_vertex_input_desc(
       const VertexInputDescription &&desc
     );

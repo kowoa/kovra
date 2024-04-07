@@ -32,5 +32,9 @@ void main() {
     vec3 vertex = vertices[index];
 
     out_uv = vertex;
-    gl_Position = PushConstants.viewproj * PushConstants.camera_translation * vec4(vertex, 1.0);
+    vec4 pos = PushConstants.viewproj * PushConstants.camera_translation * vec4(vertex, 1.0);
+    // Set the z value to the w value to trick the depth test into always failing when
+    // there is an object in front of the skybox.
+    // Make sure to set depth test op to vk::CompareOp::eLessOrEqual.
+    gl_Position = pos.xyww;
 }

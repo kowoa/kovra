@@ -66,7 +66,7 @@ PbrMaterial::PbrMaterial(
         .set_color_attachment_format(color_attachment_format)
         .set_depth_attachment_format(depth_attachment_format)
         .enable_additive_blending()
-        .enable_depth_test(false, vk::CompareOp::eGreaterOrEqual)
+        .set_depth_test(true, vk::CompareOp::eLess)
         .build(device)
     );
 }

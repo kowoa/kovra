@@ -9,6 +9,28 @@ The reason for this rewrite is it allows me to directly take advantage of C++'s 
     <img src="skybox.gif" alt="Skybox Demo GIF"/>
 </div>
 
+## Features
+
+- [x] Basic rendering pipeline
+- [x] Basic material system
+- [x] Depth testing
+- [x] Loading and rendering 3D models
+- [x] Camera controls (arcball)
+- [x] Cubemapped skybox
+- [x] Frustum culling
+- [ ] Metallic-roughness workflow
+- [ ] Specular-glossiness workflow
+- [ ] Image-based lighting (IBL)
+- [x] Albedo mapping
+- [ ] Normal mapping
+- [ ] Ambient Occlusion (AO) mapping
+- [ ] Shadow mapping
+- [ ] Height/displacement mapping
+- [ ] PBR material inspector
+- [x] Profiling stats
+- [ ] GPU buffer visualizer
+- [ ] Skeletal animation
+
 ## Getting Started
 
 ### Linux

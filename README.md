@@ -18,6 +18,8 @@ The reason for this rewrite is it allows me to directly take advantage of C++'s 
 - [x] Camera controls (arcball)
 - [x] Cubemapped skybox
 - [x] Frustum culling
+- [x] Mipmapping
+- [x] Multisample anti-aliasing (MSAA)
 - [ ] Metallic-roughness workflow
 - [ ] Specular-glossiness workflow
 - [ ] Image-based lighting (IBL)

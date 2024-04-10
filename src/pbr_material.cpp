@@ -49,7 +49,7 @@ PbrMaterial::PbrMaterial(
           "mesh-gltf", device }))
         .set_color_attachment_format(color_attachment_format)
         .set_depth_attachment_format(depth_attachment_format)
-        .disable_multisampling()
+        .set_multisampling(vk::SampleCountFlagBits::e4)
         .disable_blending()
         .build(device)
     );
@@ -67,6 +67,7 @@ PbrMaterial::PbrMaterial(
         .set_depth_attachment_format(depth_attachment_format)
         .enable_additive_blending()
         .set_depth_test(true, vk::CompareOp::eLess)
+        .set_multisampling(vk::SampleCountFlagBits::e4)
         .build(device)
     );
 }

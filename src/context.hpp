@@ -7,7 +7,7 @@ namespace kovra {
 class Context
 {
   public:
-    explicit Context(SDL_Window *window);
+    explicit Context(SDL_Window *window, bool enable_multisampling);
     ~Context();
     Context() = delete;
     Context(const Context &) = delete;
@@ -15,7 +15,7 @@ class Context
     Context(Context &&) = delete;
     Context &operator=(Context &&) = delete;
 
-    void recreate_swapchain(SDL_Window *window);
+    void recreate_swapchain(SDL_Window *window, bool enable_multisampling);
 
     [[nodiscard]] const vk::Instance &get_instance() const noexcept
     {

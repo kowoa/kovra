@@ -204,9 +204,9 @@ GraphicsMaterialBuilder::set_cull_mode(
     return *this;
 }
 GraphicsMaterialBuilder &
-GraphicsMaterialBuilder::disable_multisampling()
+GraphicsMaterialBuilder::set_multisampling(vk::SampleCountFlagBits samples)
 {
-    multisample_ci.setRasterizationSamples(vk::SampleCountFlagBits::e1);
+    multisample_ci.setRasterizationSamples(samples);
     multisample_ci.setSampleShadingEnable(vk::False);
     multisample_ci.setMinSampleShading(1.0f);
     multisample_ci.setPSampleMask(nullptr);

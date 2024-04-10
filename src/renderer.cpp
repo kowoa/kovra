@@ -32,8 +32,8 @@ create_sampler(vk::Filter filter, const vk::Device &device);
 void
 init_default_textures(const Device &device, RenderResources &resources);
 
-Renderer::Renderer(SDL_Window *window)
-  : context{ std::make_unique<Context>(window) }
+Renderer::Renderer(SDL_Window *window, bool enable_multisampling)
+  : context{ std::make_unique<Context>(window, enable_multisampling) }
   , global_desc_allocator{ std::make_unique<DescriptorAllocator>(
       context->get_device().get(),
       100
@@ -74,11 +74,26 @@ Renderer::Renderer(SDL_Window *window)
             vk::Extent3D{ swapchain_extent.width, swapchain_extent.height, 1 },
           .usage = vk::ImageUsageFlagBits::eTransferSrc |
                    vk::ImageUsageFlagBits::eTransferDst |
-                   vk::ImageUsageFlagBits::eStorage |
                    vk::ImageUsageFlagBits::eColorAttachment,
           .aspect = vk::ImageAspectFlagBits::eColor,
           .mipmapped = false,
-          .sampler = render_resources->get_sampler(vk::Filter::eNearest) });
+          .sampler = render_resources->get_sampler(vk::Filter::eNearest),
+          .enable_multisampling = enable_multisampling });
+        if (enable_multisampling) {
+            draw_image_resolve =
+              context->get_device().create_image(GpuImageCreateInfo{
+                .format = vk::Format::eR16G16B16A16Sfloat,
+                .extent = vk::Extent3D{ swapchain_extent.width,
+                                        swapchain_extent.height,
+                                        1 },
+                .usage = vk::ImageUsageFlagBits::eTransferSrc |
+                         vk::ImageUsageFlagBits::eTransferDst |
+                         vk::ImageUsageFlagBits::eColorAttachment,
+                .aspect = vk::ImageAspectFlagBits::eColor,
+                .mipmapped = false,
+                .sampler = render_resources->get_sampler(vk::Filter::eNearest),
+                .enable_multisampling = false });
+        }
     }
 
     // Create materials
@@ -161,6 +176,7 @@ Renderer::~Renderer()
 
     skybox.reset();
     draw_image.reset();
+    draw_image_resolve.reset();
     render_resources.reset();
 
     // Destroy frames
@@ -201,6 +217,7 @@ Renderer::update_scene(
 
                                  .swapchain = context->get_swapchain_mut(),
                                  .draw_image = *draw_image,
+                                 .draw_image_resolve = draw_image_resolve.get(),
                                  .skybox = *skybox,
 
                                  .opaque_objects = {},
@@ -333,21 +350,23 @@ init_materials(
   RenderResources &resources
 )
 {
-    // Background
-    {
-        auto desc_set_layouts =
-          std::array{ resources.get_desc_set_layout("compute texture") };
-        auto pipeline_layout = device.createPipelineLayoutUnique(
-          vk::PipelineLayoutCreateInfo{}.setSetLayouts(desc_set_layouts)
-        );
-        auto background =
-          ComputeMaterialBuilder{}
-            .set_pipeline_layout(std::move(pipeline_layout))
-            .set_shader(std::make_unique<ComputeShader>(ComputeShader{
-              "solid-background", device }))
-            .build(device);
-        resources.add_material("background", std::move(background));
-    }
+    /*
+      // Background
+      {
+          auto desc_set_layouts =
+            std::array{ resources.get_desc_set_layout("compute texture") };
+          auto pipeline_layout = device.createPipelineLayoutUnique(
+            vk::PipelineLayoutCreateInfo{}.setSetLayouts(desc_set_layouts)
+          );
+          auto background =
+            ComputeMaterialBuilder{}
+              .set_pipeline_layout(std::move(pipeline_layout))
+              .set_shader(std::make_unique<ComputeShader>(ComputeShader{
+                "solid-background", device }))
+              .build(device);
+          resources.add_material("background", std::move(background));
+      }
+      */
 
     // Grid
     {
@@ -364,37 +383,9 @@ init_materials(
             .set_color_attachment_format(draw_image.get_format())
             .set_depth_attachment_format(swapchain.get_depth_image().get_format(
             ))
+            .set_multisampling(vk::SampleCountFlagBits::e4)
             .build(device);
         resources.add_material("grid", std::move(grid));
-    }
-
-    // Mesh
-    {
-        auto desc_set_layouts =
-          std::array{ resources.get_desc_set_layout("scene") };
-        auto push_constant_ranges =
-          std::array{ vk::PushConstantRange{}
-                        .setStageFlags(
-                          vk::ShaderStageFlagBits::eVertex |
-                          vk::ShaderStageFlagBits::eFragment
-                        )
-                        .setOffset(0)
-                        .setSize(sizeof(GpuPushConstants)) };
-        auto pipeline_layout = device.createPipelineLayoutUnique(
-          vk::PipelineLayoutCreateInfo{}
-            .setSetLayouts(desc_set_layouts)
-            .setPushConstantRanges(push_constant_ranges)
-        );
-        auto mesh =
-          GraphicsMaterialBuilder{}
-            .set_pipeline_layout(std::move(pipeline_layout))
-            .set_shader(std::make_unique<GraphicsShader>(GraphicsShader{
-              "mesh-colored", device }))
-            .set_color_attachment_format(draw_image.get_format())
-            .set_depth_attachment_format(swapchain.get_depth_image().get_format(
-            ))
-            .build(device);
-        resources.add_material("colored mesh", std::move(mesh));
     }
 
     // Skybox
@@ -428,38 +419,9 @@ init_materials(
               vk::CullModeFlagBits::eBack, vk::FrontFace::eCounterClockwise
             )
             .set_depth_test(true, vk::CompareOp::eLessOrEqual)
+            .set_multisampling(vk::SampleCountFlagBits::e4)
             .build(device);
         resources.add_material("skybox", std::move(skybox));
-    }
-
-    // Textured mesh
-    {
-        auto desc_set_layouts =
-          std::array{ resources.get_desc_set_layout("scene"),
-                      resources.get_desc_set_layout("texture") };
-        auto push_constant_ranges =
-          std::array{ vk::PushConstantRange{}
-                        .setStageFlags(
-                          vk::ShaderStageFlagBits::eVertex |
-                          vk::ShaderStageFlagBits::eFragment
-                        )
-                        .setOffset(0)
-                        .setSize(sizeof(GpuPushConstants)) };
-        auto pipeline_layout = device.createPipelineLayoutUnique(
-          vk::PipelineLayoutCreateInfo{}
-            .setSetLayouts(desc_set_layouts)
-            .setPushConstantRanges(push_constant_ranges)
-        );
-        auto mesh =
-          GraphicsMaterialBuilder{}
-            .set_pipeline_layout(std::move(pipeline_layout))
-            .set_shader(std::make_unique<GraphicsShader>(GraphicsShader{
-              "mesh-textured", device }))
-            .set_color_attachment_format(draw_image.get_format())
-            .set_depth_attachment_format(swapchain.get_depth_image().get_format(
-            ))
-            .build(device);
-        resources.add_material("textured mesh", std::move(mesh));
     }
 }
 

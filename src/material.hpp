@@ -90,7 +90,9 @@ class GraphicsMaterialBuilder
     GraphicsMaterialBuilder &set_polygon_mode(vk::PolygonMode polygon_mode);
     GraphicsMaterialBuilder &
     set_cull_mode(vk::CullModeFlags cull_mode, vk::FrontFace front_face);
-    GraphicsMaterialBuilder &disable_multisampling();
+    GraphicsMaterialBuilder &set_multisampling(
+      vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1
+    );
     GraphicsMaterialBuilder &disable_blending();
     GraphicsMaterialBuilder &enable_alpha_blending();
     GraphicsMaterialBuilder &enable_additive_blending();

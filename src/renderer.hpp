@@ -18,7 +18,7 @@ class Cubemap;
 class Renderer
 {
   public:
-    explicit Renderer(SDL_Window *window);
+    explicit Renderer(SDL_Window *window, bool enable_multisampling);
     ~Renderer();
     Renderer() = delete;
     Renderer(const Renderer &) = delete;
@@ -73,6 +73,7 @@ class Renderer
     // Resources
     std::shared_ptr<RenderResources> render_resources;
     std::unique_ptr<GpuImage> draw_image;
+    std::unique_ptr<GpuImage> draw_image_resolve;
     std::unique_ptr<Cubemap> skybox;
 
     // ImGui

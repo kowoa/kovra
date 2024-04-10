@@ -16,10 +16,11 @@ struct GpuImageCreateInfo
     vk::ImageUsageFlags usage;
     vk::ImageAspectFlags aspect;
     vk::ImageViewType view_type = vk::ImageViewType::e2D;
-    bool mipmapped;
-    std::optional<vk::Sampler> sampler;
+    bool mipmapped = false;
+    std::optional<vk::Sampler> sampler = std::nullopt;
     int array_layers = 1;
     vk::ImageCreateFlags flags = {};
+    bool enable_multisampling = false;
 };
 
 class GpuImage
@@ -53,7 +54,8 @@ class GpuImage
       uint32_t width,
       uint32_t height,
       std::optional<vk::Sampler> sampler,
-      const Device &device
+      const Device &device,
+      bool enable_multisampling = false
     );
     // Create an image used by compute shaders
     [[nodiscard]] static std::unique_ptr<GpuImage> new_storage_image(
@@ -98,6 +100,11 @@ class GpuImage
         return sampler.value();
     }
     [[nodiscard]] int get_layer_count() const noexcept { return layer_count; }
+    [[nodiscard]] int get_level_count() const noexcept { return level_count; }
+    [[nodiscard]] vk::SampleCountFlagBits get_sample_count() const noexcept
+    {
+        return sample_count;
+    }
 
     void upload(const void *data, const Device &device, bool mipmapped = false);
     void upload(
@@ -118,6 +125,7 @@ class GpuImage
     std::optional<vk::Sampler> sampler;
     int layer_count;
     int level_count;
+    vk::SampleCountFlagBits sample_count;
 
     void generate_mipmaps(const vk::CommandBuffer cmd) noexcept;
 };

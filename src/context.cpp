@@ -10,7 +10,7 @@ pick_physical_device(
   const Surface &surface
 );
 
-Context::Context(SDL_Window *window)
+Context::Context(SDL_Window *window, bool enable_multisampling)
   : instance{ std::make_unique<Instance>(window) }
   , surface{ std::make_unique<Surface>(*instance, window) }
   , physical_device{ pick_physical_device(
@@ -18,9 +18,13 @@ Context::Context(SDL_Window *window)
       *surface
     ) }
   , device{ std::make_shared<Device>(*instance, physical_device) }
-  , swapchain{
-      std::make_unique<Swapchain>(window, *surface, *physical_device, *device)
-  }
+  , swapchain{ std::make_unique<Swapchain>(
+      window,
+      *surface,
+      *physical_device,
+      *device,
+      enable_multisampling
+    ) }
 {
     spdlog::debug("Context::Context()");
 }
@@ -36,12 +40,13 @@ Context::~Context()
 }
 
 void
-Context::recreate_swapchain(SDL_Window *window)
+Context::recreate_swapchain(SDL_Window *window, bool enable_multisampling)
 {
     device->get().waitIdle();
     swapchain.reset();
-    swapchain =
-      std::make_unique<Swapchain>(window, *surface, *physical_device, *device);
+    swapchain = std::make_unique<Swapchain>(
+      window, *surface, *physical_device, *device, enable_multisampling
+    );
 }
 
 std::shared_ptr<PhysicalDevice>

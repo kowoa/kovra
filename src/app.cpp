@@ -98,7 +98,7 @@ App::run()
         }
 
         if (renderer->get_context().get_swapchain().is_dirty()) {
-            renderer->get_context_mut().recreate_swapchain(window);
+            renderer->get_context_mut().recreate_swapchain(window, true);
         }
 
         draw_imgui();
@@ -196,6 +196,6 @@ create_window()
 std::unique_ptr<Renderer>
 create_renderer(SDL_Window *window)
 {
-    return std::make_unique<Renderer>(window);
+    return std::make_unique<Renderer>(window, true);
 }
 } // namespace kovra

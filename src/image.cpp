@@ -102,8 +102,9 @@ GpuImage::GpuImage(
             )) +
             1
           )
-        : 1
+        : 1,
   }
+  , sample_count{info.enable_multisampling ? vk::SampleCountFlagBits::e4 : vk::SampleCountFlagBits::e1}
 {
     VkImageCreateInfo image_ci{};
     image_ci.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -113,7 +114,7 @@ GpuImage::GpuImage(
     image_ci.mipLevels = level_count;
     image_ci.flags = static_cast<VkImageCreateFlags>(info.flags);
     image_ci.arrayLayers = info.array_layers;
-    image_ci.samples = VK_SAMPLE_COUNT_1_BIT;
+    image_ci.samples = static_cast<VkSampleCountFlagBits>(sample_count);
     image_ci.tiling = VK_IMAGE_TILING_OPTIMAL;
     image_ci.usage = static_cast<VkImageUsageFlags>(info.usage);
 
@@ -208,7 +209,8 @@ GpuImage::new_depth_image(
   uint32_t width,
   uint32_t height,
   std::optional<vk::Sampler> sampler,
-  const Device &device
+  const Device &device,
+  bool enable_multisampling
 )
 {
     auto desc =
@@ -218,7 +220,8 @@ GpuImage::new_depth_image(
                             vk::ImageUsageFlagBits::eDepthStencilAttachment,
                           .aspect = vk::ImageAspectFlagBits::eDepth,
                           .mipmapped = false,
-                          .sampler = sampler };
+                          .sampler = sampler,
+                          .enable_multisampling = enable_multisampling };
     return std::make_unique<GpuImage>(
       desc, device.get(), device.get_allocator_owned()
     );

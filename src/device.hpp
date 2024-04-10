@@ -99,7 +99,8 @@ class Device
     [[nodiscard]] std::unique_ptr<GpuImage> create_depth_image(
       uint32_t width,
       uint32_t height,
-      std::optional<vk::Sampler> sampler
+      std::optional<vk::Sampler> sampler,
+      bool enable_multisampling
     ) const;
     [[nodiscard]] std::unique_ptr<GpuImage> create_storage_image(
       uint32_t width,
@@ -117,6 +118,11 @@ class Device
           vk::BufferMemoryRequirementsInfo2{}.setBuffer(buffer.get());
         device.get().getBufferMemoryRequirements2(&mem_reqs_info, &mem_reqs);
         return mem_reqs.memoryRequirements.alignment;
+    }
+    [[nodiscard]] bool supports_sample_count(vk::SampleCountFlagBits count
+    ) const noexcept
+    {
+        return (physical_device->get_sample_counts() & count) == count;
     }
 
   private:

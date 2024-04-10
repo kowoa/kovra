@@ -201,10 +201,13 @@ Device::create_color_image(
 Device::create_depth_image(
   uint32_t width,
   uint32_t height,
-  std::optional<vk::Sampler> sampler
+  std::optional<vk::Sampler> sampler,
+  bool enable_multisampling
 ) const
 {
-    return GpuImage::new_depth_image(width, height, sampler, *this);
+    return GpuImage::new_depth_image(
+      width, height, sampler, *this, enable_multisampling
+    );
 }
 [[nodiscard]] std::unique_ptr<GpuImage>
 Device::create_storage_image(

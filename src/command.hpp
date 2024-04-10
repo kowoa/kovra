@@ -20,7 +20,7 @@ class CommandEncoder
     CommandEncoder &operator=(CommandEncoder &&) noexcept = delete;
 
     // Begin render pass and begin recording commands if not already recording
-    [[nodiscard]] RenderPass begin_render_pass(const RenderPassDescriptor &desc
+    [[nodiscard]] RenderPass begin_render_pass(const RenderPassCreateInfo &info
     );
     // Begin compute pass and begin recording commands if not already recording
     [[nodiscard]] ComputePass begin_compute_pass();
@@ -41,6 +41,13 @@ class CommandEncoder
       GpuImage &image,
       vk::ImageLayout old_layout,
       vk::ImageLayout new_layout
+    ) const;
+    void resolve_image(
+      const vk::Image &src,
+      const vk::ImageLayout &src_layout,
+      const vk::Image &dst,
+      const vk::ImageLayout &dst_layout,
+      const vk::ImageResolve &region
     ) const;
     void copy_image_to_image(
       vk::Image src,

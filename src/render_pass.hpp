@@ -8,7 +8,7 @@ namespace kovra {
 class Material;
 class GpuBuffer;
 
-struct RenderPassDescriptor
+struct RenderPassCreateInfo
 {
     std::vector<vk::RenderingAttachmentInfo> color_attachments;
     vk::RenderingAttachmentInfo depth_attachment;
@@ -18,7 +18,7 @@ struct RenderPassDescriptor
 class RenderPass
 {
   public:
-    RenderPass(const RenderPassDescriptor &desc, const vk::CommandBuffer &cmd);
+    RenderPass(const RenderPassCreateInfo &info, const vk::CommandBuffer &cmd);
     ~RenderPass();
 
     void set_material(std::shared_ptr<Material> material) noexcept;

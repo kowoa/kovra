@@ -36,10 +36,10 @@ CommandEncoder::begin_compute_pass()
 }
 
 RenderPass
-CommandEncoder::begin_render_pass(const RenderPassDescriptor &desc)
+CommandEncoder::begin_render_pass(const RenderPassCreateInfo &info)
 {
     begin_recording();
-    return RenderPass{ desc, cmd_buffers.at(cmd_index).get() };
+    return RenderPass{ info, cmd_buffers.at(cmd_index).get() };
 }
 
 void
@@ -121,6 +121,18 @@ CommandEncoder::transition_image_layout(
 ) const
 {
     image.transition_layout(get_current_cmd(), old_layout, new_layout);
+}
+
+void
+CommandEncoder::resolve_image(
+  const vk::Image &src,
+  const vk::ImageLayout &src_layout,
+  const vk::Image &dst,
+  const vk::ImageLayout &dst_layout,
+  const vk::ImageResolve &region
+) const
+{
+    get_current_cmd().resolveImage(src, src_layout, dst, dst_layout, region);
 }
 
 void

@@ -6,15 +6,15 @@
 namespace kovra {
 
 RenderPass::RenderPass(
-  const RenderPassDescriptor &desc,
+  const RenderPassCreateInfo &info,
   const vk::CommandBuffer &cmd
 )
   : cmd{ cmd }
 {
     auto rendering_info = vk::RenderingInfo{}
-                            .setColorAttachments(desc.color_attachments)
-                            .setPDepthAttachment(&desc.depth_attachment)
-                            .setRenderArea(desc.render_area)
+                            .setColorAttachments(info.color_attachments)
+                            .setPDepthAttachment(&info.depth_attachment)
+                            .setRenderArea(info.render_area)
                             .setLayerCount(1);
     cmd.beginRendering(rendering_info);
 }

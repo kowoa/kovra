@@ -118,5 +118,7 @@ class GpuImage
     std::optional<vk::Sampler> sampler;
     int layer_count;
     int level_count;
+
+    void generate_mipmaps(const vk::CommandBuffer cmd) noexcept;
 };
 } // namespace kovra

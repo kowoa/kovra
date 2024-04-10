@@ -7,12 +7,11 @@ namespace kovra {
 // TODO: Generate mipmaps using compute shader instead of using a chain of
 // vkCmdBlitImage calls
 void
-generate_mipmaps(
-  const vk::CommandBuffer &cmd,
-  const vk::Image &image,
-  vk::Extent2D extent
-)
+GpuImage::generate_mipmaps(const vk::CommandBuffer cmd) noexcept
 {
+    spdlog::debug("Generating mipmaps ...");
+
+    vk::Extent2D extent = get_extent2d();
     int mip_levels =
       static_cast<int>(
         std::floor(std::log2(std::max(extent.width, extent.height)))
@@ -23,13 +22,7 @@ generate_mipmaps(
         half_extent.width /= 2;
         half_extent.height /= 2;
 
-        auto subresource_range =
-          vk::ImageSubresourceRange{}
-            .setAspectMask(vk::ImageAspectFlagBits::eColor)
-            .setBaseMipLevel(mip)
-            .setLevelCount(1)
-            .setBaseArrayLayer(0)
-            .setLayerCount(vk::RemainingArrayLayers);
+        // Transition image layout at the beginning of each mip level
         auto image_barrier =
           vk::ImageMemoryBarrier2{}
             .setSrcStageMask(vk::PipelineStageFlagBits2::eAllCommands)
@@ -41,11 +34,15 @@ generate_mipmaps(
             )
             .setOldLayout(vk::ImageLayout::eTransferDstOptimal)
             .setNewLayout(vk::ImageLayout::eTransferSrcOptimal)
-            .setSubresourceRange(subresource_range)
+            .setSubresourceRange(vk::ImageSubresourceRange{}
+                                   .setAspectMask(aspect)
+                                   .setBaseMipLevel(mip) // Important
+                                   .setLevelCount(1)
+                                   .setBaseArrayLayer(0)
+                                   .setLayerCount(layer_count))
             .setImage(image);
         auto dep_info =
           vk::DependencyInfo{}.setImageMemoryBarriers(image_barrier);
-
         cmd.pipelineBarrier2(&dep_info);
 
         if (mip < mip_levels - 1) {
@@ -61,20 +58,16 @@ generate_mipmaps(
                                    static_cast<int32_t>(half_extent.width),
                                    static_cast<int32_t>(half_extent.height),
                                    1 } })
-                .setSrcSubresource(
-                  vk::ImageSubresourceLayers{}
-                    .setAspectMask(vk::ImageAspectFlagBits::eColor)
-                    .setBaseArrayLayer(0)
-                    .setLayerCount(1)
-                    .setMipLevel(mip)
-                )
-                .setDstSubresource(
-                  vk::ImageSubresourceLayers{}
-                    .setAspectMask(vk::ImageAspectFlagBits::eColor)
-                    .setBaseArrayLayer(0)
-                    .setLayerCount(1)
-                    .setMipLevel(mip + 1)
-                );
+                .setSrcSubresource(vk::ImageSubresourceLayers{}
+                                     .setAspectMask(aspect)
+                                     .setBaseArrayLayer(0)
+                                     .setLayerCount(1)
+                                     .setMipLevel(mip))
+                .setDstSubresource(vk::ImageSubresourceLayers{}
+                                     .setAspectMask(aspect)
+                                     .setBaseArrayLayer(0)
+                                     .setLayerCount(1)
+                                     .setMipLevel(mip + 1));
             auto blit_info =
               vk::BlitImageInfo2{}
                 .setDstImage(image)
@@ -192,6 +185,7 @@ GpuImage::new_color_image(
 
     auto usage =
       vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst;
+    // Require eTransferSrc to generate mipmaps
     if (mipmapped) {
         usage |= vk::ImageUsageFlagBits::eTransferSrc;
     }
@@ -334,18 +328,19 @@ GpuImage::upload(
         );
 
         if (mipmapped) {
-            generate_mipmaps(
+            generate_mipmaps(cmd);
+            transition_layout(
               cmd,
-              static_cast<vk::Image>(image),
-              vk::Extent2D{}.setWidth(extent.width).setHeight(extent.height)
+              vk::ImageLayout::eTransferSrcOptimal,
+              vk::ImageLayout::eShaderReadOnlyOptimal
+            );
+        } else {
+            transition_layout(
+              cmd,
+              vk::ImageLayout::eTransferDstOptimal,
+              vk::ImageLayout::eShaderReadOnlyOptimal
             );
         }
-
-        transition_layout(
-          cmd,
-          vk::ImageLayout::eTransferDstOptimal,
-          vk::ImageLayout::eShaderReadOnlyOptimal
-        );
     });
 }
 } // namespace kovra

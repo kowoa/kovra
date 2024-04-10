@@ -9,7 +9,8 @@ transition_image_layout(
   vk::ImageAspectFlags aspect,
   vk::ImageLayout old_layout,
   vk::ImageLayout new_layout,
-  int layer_count
+  int layer_count,
+  int level_count
 )
 {
     if (old_layout == new_layout) {
@@ -28,10 +29,10 @@ transition_image_layout(
         .setNewLayout(new_layout)
         .setSubresourceRange(vk::ImageSubresourceRange{}
                                .setAspectMask(aspect)
-                               .setBaseMipLevel(0)
-                               .setLevelCount(1)
                                .setBaseArrayLayer(0)
-                               .setLayerCount(layer_count))
+                               .setLayerCount(layer_count)
+                               .setBaseMipLevel(0)
+                               .setLevelCount(level_count))
         .setImage(image);
 
     auto dep_info = vk::DependencyInfo{}.setImageMemoryBarriers(image_barrier);

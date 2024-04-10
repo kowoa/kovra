@@ -1,7 +1,9 @@
 #include "command.hpp"
 #include "device.hpp"
-#include "spdlog/spdlog.h"
+#include "image.hpp"
 #include "utils.hpp"
+
+#include "spdlog/spdlog.h"
 
 namespace kovra {
 CommandEncoder::CommandEncoder(const Device &device)
@@ -96,13 +98,31 @@ CommandEncoder::transition_image_layout(
   vk::ImageAspectFlagBits aspect,
   vk::ImageLayout old_layout,
   vk::ImageLayout new_layout,
-  int layer_count
+  int layer_count,
+  int level_count
 ) const
 {
     utils::transition_image_layout(
-      get_current_cmd(), image, aspect, old_layout, new_layout, layer_count
+      get_current_cmd(),
+      image,
+      aspect,
+      old_layout,
+      new_layout,
+      layer_count,
+      level_count
     );
 }
+
+void
+CommandEncoder::transition_image_layout(
+  GpuImage &image,
+  vk::ImageLayout old_layout,
+  vk::ImageLayout new_layout
+) const
+{
+    image.transition_layout(get_current_cmd(), old_layout, new_layout);
+}
+
 void
 CommandEncoder::copy_image_to_image(
   vk::Image src,

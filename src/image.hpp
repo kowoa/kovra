@@ -117,5 +117,6 @@ class GpuImage
     vk::ImageAspectFlags aspect;
     std::optional<vk::Sampler> sampler;
     int layer_count;
+    int level_count;
 };
 } // namespace kovra

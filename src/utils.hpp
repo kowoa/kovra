@@ -21,7 +21,9 @@ transition_image_layout(
   vk::ImageAspectFlags aspect,
   vk::ImageLayout old_layout,
   vk::ImageLayout new_layout,
-  int layer_count = 1
+  int layer_count =
+    1, // Specify for images with multiple layers (e.g. cube maps)
+  int level_count = 1 // Specify for images with multiple mip levels
 );
 
 void

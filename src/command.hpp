@@ -6,6 +6,7 @@
 namespace kovra {
 // Forward declarations
 class Device;
+class GpuImage;
 
 class CommandEncoder
 {
@@ -33,7 +34,13 @@ class CommandEncoder
       vk::ImageAspectFlagBits aspect,
       vk::ImageLayout old_layout,
       vk::ImageLayout new_layout,
-      int layer_count = 1
+      int layer_count = 1,
+      int level_count = 1
+    ) const;
+    void transition_image_layout(
+      GpuImage &image,
+      vk::ImageLayout old_layout,
+      vk::ImageLayout new_layout
     ) const;
     void copy_image_to_image(
       vk::Image src,

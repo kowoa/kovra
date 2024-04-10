@@ -132,8 +132,7 @@ Frame::draw(const DrawContext &&ctx)
 
     // Transition draw image layout to color attachment optimal for rendering
     cmd_encoder->transition_image_layout(
-      ctx.draw_image.get(),
-      vk::ImageAspectFlagBits::eColor,
+      ctx.draw_image,
       vk::ImageLayout::eUndefined,
       vk::ImageLayout::eColorAttachmentOptimal
     );
@@ -184,8 +183,7 @@ Frame::draw(const DrawContext &&ctx)
 
     // Copy draw image to swapchain image
     cmd_encoder->transition_image_layout(
-      ctx.draw_image.get(),
-      vk::ImageAspectFlagBits::eColor,
+      ctx.draw_image,
       vk::ImageLayout::eColorAttachmentOptimal,
       vk::ImageLayout::eTransferSrcOptimal
     );

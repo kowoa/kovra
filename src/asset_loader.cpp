@@ -163,7 +163,8 @@ LoadedGltfScene::load_image(
                   width,
                   height,
                   resources.get_sampler(vk::Filter::eLinear),
-                  vk::Format::eR8G8B8A8Unorm
+                  vk::Format::eR8G8B8A8Unorm,
+                  true
                 );
                 result.reset();
             }
@@ -219,7 +220,8 @@ LoadedGltfScene::load_image(
                           width,
                           height,
                           resources.get_sampler(vk::Filter::eLinear),
-                          vk::Format::eR8G8B8A8Unorm
+                          vk::Format::eR8G8B8A8Unorm,
+                          true
                         );
                         stbi_image_free(data);
                     }

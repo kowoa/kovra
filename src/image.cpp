@@ -102,21 +102,22 @@ GpuImage::GpuImage(
   , aspect{ info.aspect }
   , sampler{ info.sampler }
   , layer_count{ info.array_layers }
+  , level_count{
+      info.mipmapped
+        ? static_cast<int>(
+            std::floor(std::log2(std::max(info.extent.width, info.extent.height)
+            )) +
+            1
+          )
+        : 1
+  }
 {
     VkImageCreateInfo image_ci{};
     image_ci.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_ci.imageType = VK_IMAGE_TYPE_2D;
     image_ci.format = static_cast<VkFormat>(info.format);
     image_ci.extent = info.extent;
-    if (info.mipmapped) {
-        image_ci.mipLevels =
-          static_cast<uint32_t>(std::floor(
-            std::log2(std::max(info.extent.width, info.extent.height))
-          )) +
-          1;
-    } else {
-        image_ci.mipLevels = 1;
-    }
+    image_ci.mipLevels = level_count;
     image_ci.flags = static_cast<VkImageCreateFlags>(info.flags);
     image_ci.arrayLayers = info.array_layers;
     image_ci.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -157,14 +158,12 @@ GpuImage::GpuImage(
         .setImage(image)
         .setViewType(info.view_type)
         .setFormat(info.format)
-        .setSubresourceRange(
-          vk::ImageSubresourceRange{}
-            .setAspectMask(info.aspect)
-            .setBaseMipLevel(0)
-            .setLevelCount(info.mipmapped ? image_ci.mipLevels : 1)
-            .setBaseArrayLayer(0)
-            .setLayerCount(layer_count)
-        )
+        .setSubresourceRange(vk::ImageSubresourceRange{}
+                               .setAspectMask(info.aspect)
+                               .setBaseMipLevel(0)
+                               .setLevelCount(level_count)
+                               .setBaseArrayLayer(0)
+                               .setLayerCount(layer_count))
     );
 }
 
@@ -191,14 +190,18 @@ GpuImage::new_color_image(
         throw std::runtime_error("Invalid image size");
     }
 
-    auto desc =
-      GpuImageCreateInfo{ .format = format,
-                          .extent = vk::Extent3D{ width, height, 1 },
-                          .usage = vk::ImageUsageFlagBits::eSampled |
-                                   vk::ImageUsageFlagBits::eTransferDst,
-                          .aspect = vk::ImageAspectFlagBits::eColor,
-                          .mipmapped = mipmapped,
-                          .sampler = sampler };
+    auto usage =
+      vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst;
+    if (mipmapped) {
+        usage |= vk::ImageUsageFlagBits::eTransferSrc;
+    }
+
+    auto desc = GpuImageCreateInfo{ .format = format,
+                                    .extent = vk::Extent3D{ width, height, 1 },
+                                    .usage = usage,
+                                    .aspect = vk::ImageAspectFlagBits::eColor,
+                                    .mipmapped = mipmapped,
+                                    .sampler = sampler };
     auto image = std::make_unique<GpuImage>(
       desc, device.get(), device.get_allocator_owned()
     );
@@ -257,7 +260,7 @@ GpuImage::transition_layout(
 ) noexcept
 {
     utils::transition_image_layout(
-      cmd, image, aspect, old_layout, new_layout, layer_count
+      cmd, image, aspect, old_layout, new_layout, layer_count, level_count
     );
 }
 void

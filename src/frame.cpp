@@ -232,7 +232,7 @@ Frame::draw(const DrawContext &&ctx)
           draw_extent,
           swapchain_image_extent
         );
-    } else {
+    } else { // Multisampling is disabled
         // Copy draw image to swapchain image
         cmd_encoder->transition_image_layout(
           ctx.draw_image,

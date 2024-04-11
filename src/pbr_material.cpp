@@ -10,7 +10,8 @@ PbrMaterial::PbrMaterial(
   const vk::Device &device,
   const vk::DescriptorSetLayout &scene_desc_layout,
   const vk::Format &color_attachment_format,
-  const vk::Format &depth_attachment_format
+  const vk::Format &depth_attachment_format,
+  const vk::SampleCountFlagBits &sample_count
 )
   : desc_writer{ std::make_unique<DescriptorWriter>() }
 {
@@ -49,7 +50,7 @@ PbrMaterial::PbrMaterial(
           "mesh-gltf", device }))
         .set_color_attachment_format(color_attachment_format)
         .set_depth_attachment_format(depth_attachment_format)
-        .set_multisampling(vk::SampleCountFlagBits::e4)
+        .set_multisampling(sample_count)
         .disable_blending()
         .build(device)
     );
@@ -67,7 +68,7 @@ PbrMaterial::PbrMaterial(
         .set_depth_attachment_format(depth_attachment_format)
         .enable_additive_blending()
         .set_depth_test(true, vk::CompareOp::eLess)
-        .set_multisampling(vk::SampleCountFlagBits::e4)
+        .set_multisampling(sample_count)
         .build(device)
     );
 }

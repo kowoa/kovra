@@ -91,7 +91,7 @@ class GraphicsMaterialBuilder
     GraphicsMaterialBuilder &
     set_cull_mode(vk::CullModeFlags cull_mode, vk::FrontFace front_face);
     GraphicsMaterialBuilder &set_multisampling(
-      vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1
+      vk::SampleCountFlagBits sample_count
     );
     GraphicsMaterialBuilder &disable_blending();
     GraphicsMaterialBuilder &enable_alpha_blending();

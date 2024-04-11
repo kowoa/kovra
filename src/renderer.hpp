@@ -80,6 +80,7 @@ class Renderer
     VkDescriptorPool imgui_pool;
 
     float render_scale = 1.0f;
+    const bool enable_multisampling;
 
     // Profiling
     RendererStats stats;

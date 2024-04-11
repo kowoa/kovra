@@ -32,7 +32,8 @@ class PbrMaterial
       const vk::Device &device,
       const vk::DescriptorSetLayout &scene_desc_layout,
       const vk::Format &color_attachment_format,
-      const vk::Format &depth_attachment_format
+      const vk::Format &depth_attachment_format,
+      const vk::SampleCountFlagBits &sample_count
     );
     ~PbrMaterial();
 

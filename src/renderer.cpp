@@ -25,7 +25,8 @@ init_materials(
   const vk::Device &device,
   const Swapchain &swapchain,
   const GpuImage &draw_image,
-  RenderResources &resources
+  RenderResources &resources,
+  const vk::SampleCountFlagBits sample_count
 );
 vk::Sampler
 create_sampler(vk::Filter filter, const vk::Device &device);
@@ -39,9 +40,10 @@ Renderer::Renderer(SDL_Window *window, bool enable_multisampling)
       100
     ) }
   , frame_number{ 0 }
-  , render_resources{
-      std::make_shared<RenderResources>(context->get_device_owned())
-  }
+  , render_resources{ std::make_shared<RenderResources>(
+      context->get_device_owned()
+    ) }
+  , enable_multisampling{ enable_multisampling }
 {
     spdlog::debug("Renderer::Renderer()");
 
@@ -101,7 +103,9 @@ Renderer::Renderer(SDL_Window *window, bool enable_multisampling)
       context->get_device().get(),
       context->get_swapchain(),
       *draw_image,
-      *render_resources
+      *render_resources,
+      enable_multisampling ? vk::SampleCountFlagBits::e4
+                           : vk::SampleCountFlagBits::e1
     );
 
     // Create textures
@@ -113,7 +117,9 @@ Renderer::Renderer(SDL_Window *window, bool enable_multisampling)
         context->get_device().get(),
         render_resources->get_desc_set_layout("scene"),
         draw_image->get_format(),
-        context->get_swapchain().get_depth_image().get_format()
+        context->get_swapchain().get_depth_image().get_format(),
+        enable_multisampling ? vk::SampleCountFlagBits::e4
+                             : vk::SampleCountFlagBits::e1
       ),
       context->get_device(),
       *global_desc_allocator
@@ -347,7 +353,8 @@ init_materials(
   const vk::Device &device,
   const Swapchain &swapchain,
   const GpuImage &draw_image,
-  RenderResources &resources
+  RenderResources &resources,
+  const vk::SampleCountFlagBits sample_count
 )
 {
     /*
@@ -383,7 +390,7 @@ init_materials(
             .set_color_attachment_format(draw_image.get_format())
             .set_depth_attachment_format(swapchain.get_depth_image().get_format(
             ))
-            .set_multisampling(vk::SampleCountFlagBits::e4)
+            .set_multisampling(sample_count)
             .build(device);
         resources.add_material("grid", std::move(grid));
     }
@@ -419,7 +426,7 @@ init_materials(
               vk::CullModeFlagBits::eBack, vk::FrontFace::eCounterClockwise
             )
             .set_depth_test(true, vk::CompareOp::eLessOrEqual)
-            .set_multisampling(vk::SampleCountFlagBits::e4)
+            .set_multisampling(sample_count)
             .build(device);
         resources.add_material("skybox", std::move(skybox));
     }

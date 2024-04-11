@@ -11,8 +11,7 @@ class Swapchain
       SDL_Window *window,
       const Surface &surface,
       const PhysicalDevice &physical_device,
-      const Device &device,
-      const bool enable_multisampling
+      const Device &device
     );
     ~Swapchain();
     Swapchain() = delete;

@@ -18,13 +18,9 @@ Context::Context(SDL_Window *window, bool enable_multisampling)
       *surface
     ) }
   , device{ std::make_shared<Device>(*instance, physical_device) }
-  , swapchain{ std::make_unique<Swapchain>(
-      window,
-      *surface,
-      *physical_device,
-      *device,
-      enable_multisampling
-    ) }
+  , swapchain{
+      std::make_unique<Swapchain>(window, *surface, *physical_device, *device)
+  }
 {
     spdlog::debug("Context::Context()");
 }
@@ -40,13 +36,12 @@ Context::~Context()
 }
 
 void
-Context::recreate_swapchain(SDL_Window *window, bool enable_multisampling)
+Context::recreate_swapchain(SDL_Window *window)
 {
     device->get().waitIdle();
     swapchain.reset();
-    swapchain = std::make_unique<Swapchain>(
-      window, *surface, *physical_device, *device, enable_multisampling
-    );
+    swapchain =
+      std::make_unique<Swapchain>(window, *surface, *physical_device, *device);
 }
 
 std::shared_ptr<PhysicalDevice>

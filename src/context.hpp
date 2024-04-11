@@ -15,7 +15,7 @@ class Context
     Context(Context &&) = delete;
     Context &operator=(Context &&) = delete;
 
-    void recreate_swapchain(SDL_Window *window, bool enable_multisampling);
+    void recreate_swapchain(SDL_Window *window);
 
     [[nodiscard]] const vk::Instance &get_instance() const noexcept
     {

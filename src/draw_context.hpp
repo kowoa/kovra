@@ -24,7 +24,8 @@ struct DrawContext
 
     Swapchain &swapchain;
     GpuImage &draw_image;
-    GpuImage *draw_image_resolve = nullptr;
+    GpuImage &draw_depth_image;
+    GpuImage *draw_resolve_image = nullptr;
     Cubemap &skybox;
 
     // This vector will be filled each frame with opaque render objects

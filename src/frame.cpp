@@ -137,16 +137,15 @@ Frame::draw(const DrawContext &&ctx)
       vk::ImageLayout::eColorAttachmentOptimal
     );
 
-    const auto depth_attachment =
-      vk::RenderingAttachmentInfo{}
-        .setImageView(ctx.swapchain.get_depth_image().get_view())
-        .setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
-        .setLoadOp(vk::AttachmentLoadOp::eClear)
-        .setStoreOp(vk::AttachmentStoreOp::eStore)
-        .setClearValue(vk::ClearValue{}.setDepthStencil({ 1.0f, 0 }));
-
     // Render to the draw image
     {
+        const auto depth_attachment =
+          vk::RenderingAttachmentInfo{}
+            .setImageView(ctx.draw_depth_image.get_view())
+            .setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
+            .setLoadOp(vk::AttachmentLoadOp::eClear)
+            .setStoreOp(vk::AttachmentStoreOp::eStore)
+            .setClearValue(vk::ClearValue{}.setDepthStencil({ 1.0f, 0 }));
         const auto color_attachment =
           vk::RenderingAttachmentInfo{}
             .setImageView(ctx.draw_image.get_view())
@@ -182,14 +181,14 @@ Frame::draw(const DrawContext &&ctx)
     );
 
     // Resolve multisampled draw image
-    if (ctx.draw_image_resolve != nullptr) {
+    if (ctx.draw_resolve_image != nullptr) {
         cmd_encoder->transition_image_layout(
           ctx.draw_image,
           vk::ImageLayout::eColorAttachmentOptimal,
           vk::ImageLayout::eTransferSrcOptimal
         );
         cmd_encoder->transition_image_layout(
-          *ctx.draw_image_resolve,
+          *ctx.draw_resolve_image,
           vk::ImageLayout::eUndefined,
           vk::ImageLayout::eTransferDstOptimal
         );
@@ -205,29 +204,29 @@ Frame::draw(const DrawContext &&ctx)
             .setSrcOffset({ 0, 0, 0 })
             .setDstSubresource(
               vk::ImageSubresourceLayers{}
-                .setAspectMask(ctx.draw_image_resolve->get_aspect())
-                .setMipLevel(ctx.draw_image_resolve->get_level_count() - 1)
+                .setAspectMask(ctx.draw_resolve_image->get_aspect())
+                .setMipLevel(ctx.draw_resolve_image->get_level_count() - 1)
                 .setBaseArrayLayer(0)
-                .setLayerCount(ctx.draw_image_resolve->get_layer_count())
+                .setLayerCount(ctx.draw_resolve_image->get_layer_count())
             )
             .setDstOffset({ 0, 0, 0 })
             .setExtent(ctx.draw_image.get_extent());
         cmd_encoder->resolve_image(
           ctx.draw_image.get(),
           vk::ImageLayout::eTransferSrcOptimal,
-          ctx.draw_image_resolve->get(),
+          ctx.draw_resolve_image->get(),
           vk::ImageLayout::eTransferDstOptimal,
           resolve_region
         );
         cmd_encoder->transition_image_layout(
-          *ctx.draw_image_resolve,
+          *ctx.draw_resolve_image,
           vk::ImageLayout::eTransferDstOptimal,
           vk::ImageLayout::eTransferSrcOptimal
         );
 
         // Copy draw image resolve to swapchain image
         cmd_encoder->copy_image_to_image(
-          ctx.draw_image_resolve->get(),
+          ctx.draw_resolve_image->get(),
           swapchain_image,
           draw_extent,
           swapchain_image_extent
@@ -247,38 +246,42 @@ Frame::draw(const DrawContext &&ctx)
         );
     }
 
-    /*
-      // ImGui render commands (draw to swapchain image)
-      {
-          auto color_attachment =
-            vk::RenderingAttachmentInfo{}
-              .setImageView(
-                ctx.swapchain.get_views().at(swapchain_image_index.value).get()
-              )
-              .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
-              .setLoadOp(vk::AttachmentLoadOp::eLoad)
-              .setStoreOp(vk::AttachmentStoreOp::eStore)
-              .setClearValue(vk::ClearValue{}.setColor({ 0.0f, 0.0f, 0.0f, 1.0f
-      })
-              );
-          auto render_area =
-            vk::Rect2D{}.setOffset({ 0, 0 }).setExtent(swapchain_image_extent);
-          RenderPass render_pass =
-            cmd_encoder->begin_render_pass(RenderPassCreateInfo{
-              .color_attachments = { color_attachment },
-              .depth_attachment = depth_attachment,
-              .render_area = render_area,
-            });
-          render_pass.set_viewport_scissor(
-            swapchain_image_extent.width, swapchain_image_extent.height
-          );
+    // ImGui render commands (draw to swapchain image)
+    {
+        const auto depth_attachment =
+          vk::RenderingAttachmentInfo{}
+            .setImageView(ctx.swapchain.get_depth_image().get_view())
+            .setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
+            .setLoadOp(vk::AttachmentLoadOp::eClear)
+            .setStoreOp(vk::AttachmentStoreOp::eStore)
+            .setClearValue(vk::ClearValue{}.setDepthStencil({ 1.0f, 0 }));
+        const auto color_attachment =
+          vk::RenderingAttachmentInfo{}
+            .setImageView(
+              ctx.swapchain.get_views().at(swapchain_image_index.value).get()
+            )
+            .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
+            .setLoadOp(vk::AttachmentLoadOp::eLoad)
+            .setStoreOp(vk::AttachmentStoreOp::eStore)
+            .setClearValue(vk::ClearValue{}.setColor({ 0.0f, 0.0f, 0.0f, 1.0f })
+            );
+        const auto render_area =
+          vk::Rect2D{}.setOffset({ 0, 0 }).setExtent(swapchain_image_extent);
+        RenderPass render_pass =
+          cmd_encoder->begin_render_pass(RenderPassCreateInfo{
+            .color_attachments = { color_attachment },
+            .depth_attachment = depth_attachment,
+            .render_area = render_area,
+          });
+        render_pass.set_viewport_scissor(
+          swapchain_image_extent.width, swapchain_image_extent.height
+        );
 
-          // ImGui
-          ImGui_ImplVulkan_RenderDrawData(
-            ImGui::GetDrawData(), render_pass.get_cmd()
-          );
-      }
-    */
+        // ImGui
+        ImGui_ImplVulkan_RenderDrawData(
+          ImGui::GetDrawData(), render_pass.get_cmd()
+        );
+    }
 
     // Transition swapchain image layout to present src layout
     cmd_encoder->transition_image_layout(

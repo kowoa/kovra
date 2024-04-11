@@ -7,8 +7,7 @@ Swapchain::Swapchain(
   SDL_Window *window,
   const Surface &surface,
   const PhysicalDevice &physical_device,
-  const Device &device,
-  const bool enable_multisampling
+  const Device &device
 )
 {
     spdlog::debug("Swapchain::Swapchain()");
@@ -111,7 +110,7 @@ Swapchain::Swapchain(
 
     // Depth image
     depth_image = device.create_depth_image(
-      extent.width, extent.height, std::nullopt, enable_multisampling
+      extent.width, extent.height, std::nullopt, false
     );
 }
 

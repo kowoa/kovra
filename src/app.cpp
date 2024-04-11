@@ -98,7 +98,7 @@ App::run()
         }
 
         if (renderer->get_context().get_swapchain().is_dirty()) {
-            renderer->get_context_mut().recreate_swapchain(window, true);
+            renderer->get_context_mut().recreate_swapchain(window);
         }
 
         draw_imgui();

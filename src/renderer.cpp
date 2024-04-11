@@ -82,7 +82,7 @@ Renderer::Renderer(SDL_Window *window, bool enable_multisampling)
           .sampler = render_resources->get_sampler(vk::Filter::eNearest),
           .enable_multisampling = enable_multisampling });
         if (enable_multisampling) {
-            draw_image_resolve =
+            draw_resolve_image =
               context->get_device().create_image(GpuImageCreateInfo{
                 .format = vk::Format::eR16G16B16A16Sfloat,
                 .extent = vk::Extent3D{ swapchain_extent.width,
@@ -96,6 +96,14 @@ Renderer::Renderer(SDL_Window *window, bool enable_multisampling)
                 .sampler = render_resources->get_sampler(vk::Filter::eNearest),
                 .enable_multisampling = false });
         }
+    }
+
+    // Create depth image for the draw image
+    {
+        const vk::Extent2D extent = draw_image->get_extent2d();
+        draw_depth_image = context->get_device().create_depth_image(
+          extent.width, extent.height, std::nullopt, enable_multisampling
+        );
     }
 
     // Create materials
@@ -182,7 +190,8 @@ Renderer::~Renderer()
 
     skybox.reset();
     draw_image.reset();
-    draw_image_resolve.reset();
+    draw_depth_image.reset();
+    draw_resolve_image.reset();
     render_resources.reset();
 
     // Destroy frames
@@ -223,7 +232,8 @@ Renderer::update_scene(
 
                                  .swapchain = context->get_swapchain_mut(),
                                  .draw_image = *draw_image,
-                                 .draw_image_resolve = draw_image_resolve.get(),
+                                 .draw_depth_image = *draw_depth_image,
+                                 .draw_resolve_image = draw_resolve_image.get(),
                                  .skybox = *skybox,
 
                                  .opaque_objects = {},

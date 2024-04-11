@@ -73,7 +73,8 @@ class Renderer
     // Resources
     std::shared_ptr<RenderResources> render_resources;
     std::unique_ptr<GpuImage> draw_image;
-    std::unique_ptr<GpuImage> draw_image_resolve;
+    std::unique_ptr<GpuImage> draw_depth_image;
+    std::unique_ptr<GpuImage> draw_resolve_image;
     std::unique_ptr<Cubemap> skybox;
 
     // ImGui

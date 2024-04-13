@@ -53,7 +53,10 @@ class CommandEncoder
       vk::Image src,
       vk::Image dst,
       vk::Extent2D src_size,
-      vk::Extent2D dst_size
+      vk::Extent2D dst_size,
+      vk::ImageAspectFlagBits src_aspect = vk::ImageAspectFlagBits::eColor,
+      vk::ImageAspectFlagBits dst_aspect = vk::ImageAspectFlagBits::eColor,
+      vk::Filter filter = vk::Filter::eLinear
     ) const;
     void clear_color_image(
       const vk::Image &image,

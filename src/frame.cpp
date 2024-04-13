@@ -143,6 +143,11 @@ Frame::draw(const DrawContext &&ctx)
           vk::ImageLayout::eColorAttachmentOptimal
         );
     }
+    cmd_encoder->transition_image_layout(
+      ctx.draw_depth_image,
+      vk::ImageLayout::eUndefined,
+      vk::ImageLayout::eDepthStencilAttachmentOptimal
+    );
 
     // Render to the draw image
     {
@@ -151,7 +156,7 @@ Frame::draw(const DrawContext &&ctx)
             .setImageView(ctx.draw_depth_image.get_view())
             .setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
             .setLoadOp(vk::AttachmentLoadOp::eClear)
-            .setStoreOp(vk::AttachmentStoreOp::eDontCare)
+            .setStoreOp(vk::AttachmentStoreOp::eStore)
             .setClearValue(vk::ClearValue{}.setDepthStencil({ 1.0f, 0 }));
         auto color_attachment =
           vk::RenderingAttachmentInfo{}

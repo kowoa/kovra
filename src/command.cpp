@@ -140,10 +140,22 @@ CommandEncoder::copy_image_to_image(
   vk::Image src,
   vk::Image dst,
   vk::Extent2D src_size,
-  vk::Extent2D dst_size
+  vk::Extent2D dst_size,
+  vk::ImageAspectFlagBits src_aspect,
+  vk::ImageAspectFlagBits dst_aspect,
+  vk::Filter filter
 ) const
 {
-    utils::copy_image_to_image(get_current_cmd(), src, dst, src_size, dst_size);
+    utils::copy_image_to_image(
+      get_current_cmd(),
+      src,
+      dst,
+      src_size,
+      dst_size,
+      src_aspect,
+      dst_aspect,
+      filter
+    );
 }
 void
 CommandEncoder::clear_color_image(

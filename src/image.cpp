@@ -217,7 +217,8 @@ GpuImage::new_depth_image(
       GpuImageCreateInfo{ .format = vk::Format::eD32Sfloat,
                           .extent = vk::Extent3D{ width, height, 1 },
                           .usage =
-                            vk::ImageUsageFlagBits::eDepthStencilAttachment,
+                            vk::ImageUsageFlagBits::eDepthStencilAttachment |
+                            vk::ImageUsageFlagBits::eTransferSrc,
                           .aspect = vk::ImageAspectFlagBits::eDepth,
                           .mipmapped = false,
                           .sampler = sampler,

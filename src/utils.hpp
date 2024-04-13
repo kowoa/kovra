@@ -32,7 +32,10 @@ copy_image_to_image(
   vk::Image src,
   vk::Image dst,
   vk::Extent2D src_size,
-  vk::Extent2D dst_size
+  vk::Extent2D dst_size,
+  vk::ImageAspectFlagBits src_aspect = vk::ImageAspectFlagBits::eColor,
+  vk::ImageAspectFlagBits dst_aspect = vk::ImageAspectFlagBits::eColor,
+  vk::Filter filter = vk::Filter::eNearest
 );
 
 // NOTE: Lifetime of returned span is tied to the lifetime of the data

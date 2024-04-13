@@ -45,7 +45,10 @@ copy_image_to_image(
   vk::Image src,
   vk::Image dst,
   vk::Extent2D src_size,
-  vk::Extent2D dst_size
+  vk::Extent2D dst_size,
+  vk::ImageAspectFlagBits src_aspect,
+  vk::ImageAspectFlagBits dst_aspect,
+  vk::Filter filter
 )
 {
     auto blit_region =
@@ -59,18 +62,18 @@ copy_image_to_image(
                                        static_cast<int32_t>(dst_size.height),
                                        1 } })
         .setSrcSubresource(vk::ImageSubresourceLayers{}
-                             .setAspectMask(vk::ImageAspectFlagBits::eColor)
+                             .setAspectMask(src_aspect)
                              .setBaseArrayLayer(0)
                              .setLayerCount(1)
                              .setMipLevel(0))
         .setDstSubresource(vk::ImageSubresourceLayers{}
-                             .setAspectMask(vk::ImageAspectFlagBits::eColor)
+                             .setAspectMask(dst_aspect)
                              .setBaseArrayLayer(0)
                              .setLayerCount(1)
                              .setMipLevel(0));
 
     auto blit_info = vk::BlitImageInfo2{}
-                       .setFilter(vk::Filter::eLinear)
+                       .setFilter(filter)
                        .setRegions(blit_region)
                        .setSrcImage(src)
                        .setDstImage(dst)

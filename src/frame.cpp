@@ -136,6 +136,13 @@ Frame::draw(const DrawContext &&ctx)
       vk::ImageLayout::eUndefined,
       vk::ImageLayout::eColorAttachmentOptimal
     );
+    if (ctx.draw_resolve_image != nullptr) {
+        cmd_encoder->transition_image_layout(
+          *ctx.draw_resolve_image,
+          vk::ImageLayout::eUndefined,
+          vk::ImageLayout::eColorAttachmentOptimal
+        );
+    }
 
     // Render to the draw image
     {
@@ -144,9 +151,9 @@ Frame::draw(const DrawContext &&ctx)
             .setImageView(ctx.draw_depth_image.get_view())
             .setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
             .setLoadOp(vk::AttachmentLoadOp::eClear)
-            .setStoreOp(vk::AttachmentStoreOp::eStore)
+            .setStoreOp(vk::AttachmentStoreOp::eDontCare)
             .setClearValue(vk::ClearValue{}.setDepthStencil({ 1.0f, 0 }));
-        const auto color_attachment =
+        auto color_attachment =
           vk::RenderingAttachmentInfo{}
             .setImageView(ctx.draw_image.get_view())
             .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
@@ -154,6 +161,11 @@ Frame::draw(const DrawContext &&ctx)
             .setStoreOp(vk::AttachmentStoreOp::eStore)
             .setClearValue(vk::ClearValue{}.setColor({ 0.1f, 0.1f, 0.1f, 1.0f })
             );
+        if (ctx.draw_resolve_image != nullptr) {
+            color_attachment.setResolveMode(vk::ResolveModeFlagBits::eAverage)
+              .setResolveImageView(ctx.draw_resolve_image->get_view())
+              .setResolveImageLayout(vk::ImageLayout::eColorAttachmentOptimal);
+        }
         const auto render_area =
           vk::Rect2D{}.setOffset({ 0, 0 }).setExtent(draw_extent);
         RenderPass render_pass =
@@ -183,44 +195,8 @@ Frame::draw(const DrawContext &&ctx)
     // Resolve multisampled draw image
     if (ctx.draw_resolve_image != nullptr) {
         cmd_encoder->transition_image_layout(
-          ctx.draw_image,
+          *ctx.draw_resolve_image,
           vk::ImageLayout::eColorAttachmentOptimal,
-          vk::ImageLayout::eTransferSrcOptimal
-        );
-        cmd_encoder->transition_image_layout(
-          *ctx.draw_resolve_image,
-          vk::ImageLayout::eUndefined,
-          vk::ImageLayout::eTransferDstOptimal
-        );
-        auto resolve_region =
-          vk::ImageResolve{}
-            .setSrcSubresource(
-              vk::ImageSubresourceLayers{}
-                .setAspectMask(ctx.draw_image.get_aspect())
-                .setMipLevel(ctx.draw_image.get_level_count() - 1)
-                .setBaseArrayLayer(0)
-                .setLayerCount(ctx.draw_image.get_layer_count())
-            )
-            .setSrcOffset({ 0, 0, 0 })
-            .setDstSubresource(
-              vk::ImageSubresourceLayers{}
-                .setAspectMask(ctx.draw_resolve_image->get_aspect())
-                .setMipLevel(ctx.draw_resolve_image->get_level_count() - 1)
-                .setBaseArrayLayer(0)
-                .setLayerCount(ctx.draw_resolve_image->get_layer_count())
-            )
-            .setDstOffset({ 0, 0, 0 })
-            .setExtent(ctx.draw_image.get_extent());
-        cmd_encoder->resolve_image(
-          ctx.draw_image.get(),
-          vk::ImageLayout::eTransferSrcOptimal,
-          ctx.draw_resolve_image->get(),
-          vk::ImageLayout::eTransferDstOptimal,
-          resolve_region
-        );
-        cmd_encoder->transition_image_layout(
-          *ctx.draw_resolve_image,
-          vk::ImageLayout::eTransferDstOptimal,
           vk::ImageLayout::eTransferSrcOptimal
         );
 
@@ -253,7 +229,7 @@ Frame::draw(const DrawContext &&ctx)
             .setImageView(ctx.swapchain.get_depth_image().get_view())
             .setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
             .setLoadOp(vk::AttachmentLoadOp::eClear)
-            .setStoreOp(vk::AttachmentStoreOp::eStore)
+            .setStoreOp(vk::AttachmentStoreOp::eDontCare)
             .setClearValue(vk::ClearValue{}.setDepthStencil({ 1.0f, 0 }));
         const auto color_attachment =
           vk::RenderingAttachmentInfo{}

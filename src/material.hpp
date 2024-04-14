@@ -2,8 +2,10 @@
 
 #include "shader.hpp"
 #include "vertex.hpp"
+
 #include <memory>
 #include <optional>
+#include <span>
 #include <vulkan/vulkan.hpp>
 
 namespace kovra {

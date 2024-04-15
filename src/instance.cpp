@@ -44,7 +44,11 @@ Instance::Instance(SDL_Window *window)
 
     instance = vk::createInstanceUnique(
       vk::InstanceCreateInfo{
+#ifdef __APPLE__
+        vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
+#else
         {},
+#endif
         &app_info,
         static_cast<uint32_t>(req_validation_layers.size()),
         req_validation_layers.data(),
@@ -138,6 +142,10 @@ get_required_instance_extensions(SDL_Window *window)
         exts.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
+#ifdef __APPLE__
+    exts.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+#endif
+
     return exts;
 }
 
@@ -165,9 +173,11 @@ debugUtilsMessageCallback(
         severity_prefix = "VERBOSE: ";
     } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
         severity_prefix = "INFO: ";
-    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+    } else if (messageSeverity &
+               VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
         severity_prefix = "WARNING: ";
-    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+    } else if (messageSeverity &
+               VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
         severity_prefix = "ERROR: ";
     }
 

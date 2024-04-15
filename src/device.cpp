@@ -2,7 +2,9 @@
 #include "image.hpp"
 #include "queue.hpp"
 #include "spdlog/spdlog.h"
+
 #include <set>
+#include <vulkan/vulkan_beta.h>
 
 namespace kovra {
 std::vector<const char *>
@@ -236,6 +238,10 @@ get_required_device_extensions()
         VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
         VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
         VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+
+#ifdef __APPLE__
+        VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
+#endif
 
         // VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,
 

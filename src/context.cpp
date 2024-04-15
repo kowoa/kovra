@@ -50,8 +50,12 @@ pick_physical_device(
   const Surface &surface
 )
 {
+    auto scores = std::vector<int>(physical_devices.size(), 0);
+
     // Loop through each physical device
-    for (const auto &physical_device : physical_devices) {
+    for (size_t i = 0; i < physical_devices.size(); i++) {
+        const auto &physical_device = physical_devices[i];
+
         // Check if the physical device supports the surface
         bool surface_supported = physical_device->get().getSurfaceSupportKHR(
           physical_device->get_present_queue_family().get_index(), surface.get()
@@ -59,14 +63,20 @@ pick_physical_device(
 
         // Check if the physical device supports the required features
         auto features = physical_device->get_supported_features();
-        if (surface_supported && features.dynamic_rendering &&
-            features.synchronization2 && features.buffer_device_address &&
-            features.runtime_descriptor_array &&
-            features.ray_tracing_pipeline && features.acceleration_structure) {
-            return physical_device;
-        }
+
+        scores[i] += surface_supported ? 1 : 0;
+        scores[i] += features.dynamic_rendering ? 1 : 0;
+        scores[i] += features.synchronization2 ? 1 : 0;
+        scores[i] += features.buffer_device_address ? 1 : 0;
+        scores[i] += features.runtime_descriptor_array ? 1 : 0;
+        scores[i] += features.ray_tracing_pipeline ? 1 : 0;
+        scores[i] += features.acceleration_structure ? 1 : 0;
     }
-    throw std::runtime_error("No suitable physical device found");
+
+    // Find the best physical device
+    return physical_devices[std::distance(
+      scores.begin(), std::max_element(scores.begin(), scores.end())
+    )];
 }
 
 } // namespace kovra

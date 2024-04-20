@@ -56,15 +56,19 @@ const vec3 light_positions[4] = {
 };
 
 const vec3 light_colors[4] = {
-    vec3(300.0f, 300.0f, 300.0f),
-    vec3(300.0f, 300.0f, 300.0f),
-    vec3(300.0f, 300.0f, 300.0f),
-    vec3(300.0f, 300.0f, 300.0f)
+    vec3(300.0f),
+    vec3(300.0f),
+    vec3(300.0f),
+    vec3(300.0f)
 };
 
 void main()
 {
-    vec3 albedo = in_color.rgb;
+    vec3 albedo = (in_color * texture(albedo_tex, in_uv)).rgb;
+    vec4 metallic_roughness = texture(metal_rough_tex, in_uv);
+    float metallic = metallic_roughness.r; //* Material.metal_rough_factors.r;
+    float roughness = metallic_roughness.g; //* Material.metal_rough_factors.g;
+
     vec3 N = in_normal;
     vec3 V = normalize(Scene.cam_world_pos.xyz - in_world_pos);
 
@@ -77,14 +81,12 @@ void main()
         float attenuation = 1.0f / (distance * distance);
         vec3 radiance = light_colors[i] * attenuation;
 
-        vec3 metallic = vec3(Material.metal_rough_factors.r);
         vec3 F0 = vec3(0.04f);
-        F0 = mix(F0, albedo, metallic);
+        F0 = mix(F0, albedo, vec3(metallic));
         vec3 F = fresnel_schlick(max(dot(H, V), 0.0f), F0);
 
-        vec3 roughness = vec3(Material.metal_rough_factors.g);
-        float NDF = distribution_ggx(N, H, roughness.r);
-        float G = geometry_smith(N, V, L, roughness.r);
+        float NDF = distribution_ggx(N, H, roughness);
+        float G = geometry_smith(N, V, L, roughness);
 
         // Calculate Cook-Torrance BRDF
         vec3 numerator = NDF * G * F;
@@ -101,6 +103,8 @@ void main()
 
     vec3 ambient_color = vec3(0.03f) * albedo;// * ambient_occlusion;
     out_color = vec4(Lo + ambient_color, 1.0f);
+    out_color /= out_color + vec4(1.0f);
+    out_color = pow(out_color, vec4(1.0f / 2.2f));
 
   /*
     float light_value = max(dot(in_normal, -Scene.sunlight_direction.xyz), 0.1f);

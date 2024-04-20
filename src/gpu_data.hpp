@@ -20,6 +20,7 @@ struct GpuSceneData
 {
     // Camera
     const glm::mat4x4 viewproj;
+    const glm::vec4 cam_world_pos;
     const glm::f32 near;
     const glm::f32 far;
     const glm::f32 _padding[2];

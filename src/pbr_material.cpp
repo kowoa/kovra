@@ -46,8 +46,8 @@ PbrMaterial::PbrMaterial(
             .setSetLayouts(layouts)
             .setPushConstantRanges(push_constant_range)
         ))
-        .set_shader(std::make_unique<GraphicsShader>(GraphicsShader{
-          "mesh-gltf", device }))
+        .set_shader(std::make_unique<GraphicsShader>(GraphicsShader{ "pbr",
+                                                                     device }))
         .set_color_attachment_format(color_attachment_format)
         .set_depth_attachment_format(depth_attachment_format)
         .set_multisampling(sample_count)
@@ -62,8 +62,8 @@ PbrMaterial::PbrMaterial(
             .setSetLayouts(layouts)
             .setPushConstantRanges(push_constant_range)
         ))
-        .set_shader(std::make_unique<GraphicsShader>(GraphicsShader{
-          "mesh-gltf", device }))
+        .set_shader(std::make_unique<GraphicsShader>(GraphicsShader{ "pbr",
+                                                                     device }))
         .set_color_attachment_format(color_attachment_format)
         .set_depth_attachment_format(depth_attachment_format)
         .enable_additive_blending()

@@ -5,8 +5,9 @@
 #include "input_structures.glsl"
 
 layout (location = 0) out vec3 out_normal;
-layout (location = 1) out vec3 out_color;
+layout (location = 1) out vec3 out_world_pos;
 layout (location = 2) out vec2 out_uv;
+layout (location = 3) out vec4 out_color;
 
 struct Vertex {
     vec3 position;
@@ -32,6 +33,9 @@ void main() {
     out_normal = (PushConstants.object_transform * vec4(v.normal, 0.0f)).xyz;
     out_normal = normalize(out_normal);
 
-    out_color = v.color.xyz * Material.color_factors.xyz;
+    out_world_pos = (PushConstants.object_transform * vec4(v.position, 1.0)).xyz;
+
     out_uv = vec2(v.uv_x, v.uv_y);
+
+    out_color = v.color * Material.color_factors;
 }

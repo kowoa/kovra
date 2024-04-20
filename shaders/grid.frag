@@ -5,13 +5,16 @@ layout (location = 1) in vec3 far_world_point;
 
 layout (location = 0) out vec4 f_color;
 
-layout(set = 0, binding = 0) uniform GpuSceneData {
+layout (set = 0, binding = 0) uniform GpuSceneData {
+    // Camera
     mat4 viewproj;
+    vec4 cam_world_pos;
     float near;
     float far;
 
+    // Lighting
     vec4 ambient_color;
-    vec4 sunlight_direction;
+    vec4 sunlight_direction; // w for sun power
     vec4 sunlight_color;
 } scene;
 

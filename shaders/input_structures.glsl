@@ -1,6 +1,7 @@
 layout (set = 0, binding = 0) uniform GpuSceneData {
     // Camera
     mat4 viewproj;
+    vec4 cam_world_pos;
     float near;
     float far;
 

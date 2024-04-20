@@ -218,6 +218,7 @@ Renderer::update_scene(
         .viewproj = camera.get_viewproj_mat(
           swapchain_image_extent.width, swapchain_image_extent.height
         ),
+        .cam_world_pos = glm::vec4(camera.get_position(), 1.0f),
         .near = camera.get_near(),
         .far = camera.get_far(),
 

@@ -66,7 +66,7 @@ void main()
 {
     vec3 albedo = (in_color * texture(albedo_tex, in_uv)).rgb;
     vec4 metallic_roughness = texture(metal_rough_tex, in_uv);
-    float metallic = metallic_roughness.r * Material.metal_rough_factors.r;
+    float metallic = metallic_roughness.b * Material.metal_rough_factors.r;
     float roughness = metallic_roughness.g * Material.metal_rough_factors.g;
     float ambient_occlusion = texture(ambient_occlusion_tex, in_uv).r;
 

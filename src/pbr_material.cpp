@@ -35,6 +35,9 @@ PbrMaterial::PbrMaterial(
         .add_binding(
           2, vk::DescriptorType::eCombinedImageSampler, vert_frag_stages
         )
+        .add_binding(
+          3, vk::DescriptorType::eCombinedImageSampler, vert_frag_stages
+        )
         .build_unique(device);
 
     const auto layouts = std::array{ scene_desc_layout, material_layout.get() };
@@ -109,6 +112,13 @@ PbrMaterial::create_material_instance(
       2,
       info.metal_rough_texture.get_view(),
       info.metal_rough_texture.get_sampler(),
+      vk::ImageLayout::eShaderReadOnlyOptimal,
+      vk::DescriptorType::eCombinedImageSampler
+    );
+    desc_writer->write_image(
+      3,
+      info.ambient_occlusion_texture.get_view(),
+      info.ambient_occlusion_texture.get_sampler(),
       vk::ImageLayout::eShaderReadOnlyOptimal,
       vk::DescriptorType::eCombinedImageSampler
     );

@@ -113,6 +113,8 @@ RenderResources::set_pbr_material(
           .albedo_sampler = get_sampler(vk::Filter::eLinear),
           .metal_rough_texture = get_texture("white"),
           .metal_rough_sampler = get_sampler(vk::Filter::eLinear),
+          .ambient_occlusion_texture = get_texture("white"),
+          .ambient_occlusion_sampler = get_sampler(vk::Filter::eLinear),
           .material_buffer = material_buffer->get(),
           .material_buffer_offset = 0,
           .pass = MaterialPass::Opaque },

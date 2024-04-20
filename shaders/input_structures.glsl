@@ -17,3 +17,4 @@ layout (set = 1, binding = 0) uniform GpuPbrMaterialData {
 } Material;
 layout (set = 1, binding = 1) uniform sampler2D albedo_tex;
 layout (set = 1, binding = 2) uniform sampler2D metal_rough_tex;
+layout (set = 1, binding = 3) uniform sampler2D ambient_occlusion_tex;

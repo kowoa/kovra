@@ -20,6 +20,8 @@ struct PbrMaterialInstanceCreateInfo
     const vk::Sampler &albedo_sampler;
     const GpuImage &metal_rough_texture;
     const vk::Sampler &metal_rough_sampler;
+    const GpuImage &ambient_occlusion_texture;
+    const vk::Sampler &ambient_occlusion_sampler;
     const vk::Buffer &material_buffer; // Buffer containing GpuPbrMaterialData
     const uint32_t material_buffer_offset;
     const MaterialPass pass;

@@ -413,11 +413,58 @@ LoadedGltfScene::LoadedGltfScene(
             }
         }
 
+        std::shared_ptr<GpuImage> ambient_occlusion_texture =
+          resources.get_texture_owned("white");
+        vk::Sampler ambient_occlusion_sampler =
+          resources.get_sampler(vk::Filter::eLinear);
+        if (mat.occlusionTexture.has_value()) {
+            if (mat.occlusionTexture.value().textureIndex >= gltf.textures.size()) {
+                spdlog::error(
+                  "Texture index out of range: {}",
+                  mat.occlusionTexture.value().textureIndex
+                );
+                throw std::runtime_error("Texture index out of range");
+            }
+            const auto &tex =
+              gltf.textures.at(mat.occlusionTexture.value().textureIndex);
+
+            // Assign ambient occlusion texture
+            if (auto img_idx = tex.imageIndex; img_idx.has_value()) {
+                if (img_idx.value() < textures.size()) {
+                    metal_rough_texture = textures.at(img_idx.value());
+                } else {
+                    spdlog::error(
+                      "Image index out of range: {}", img_idx.value()
+                    );
+                }
+            } else {
+                spdlog::warn("Image index not found in texture: {}", tex.name);
+            }
+
+            // Assign ambient occlusion sampler
+            if (auto sampler_idx = tex.samplerIndex; sampler_idx.has_value()) {
+                if (sampler_idx.value() < samplers.size()) {
+                    metal_rough_sampler =
+                      samplers.at(sampler_idx.value()).get();
+                } else {
+                    spdlog::error(
+                      "Sampler index out of range: {}", sampler_idx.value()
+                    );
+                }
+            } else {
+                spdlog::warn(
+                  "Sampler index not found in texture: {}", tex.name
+                );
+            }
+        }
+
         auto mat_inst_ci = PbrMaterialInstanceCreateInfo{
             .albedo_texture = *albedo_texture,
             .albedo_sampler = albedo_sampler,
             .metal_rough_texture = *metal_rough_texture,
             .metal_rough_sampler = metal_rough_sampler,
+            .ambient_occlusion_texture = *ambient_occlusion_texture,
+            .ambient_occlusion_sampler = ambient_occlusion_sampler,
             .material_buffer = material_buffer->get(),
             .material_buffer_offset =
               static_cast<uint32_t>(i * sizeof(GpuPbrMaterialData)),

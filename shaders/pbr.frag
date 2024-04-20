@@ -56,18 +56,19 @@ const vec3 light_positions[4] = {
 };
 
 const vec3 light_colors[4] = {
-    vec3(300.0f),
-    vec3(300.0f),
-    vec3(300.0f),
-    vec3(300.0f)
+    vec3(100.0f),
+    vec3(100.0f),
+    vec3(100.0f),
+    vec3(100.0f)
 };
 
 void main()
 {
     vec3 albedo = (in_color * texture(albedo_tex, in_uv)).rgb;
     vec4 metallic_roughness = texture(metal_rough_tex, in_uv);
-    float metallic = metallic_roughness.r; //* Material.metal_rough_factors.r;
-    float roughness = metallic_roughness.g; //* Material.metal_rough_factors.g;
+    float metallic = metallic_roughness.r * Material.metal_rough_factors.r;
+    float roughness = metallic_roughness.g * Material.metal_rough_factors.g;
+    float ambient_occlusion = texture(ambient_occlusion_tex, in_uv).r;
 
     vec3 N = in_normal;
     vec3 V = normalize(Scene.cam_world_pos.xyz - in_world_pos);
@@ -101,7 +102,7 @@ void main()
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
 
-    vec3 ambient_color = vec3(0.03f) * albedo;// * ambient_occlusion;
+    vec3 ambient_color = vec3(0.03f) * albedo * ambient_occlusion;
     out_color = vec4(Lo + ambient_color, 1.0f);
     out_color /= out_color + vec4(1.0f);
     out_color = pow(out_color, vec4(1.0f / 2.2f));

@@ -28,7 +28,7 @@ class Renderer
 
     void draw_frame(
       const Camera &camera,
-      const std::span<std::string> &objects_to_render
+      const std::span<std::pair<std::string, glm::mat4>> &objects_to_render
     );
 
     void load_gltf(
@@ -95,7 +95,7 @@ class Renderer
 
     auto update_scene(
       const Camera &camera,
-      const std::span<std::string> &objects_to_render
+      const std::span<std::pair<std::string, glm::mat4>> &objects_to_render
     ) -> DrawContext;
 };
 } // namespace kovra

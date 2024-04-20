@@ -73,11 +73,13 @@ void main()
     vec3 N = in_normal;
     vec3 V = normalize(Scene.cam_world_pos.xyz - in_world_pos);
 
+    // Reflectance equation
     vec3 Lo = vec3(0.0f);
     for (int i = 0; i < 4; i++) {
         vec3 L = normalize(light_positions[i] - in_world_pos);
         vec3 H = normalize(V + L);
 
+        // Calculate per-light radiance
         float distance = length(light_positions[i] - in_world_pos);
         float attenuation = 1.0f / (distance * distance);
         vec3 radiance = light_colors[i] * attenuation;
@@ -98,6 +100,7 @@ void main()
         vec3 kD = vec3(1.0f) - kS; // Energy of light that is refracted
         kD *= 1.0f - metallic.r; // Energy of light that is absorbed
 
+        // Add to outgoing radiance Lo
         float NdotL = max(dot(N, L), 0.0f);
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }

@@ -431,7 +431,7 @@ LoadedGltfScene::LoadedGltfScene(
             // Assign ambient occlusion texture
             if (auto img_idx = tex.imageIndex; img_idx.has_value()) {
                 if (img_idx.value() < textures.size()) {
-                    metal_rough_texture = textures.at(img_idx.value());
+                    ambient_occlusion_texture = textures.at(img_idx.value());
                 } else {
                     spdlog::error(
                       "Image index out of range: {}", img_idx.value()
@@ -444,7 +444,7 @@ LoadedGltfScene::LoadedGltfScene(
             // Assign ambient occlusion sampler
             if (auto sampler_idx = tex.samplerIndex; sampler_idx.has_value()) {
                 if (sampler_idx.value() < samplers.size()) {
-                    metal_rough_sampler =
+                    ambient_occlusion_sampler =
                       samplers.at(sampler_idx.value()).get();
                 } else {
                     spdlog::error(
@@ -456,6 +456,10 @@ LoadedGltfScene::LoadedGltfScene(
                   "Sampler index not found in texture: {}", tex.name
                 );
             }
+        } else {
+            spdlog::warn(
+              "No ambient occlusion texture found in material: {}", mat.name
+            );
         }
 
         auto mat_inst_ci = PbrMaterialInstanceCreateInfo{

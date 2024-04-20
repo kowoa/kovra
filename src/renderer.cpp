@@ -207,7 +207,7 @@ Renderer::~Renderer()
 auto
 Renderer::update_scene(
   const Camera &camera,
-  const std::span<std::string> &objects_to_render
+  const std::span<std::pair<std::string, glm::mat4>> &objects_to_render
 ) -> DrawContext
 {
     stats.scene_update_time = 0;
@@ -247,12 +247,10 @@ Renderer::update_scene(
                                  .stats = stats };
 
     // Add render objects to be drawn
-    for (const auto &name : objects_to_render) {
+    for (const auto &[name, transform] : objects_to_render) {
         auto renderable = render_resources->get_renderable(name);
         if (renderable.has_value()) {
-            renderable.value().get().queue_draw(
-              glm::identity<glm::mat4>(), draw_ctx
-            );
+            renderable.value().get().queue_draw(transform, draw_ctx);
 
         } else {
             spdlog::warn("Could not find renderable: {}", name);
@@ -271,7 +269,7 @@ Renderer::update_scene(
 void
 Renderer::draw_frame(
   const Camera &camera,
-  const std::span<std::string> &objects_to_render
+  const std::span<std::pair<std::string, glm::mat4>> &objects_to_render
 )
 {
     auto draw_ctx = update_scene(camera, objects_to_render);

@@ -103,7 +103,16 @@ App::run()
 
         draw_imgui();
 
-        std::vector<std::string> objects_to_render{ "DamagedHelmet" };
+        std::vector<std::pair<std::string, glm::mat4>> objects_to_render{
+            { "DamagedHelmet",
+              glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, -1.0f, 0.0f)) },
+            { "DamagedHelmet",
+              glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 1.0f, 0.0f)) },
+            { "DamagedHelmet",
+              glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, -1.0f, 0.0f)) },
+            { "DamagedHelmet",
+              glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f)) }
+        };
         renderer->draw_frame(camera, objects_to_render);
     }
 }

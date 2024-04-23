@@ -31,16 +31,6 @@ struct MaterialInstance
 class Material
 {
   public:
-    Material(
-      vk::UniquePipeline pipeline,
-      vk::UniquePipelineLayout pipeline_layout,
-      const vk::PipelineBindPoint &&pipeline_bind_point
-    )
-      : pipeline(std::move(pipeline))
-      , pipeline_layout(std::move(pipeline_layout))
-      , pipeline_bind_point(std::move(pipeline_bind_point))
-    {
-    }
     Material(const Material &) = delete;
     Material &operator=(const Material &) = delete;
     Material(Material &&rhs) noexcept
@@ -73,9 +63,23 @@ class Material
     ) const;
 
   private:
+    Material(
+      vk::UniquePipeline pipeline,
+      vk::UniquePipelineLayout pipeline_layout,
+      const vk::PipelineBindPoint &&pipeline_bind_point
+    )
+      : pipeline(std::move(pipeline))
+      , pipeline_layout(std::move(pipeline_layout))
+      , pipeline_bind_point(std::move(pipeline_bind_point))
+    {
+    }
+
     vk::UniquePipeline pipeline;
     vk::UniquePipelineLayout pipeline_layout;
     vk::PipelineBindPoint pipeline_bind_point;
+
+    friend class GraphicsMaterialBuilder;
+    friend class ComputeMaterialBuilder;
 };
 
 class GraphicsMaterialBuilder

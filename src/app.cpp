@@ -24,7 +24,7 @@ App::App()
     renderer->load_gltf(
       "./assets/damaged-helmet/DamagedHelmet.glb", "DamagedHelmet"
     );
-    // renderer->load_gltf("./assets/boom-box/BoomBox.glb", "BoomBox");
+    renderer->load_gltf("./assets/boom-box/BoomBox.glb", "BoomBox");
 }
 App::~App()
 {
@@ -104,14 +104,16 @@ App::run()
         draw_imgui();
 
         std::vector<std::pair<std::string, glm::mat4>> objects_to_render{
-            { "DamagedHelmet",
-              glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, -1.0f, 0.0f)) },
-            { "DamagedHelmet",
-              glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 1.0f, 0.0f)) },
-            { "DamagedHelmet",
-              glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, -1.0f, 0.0f)) },
-            { "DamagedHelmet",
-              glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f)) }
+            /*
+                  { "DamagedHelmet",
+                    glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, -1.0f,
+               0.0f)) }, { "DamagedHelmet", glm::translate(glm::mat4(1.0f),
+               glm::vec3(-1.0f, 1.0f, 0.0f)) }, { "DamagedHelmet",
+                    glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, -1.0f,
+               0.0f)) }, { "DamagedHelmet", glm::translate(glm::mat4(1.0f),
+               glm::vec3(1.0f, 1.0f, 0.0f)) }
+              */
+            { "DamagedHelmet", glm::scale(glm::mat4(1.0f), glm::vec3(4.0f)) }
         };
         renderer->draw_frame(camera, objects_to_render);
     }

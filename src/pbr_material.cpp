@@ -38,6 +38,9 @@ PbrMaterial::PbrMaterial(
         .add_binding(
           3, vk::DescriptorType::eCombinedImageSampler, vert_frag_stages
         )
+        .add_binding(
+          4, vk::DescriptorType::eCombinedImageSampler, vert_frag_stages
+        )
         .build_unique(device);
 
     const auto layouts = std::array{ scene_desc_layout, material_layout.get() };
@@ -104,21 +107,28 @@ PbrMaterial::create_material_instance(
     desc_writer->write_image(
       1,
       info.albedo_texture.get_view(),
-      info.albedo_texture.get_sampler(),
+      info.albedo_sampler,
       vk::ImageLayout::eShaderReadOnlyOptimal,
       vk::DescriptorType::eCombinedImageSampler
     );
     desc_writer->write_image(
       2,
       info.metal_rough_texture.get_view(),
-      info.metal_rough_texture.get_sampler(),
+      info.metal_rough_sampler,
       vk::ImageLayout::eShaderReadOnlyOptimal,
       vk::DescriptorType::eCombinedImageSampler
     );
     desc_writer->write_image(
       3,
       info.ambient_occlusion_texture.get_view(),
-      info.ambient_occlusion_texture.get_sampler(),
+      info.ambient_occlusion_sampler,
+      vk::ImageLayout::eShaderReadOnlyOptimal,
+      vk::DescriptorType::eCombinedImageSampler
+    );
+    desc_writer->write_image(
+      4,
+      info.emissive_texture.get_view(),
+      info.emissive_sampler,
       vk::ImageLayout::eShaderReadOnlyOptimal,
       vk::DescriptorType::eCombinedImageSampler
     );

@@ -331,34 +331,17 @@ Frame::draw_render_objects(
     const auto start = std::chrono::system_clock::now();
     //--------------------------------------------------------------------------
 
-    Material *last_material = nullptr;
-    MaterialInstance *last_material_instance = nullptr;
-    vk::Buffer last_index_buffer = nullptr;
-
     auto draw_render_object = [&](const RenderObject &object) {
         if (!object.material_instance) {
             spdlog::error("Material Instance is null");
             return;
         }
 
-        // Update material only if different from last material
-        if (object.material_instance.get() != last_material_instance) {
-            last_material_instance = object.material_instance.get();
-
-            if (object.material_instance->material.get() != last_material) {
-                last_material = object.material_instance->material.get();
-                pass.set_material(object.material_instance->material);
-                pass.set_desc_sets(0, { scene_desc_set });
-            }
-
-            pass.set_desc_sets(1, { object.material_instance->desc_set });
-        }
-
-        // Update index buffer only if different from last index buffer
-        if (object.index_buffer != last_index_buffer) {
-            last_index_buffer = object.index_buffer;
-            pass.set_index_buffer(object.index_buffer);
-        }
+        pass.set_material(object.material_instance->material);
+        pass.set_desc_sets(
+          0, { scene_desc_set, object.material_instance->desc_set }
+        );
+        pass.set_index_buffer(object.index_buffer);
 
         // Update push constants
         pass.set_push_constants(utils::cast_to_bytes(GpuPushConstants{

@@ -110,12 +110,6 @@ void main()
     out_color /= out_color + vec4(1.0f);
     out_color = pow(out_color, vec4(1.0f / 2.2f));
 
-  /*
-    float light_value = max(dot(in_normal, -Scene.sunlight_direction.xyz), 0.1f);
-
-    vec3 color = in_color * texture(albedo_tex, in_uv).xyz;
-    vec3 ambient = color * Scene.ambient_color.xyz;
-
-    out_color = vec4(color * light_value * Scene.sunlight_color.w + ambient, 1.0f);
-  */
+    vec4 emissive = texture(emissive_tex, in_uv);
+    out_color += emissive;
 }

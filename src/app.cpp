@@ -21,10 +21,12 @@ App::App()
 
     // renderer->load_gltf("./assets/basicmesh.glb", "basicmesh");
     // renderer->load_gltf("./assets/structure.glb", "structure");
-    renderer->load_gltf(
-      "./assets/damaged-helmet/DamagedHelmet.glb", "DamagedHelmet"
-    );
-    // renderer->load_gltf("./assets/boom-box/BoomBox.glb", "BoomBox");
+    /*
+      renderer->load_gltf(
+        "./assets/damaged-helmet/DamagedHelmet.glb", "DamagedHelmet"
+      );
+    */
+    renderer->load_gltf("./assets/boom-box/BoomBox.glb", "BoomBox");
 }
 App::~App()
 {
@@ -106,9 +108,10 @@ App::run()
         std::vector<std::pair<std::string, glm::mat4>> objects_to_render;
         for (int x = 0; x < 1; x++) {
             for (int y = 0; y < 1; y++) {
-                objects_to_render.emplace_back(std::pair{
-                  "DamagedHelmet",
-                  glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.0f)) });
+                auto tf =
+                  glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.0f));
+                tf = glm::scale(tf, glm::vec3(100.0f));
+                objects_to_render.emplace_back(std::pair{ "BoomBox", tf });
             }
         }
 

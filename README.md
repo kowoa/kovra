@@ -20,12 +20,13 @@ The reason for this rewrite is it allows me to directly take advantage of C++'s 
 - [x] Frustum culling
 - [x] Mipmapping
 - [x] Multisample anti-aliasing (MSAA)
-- [ ] Metallic-roughness workflow
+- [x] Metallic-roughness workflow
 - [ ] Specular-glossiness workflow
 - [ ] Image-based lighting (IBL)
 - [x] Albedo mapping
 - [ ] Normal mapping
-- [ ] Ambient Occlusion (AO) mapping
+- [x] Ambient Occlusion (AO) mapping
+- [x] Emission mapping
 - [ ] Shadow mapping
 - [ ] Height/displacement mapping
 - [ ] PBR material inspector
